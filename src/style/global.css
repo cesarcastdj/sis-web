@@ -1,0 +1,99 @@
+/* Reset de estilos del navegador */
+@import './variables.css';
+/* Importa las variables CSS */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    font-size: 100%;
+    /* Asegura que el tamaño de fuente sea consistente */
+    line-height: 1.5;
+    /* Mejora la legibilidad */
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+    display: block;
+    max-width: 100%;
+    /* Asegura que las imágenes y videos sean responsivos */
+}
+
+hr {
+    margin: 0;
+}
+
+input,
+button,
+textarea,
+select {
+    font: inherit;
+    /* Hereda las fuentes del elemento padre */
+}
+
+a {
+    text-decoration: none;
+    /* Elimina el subrayado de los enlaces */
+    color: inherit;
+    /* Hereda el color del texto */
+}
+
+ul,
+ol {
+    list-style: none;
+    /* Elimina los estilos de lista predeterminados */
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    /* Ancho máximo del contenedor */
+    margin: 0 auto;
+    /* Centra el contenedor horizontalmente */
+}
+
+::selection {
+    background-color: #a321bd46;
+    /* color: var(--color-light); */
+}
+
+/* Estilos personalizados para la barra de scroll */
+body {
+    scrollbar-width: thin;
+    /* Para navegadores compatibles con scrollbar-width */
+    scrollbar-color: #a321bd94 transparent;
+    /* Color del scroll y fondo transparente */
+}
+
+/* Estilo para navegadores basados en WebKit (Chrome, Edge, Safari) */
+body::-webkit-scrollbar {
+    width: var(--scrollbar-width, 8px);
+    height: var(--scrollbar-height, 8px);
+}
+
+body::-webkit-scrollbar-track {
+    background: transparent;
+    /* Fondo transparente de la barra de scroll */
+}
+
+body::-webkit-scrollbar-thumb {
+    background-color: var(--color-primary);
+    /* Color del pulgar de la barra de scroll */
+    border-radius: 10px;
+    /* Bordes redondeados */
+    border: 2px solid transparent;
+    /* Espaciado interno */
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-secondary);
+    /* Cambia el color al pasar el mouse */
+}

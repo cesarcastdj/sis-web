@@ -1,0 +1,291 @@
+---
+import "../style/welcome.css";
+---
+
+<section class="welcome-contents">
+  <img src="/public/SVG/EllipseFigma.svg" class="welcome-elipce-1 welcome-elipce" />
+  <img src="/public/SVG/EllipseFigma.svg" class="welcome-elipce-2 welcome-elipce" />
+  <div class="welcome-content-info">
+    <div class="welcome-content-title">
+      <div class="welcome-logo">
+        <img src="/public/SVG/Logo-1.svg" />
+      </div>
+      <h1 class="welcome-title">
+        Bienvenidos Al Sistema Que Gestiona Tus Notas
+      </h1>
+      <p class="welcome-content-sub-paragraph">
+        GLLR es un sistema de gestión de notas que permite a los estudiantes
+        llevar un control de sus calificaciones y a los profesores gestionar las
+        notas de sus alumnos, facilitando así el proceso de evaluación y
+        seguimiento del rendimiento académico.
+      </p>
+
+      <button class="welcome-login btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginModal">
+        Ver Mis Notas
+      </button>
+    </div>
+
+    <div class="welcome-content-image">
+      <img src="/public/img/Desktop-Inicio.jpg" class="welcome-image" />
+    </div>
+  </div>
+</section>
+
+<!-- Modal LOGIN -->
+
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <img class="ellipse-login" src="/public/SVG/EllipseFigma.svg" />
+      <div class="modal-body">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <img class="logo-login" src="/public/SVG/Logo-1.svg" />
+        <h5 class="modal-title" id="loginModalLabel">Bienvenido De Nuevo 👋</h5>
+        <p class="login-modal-p">Inicia sesión para empezar la revisión de tus notas.</p>
+        <form id="loginForm">
+          <div class="mb-3">
+            <label for="email" class="form-label">Correo Electrónico</label>
+            <input type="email" class="form-control" id="email" required />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Contraseña</label>
+            <input type="password" class="form-control" id="password" required />
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+        </form>
+        <div class="text-center mt-3">
+          <button class="btn btn-link" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">
+            ¿No tienes cuenta? Regístrate aquí
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal REGISTER -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <img class="ellipse-login" src="/public/SVG/EllipseFigma.svg" />
+      <div class="modal-body">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <img class="logo-login" src="/public/SVG/Logo-1.svg" />
+        <h5 class="modal-title" id="registerModalLabel">Registro de Usuario</h5>
+        <p class="login-modal-p">Verifica tu cédula antes de completar el registro.</p>
+        
+        <form id="registerForm">
+          <!-- Cédula con botón de búsqueda -->
+          <div class="mb-3 d-flex align-items-center gap-2">
+            <div class="flex-grow-1">
+              <label for="registerCedula" class="form-label">Cédula</label>
+              <input type="text" class="form-control" id="registerCedula" required placeholder="Ingrese su cédula" />
+            </div>
+            <button type="button" class="btn btn-secondary" id="buscarCedulaBtn">
+              <i class="bx bx-search"></i> Buscar
+            </button>
+          </div>
+          <small id="cedulaFeedback" class="d-none fw-bold"></small>
+          
+          <!-- Correo y contraseña -->
+          <div class="mb-3">
+            <label for="registerEmail" class="form-label">Correo Electrónico</label>
+            <input type="email" class="form-control" id="registerEmail" required disabled />
+          </div>
+          <div class="mb-3">
+            <label for="registerPassword" class="form-label">Contraseña</label>
+            <input type="password" class="form-control" id="registerPassword" required disabled />
+          </div>
+          
+          <!-- Botón morado corregido -->
+          <button type="submit" class="btn w-100" id="registerBtn" style="background-color: #6f42c1; color: white;" disabled>
+            Completar Registro
+          </button>
+        </form>
+
+        <div class="text-center mt-3">
+          <button class="btn btn-link" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">
+            ¿Ya tienes cuenta? Inicia sesión aquí
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script type="module">
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const cedulaInput = document.getElementById('registerCedula');
+  const buscarCedulaBtn = document.getElementById('buscarCedulaBtn');
+  const passwordInput = document.getElementById('registerPassword');
+  const emailInput = document.getElementById('registerEmail');
+  const cedulaFeedback = document.getElementById('cedulaFeedback');
+  const submitBtn = document.getElementById('registerBtn');
+  let id_usuario = null;  // Guarda el ID del usuario
+
+  // 🛠 Verificar sesión antes de acceder al dashboard
+  document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const response = await fetch('http://localhost:3001/usuario', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+    console.log('🔹 Datos de sesión:', data);
+
+    // 🛠 Si el usuario YA está autenticado, enviarlo directo al dashboard
+    if (data.id && (window.location.pathname === "/" || window.location.pathname === "/welcome")) {
+      console.log('✅ Usuario autenticado, redirigiendo al dashboard...');
+      window.location.href = data.rol === 'admin' ? "/Admin-Control/Admin-home" : "/Students/Students-Control";
+    }
+  } catch (error) {
+    console.error('❌ Error verificando sesión:', error);
+  }
+});
+
+
+
+  document.getElementById('loginForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const correoInput = document.getElementById('email');
+  const contrasenaInput = document.getElementById('password');  // 📌 Verifica que el ID sea correcto
+
+  if (!correoInput || !contrasenaInput) {
+    console.error('❌ Error: No se encontraron los campos de correo o contraseña.');
+    return;
+  }
+
+  const correo = correoInput.value.trim();
+  const contrasena = contrasenaInput.value.trim();
+
+  console.log('🔹 Correo enviado:', correo);
+  console.log('🔹 Contraseña enviada:', contrasena); // ✅ Ahora podemos verificar en la consola
+
+  if (!correo || !contrasena) {
+    alert('Todos los campos son obligatorios.');
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:3001/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correo, contraseña: contrasena })  // 📌 Asegura que `contraseña` se envía
+    });
+
+    const data = await response.json();
+    console.log('🔹 Respuesta del backend:', data);
+
+    if (response.ok) {
+      alert('Inicio de sesión exitoso.');
+      setTimeout(() => {
+        if (data.rol === 'admin') {
+          window.location.href = '/Admin-Control/Admin-home';
+        } else if (data.rol === 'estudiante') {
+          window.location.href = '/Students/Students-Control';
+        }
+      }, 200);
+    } else {
+      alert(data.error);
+    }
+  } catch (error) {
+    alert('Error de conexión al servidor.');
+    console.error(error);
+  }
+});
+
+
+
+ 
+  buscarCedulaBtn.addEventListener('click', async function () {
+    const cedula = cedulaInput.value.trim();
+    if (!cedula) {
+      cedulaFeedback.classList.remove('d-none');
+      cedulaFeedback.textContent = '❌ Debe ingresar una cédula válida.';
+      cedulaFeedback.style.color = 'red';
+      cedulaInput.style.border = '2px solid red';
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/verificar-cedula?cedula=${encodeURIComponent(cedula)}`);
+      const data = await response.json();
+      console.log('Respuesta API:', data);
+
+      if (data.existe) {
+        id_usuario = data.id_usuario;  // ✅ Ahora se guarda correctamente
+        console.log('ID guardado:', id_usuario);
+
+        cedulaInput.style.border = '2px solid #6f42c1';
+        cedulaFeedback.textContent = '✅ Cédula encontrada';
+        cedulaFeedback.style.color = '#6f42c1';
+        cedulaFeedback.classList.remove('d-none');
+
+        emailInput.disabled = false;
+        passwordInput.disabled = false;
+        submitBtn.disabled = false;
+      } else {
+        id_usuario = null;  // 🛠 Resetear si no existe
+        console.log('❌ ID Usuario NULL');
+
+        cedulaInput.style.border = '2px solid red';
+        cedulaFeedback.textContent = '❌ Cédula no encontrada';
+        cedulaFeedback.style.color = 'red';
+        cedulaFeedback.classList.remove('d-none');
+
+        emailInput.disabled = true;
+        passwordInput.disabled = true;
+        submitBtn.disabled = true;
+      }
+    } catch (error) {
+      console.error('Error validando cédula:', error);
+      cedulaFeedback.textContent = 'Error de conexión.';
+      cedulaFeedback.style.color = 'red';
+      cedulaFeedback.classList.remove('d-none');
+    }
+  });
+
+  document.getElementById('registerForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const correo = emailInput.value.trim();
+    const contraseña = passwordInput.value.trim();
+
+    console.log('Datos enviados:', { id_usuario, correo, contraseña }); // 🔹 Verificar datos antes de envío
+
+    if (!id_usuario || !correo || !contraseña) {
+      alert('Todos los campos son obligatorios.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3001/registrar-credenciales', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_usuario, correo, contraseña })
+      });
+
+      const data = await response.json();
+      console.log('Respuesta del backend:', data); // 🔹 Verifica qué responde el servidor
+
+      if (response.ok) {
+        alert('Usuario registrado exitosamente. Inicia sesión.');
+        bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+        new bootstrap.Modal(document.getElementById('loginModal')).show();
+      } else {
+        alert(data.error);
+      }
+    } catch (error) {
+      alert('Error de conexión.');
+      console.error(error);
+    }
+  });
+
+</script>

@@ -1,0 +1,745 @@
+---
+import "../../style/style-admin/data-table.css";
+import "../../style/style-admin/Matricula.css";
+---
+
+<section class="data-content-section">
+  <!-- Sección de búsqueda -->
+  <section class="search-content-data">
+    <div class="welcome-search-data">
+      <h2 class="welcome-search-data__title">Profesores</h2>
+    </div>
+  </section>
+
+  <!-- Informacion de la matriculacion -->
+  <section class="content-info-data">
+    <section class="data-general-control">
+      <div class="registro-control">
+        <h5 class="estudiantes-registrados">Profesores Registrados</h5>
+        <span>05</span>
+        <div class="btn-accion-control">
+          <!-- Botón para abrir el modal de agregar estudiantes -->
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#modalAgregar"
+          >
+            <i class="bx bxs-user-plus"></i> Agregar Profesores
+          </button>
+          <!-- Botón para abrir el modal de editar estudiantes -->
+          <button
+            type="button"
+            class="btn btn-warning"
+            data-bs-toggle="modal"
+            data-bs-target="#modalEditar"
+          >
+            <i class="bx bxs-edit-alt"></i> Editar Profesores
+          </button>
+        </div>
+      </div>
+
+      <div class="registro-control-flex">
+        <div class="registro-control">
+          <h5 class="estudiantes-registrados">Profesores Activos</h5>
+          <span>05</span>
+        </div>
+        <div class="registro-control">
+          <h5 class="estudiantes-registrados">Profesores Inactivos</h5>
+          <span>05</span>
+        </div>
+      </div>
+    </section>
+    <!-- Primera tabla -->
+    <section class="display-table">
+      <div class="content-table1">
+        <div class="table-person">
+          <button
+            class="btn btn-primary d-flex align-items-center gap-2 toggle-icon"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#table1"
+            aria-expanded="false"
+            aria-controls="table1"
+          >
+            <i class="bx bx-chevron-down"></i>
+            <h4 class="m-0">Datos Personales</h4>
+          </button>
+        </div>
+        <div class="type-data">
+            <span>Matriculación Actual / <strong>5 - Alumnos</strong></span>
+        </div>
+      </div>
+
+      <div class="collapse" id="table1">
+        <div class="tabla-info-person">
+          <table class="blueTable">
+            <thead>
+              <tr>
+                <th scope="col">Nº</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Apellido</th>
+                <th scope="col">C.I.</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Periodo Académico</th>
+                <th scope="col">Conexiones</th>
+                <th scope="col">Última Conexión</th>
+                <th scope="col"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>Juan</td>
+                <td>Linares</td>
+                <td>123455678</td>
+                <td>Activo</td>
+                <td>2020 | 2025</td>
+                <td>15</td>
+                <td>15/04/2025</td>
+                <td class="menu-container">
+                  <i class="bx bx-dots-vertical-rounded"></i>
+                  <ul class="submenu">
+                    <li>
+                      <a href="#"><i class="bx bx-edit-alt"></i>Editar</a>
+                    </li>
+                    <li>
+                      <a href="#"><i class="bx bx-trash"></i>Eliminar</a>
+                    </li>
+                    <li>
+                      <a href="#"
+                        ><i class="bx bxs-user-detail"></i>Ver Detalles</a
+                      >
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>María</td>
+                <td>Gómez</td>
+                <td>987654321</td>
+                <td>Inactivo</td>
+                <td>2019 | 2024</td>
+                <td>10</td>
+                <td>14/04/2025</td>
+                <td class="menu-container">
+                  <i class="bx bx-dots-vertical-rounded"></i>
+                  <ul class="submenu">
+                    <li>
+                      <a href="#"><i class="bx bx-edit-alt"></i>Editar</a>
+                    </li>
+                    <li>
+                      <a href="#"><i class="bx bx-trash"></i>Eliminar</a>
+                    </li>
+                    <li>
+                      <a href="#"
+                        ><i class="bx bxs-user-detail"></i>Ver Detalles</a
+                      >
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>María</td>
+                <td>Gómez</td>
+                <td>987654321</td>
+                <td>Inactivo</td>
+                <td>2019 | 2024</td>
+                <td>10</td>
+                <td>14/04/2025</td>
+                <td class="menu-container">
+                  <i class="bx bx-dots-vertical-rounded"></i>
+                  <ul class="submenu">
+                    <li>
+                      <a href="#"><i class="bx bx-edit-alt"></i>Editar</a>
+                    </li>
+                    <li>
+                      <a href="#"><i class="bx bx-trash"></i>Eliminar</a>
+                    </li>
+                    <li>
+                      <a href="#"
+                        ><i class="bx bxs-user-detail"></i>Ver Detalles</a
+                      >
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>María</td>
+                <td>Gómez</td>
+                <td>987654321</td>
+                <td>Inactivo</td>
+                <td>2019 | 2024</td>
+                <td>10</td>
+                <td>14/04/2025</td>
+                <td class="menu-container">
+                  <i class="bx bx-dots-vertical-rounded"></i>
+                  <ul class="submenu">
+                    <li>
+                      <a href="#"><i class="bx bx-edit-alt"></i>Editar</a>
+                    </li>
+                    <li>
+                      <a href="#"><i class="bx bx-trash"></i>Eliminar</a>
+                    </li>
+                    <li>
+                      <a href="#"
+                        ><i class="bx bxs-user-detail"></i>Ver Detalles</a
+                      >
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>María</td>
+                <td>Gómez</td>
+                <td>987654321</td>
+                <td>Inactivo</td>
+                <td>2019 | 2024</td>
+                <td>10</td>
+                <td>14/04/2025</td>
+                <td class="menu-container">
+                  <i class="bx bx-dots-vertical-rounded"></i>
+                  <ul class="submenu">
+                    <li>
+                      <a href="#"><i class="bx bx-edit-alt"></i>Editar</a>
+                    </li>
+                    <li>
+                      <a href="#"><i class="bx bx-trash"></i>Eliminar</a>
+                    </li>
+                    <li>
+                      <a href="#"
+                        ><i class="bx bxs-user-detail"></i>Ver Detalles</a
+                      >
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </section>
+</section>
+
+
+<!-- Modal para Agregar Estudiantes -->
+<div class="modal fade" id="modalAgregar" tabindex="-1" aria-labelledby="modalAgregarLabel" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Registro de Estudiantes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formRegistroEstudiante">
+          <!-- 🔹 Información Personal -->
+          <h6 class="section-title">Información Personal</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="cedula" class="form-label">Cédula <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="cedula" placeholder="Ingrese su cédula" required />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="primerNombre" class="form-label">Primer Nombre <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="primerNombre" placeholder="Ingrese su primer nombre" required />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="segundoNombre" class="form-label">Segundo Nombre</label>
+              <input type="text" class="form-control" id="segundoNombre" placeholder="Ingrese su segundo nombre" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="primerApellido" class="form-label">Primer Apellido <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="primerApellido" placeholder="Ingrese su primer apellido" required />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="segundoApellido" class="form-label">Segundo Apellido</label>
+              <input type="text" class="form-control" id="segundoApellido" placeholder="Ingrese su segundo apellido" />
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="telefono" class="form-label">Teléfono <span class="campo-obligatorio">*</span></label>
+                <div class="d-flex align-items-center gap-2">
+                  <select class="form-select codigo-area" style="width: 80px;" required>
+                    <option value="0412">0412</option>
+                    <option value="0422">0422</option>
+                    <option value="0424">0424</option>
+                    <option value="0414">0414</option>
+                    <option value="0416">0416</option>
+                    <option value="0426">0426</option>
+                  </select>
+                  <span class="separador-telefono">-</span>
+                  <input 
+                    type="tel" 
+                    class="form-control numero-telefono" 
+                    placeholder="1234567" 
+                    pattern="[0-9]{7}" 
+                    title="Debe contener 7 dígitos" 
+                    required
+                    style="flex-grow: 1;"
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+          <!-- 🔹 Ubicación -->
+          <h6 class="section-title mt-4">Ubicación</h6>
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label for="direccion" class="form-label">Dirección <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="direccion" placeholder="Ingrese su dirección" required />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="estado" class="form-label">Estado <span class="text-danger">*</span></label>
+              <select class="form-select" id="estado" required>
+                   <option value="" selected disabled>Seleccione un estado</option>
+              </select>
+              <div class="invalid-feedback">Por favor, seleccione un estado</div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="ciudad" class="form-label">Ciudad <span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="ciudad" required disabled>
+                <option value="" selected disabled>Primero seleccione un estado</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 🔹 Información Académica -->
+          <h6 class="section-title mt-4">Información Académica</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="curso" class="form-label">Curso <span class="text-danger">*</span></label>
+              <select class="form-select" id="curso" required>
+                <option value="" selected disabled>Seleccione un curso</option>
+              </select>
+              <div class="invalid-feedback">Por favor seleccione un curso</div>
+            </div>
+      
+            <div class="col-md-6 mb-3">
+              <label for="materias" class="form-label">Materias <span class="text-danger">*</span></label>
+              <select class="form-select" id="materias" required disabled>
+                <option value="" selected disabled>Primero seleccione un curso</option>
+              </select>
+              <div class="invalid-feedback">Seleccione una materia</div>
+            </div>
+          </div>
+        
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="seccion" class="form-label">Sección <span class="text-danger">*</span></label>
+              <select class="form-select" id="seccion" required>
+                <option value="" selected disabled>Seleccione una sección</option>
+                <!-- Opciones dinámicas o estáticas aquí -->
+              </select>
+              <div class="invalid-feedback">Por favor seleccione una sección</div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+              <label for="rol" class="form-label">Rol <span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="rol" required>
+                <option value="" selected disabled>Seleccione un rol</option>
+                <option value="admin">Profesor</option>
+                <option value="estudiante">Estudiante</option>
+              </select>
+            </div>
+          </div>
+
+
+          <!-- 🔹 Botones -->
+          <div class="d-flex justify-content-between mt-4">
+            <button type="reset" class="btn btn-secondary">Limpiar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function() {
+  // Elementos del formulario
+  const formRegistro = document.getElementById('formRegistroEstudiante');
+  const estadoSelect = document.getElementById('estado');
+  const ciudadSelect = document.getElementById('ciudad');
+  const seccionSelect = document.getElementById('seccion');
+  const cedulaInput = document.getElementById('cedula');
+  const btnLimpiar = formRegistro.querySelector('button[type="reset"]');
+  const btnGuardar = formRegistro.querySelector('button[type="submit"]');
+  const codigoAreaSelect = document.querySelector('.codigo-area');
+  const numeroTelefonoInput = document.querySelector('.numero-telefono');
+  const cursoSelect = document.getElementById('curso');
+  const materiasSelect = document.getElementById('materias');
+  const rolSelect = document.getElementById('rol');
+
+  // Cargar datos al abrir el modal
+  document.getElementById('modalAgregar').addEventListener('shown.bs.modal', function() {
+    cargarEstados();
+    cargarCursos();
+    cargarSecciones();
+  });
+
+  // Función para cargar estados
+  async function cargarEstados() {
+    estadoSelect.disabled = true;
+    estadoSelect.innerHTML = '<option value="" selected disabled>Cargando estados...</option>';
+    
+    try {
+      const response = await fetch('http://localhost:3001/api/estados');
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      
+      const estados = await response.json();
+      
+      estadoSelect.innerHTML = '<option value="" selected disabled>Seleccione un estado</option>';
+      estados.forEach(estado => {
+        const option = document.createElement('option');
+        option.value = estado.id_estado;
+        option.textContent = estado.estados;
+        estadoSelect.appendChild(option);
+      });
+      
+      estadoSelect.disabled = false;
+    } catch (error) {
+      console.error('Error cargando estados:', error);
+      estadoSelect.innerHTML = '<option value="" selected disabled>Error al cargar estados</option>';
+      mostrarErrorAlUsuario('Error al cargar estados. Intente recargar la página.');
+    }
+  }
+
+  // Función para cargar cursos
+  async function cargarCursos() {
+    cursoSelect.disabled = true;
+    cursoSelect.innerHTML = '<option value="" selected disabled>Cargando cursos...</option>';
+    
+    try {
+      const response = await fetch('http://localhost:3001/api/cursos');
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      
+      const cursos = await response.json();
+      
+      cursoSelect.innerHTML = '<option value="" selected disabled>Seleccione un curso</option>';
+      cursos.forEach(curso => {
+        const option = document.createElement('option');
+        option.value = curso.id_curso;
+        option.textContent = curso.curso;
+        cursoSelect.appendChild(option);
+      });
+      
+      cursoSelect.disabled = false;
+    } catch (error) {
+      console.error('Error cargando cursos:', error);
+      cursoSelect.innerHTML = '<option value="" selected disabled>Error al cargar cursos</option>';
+      mostrarErrorAlUsuario('Error al cargar cursos. Intente recargar la página.');
+    }
+  }
+
+  // Función para cargar materias por curso
+  async function cargarMateriasPorCurso(cursoId) {
+    materiasSelect.innerHTML = '<option value="" selected disabled>Cargando materias...</option>';
+    materiasSelect.disabled = true;
+    
+    if (!cursoId) {
+      materiasSelect.innerHTML = '<option value="" selected disabled>Seleccione un curso primero</option>';
+      return;
+    }
+    
+    try {
+      const response = await fetch(`http://localhost:3001/api/cursos/${cursoId}/materias`);
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      
+      const materias = await response.json();
+      
+      materiasSelect.innerHTML = '<option value="" selected disabled>Seleccione materias</option>';
+      
+      if (materias.length === 0) {
+        materiasSelect.innerHTML = '<option value="" disabled>No hay materias para este curso</option>';
+      } else {
+        materias.forEach(materia => {
+          const option = document.createElement('option');
+          option.value = materia.id_materia;
+          option.textContent = materia.materia;
+          materiasSelect.appendChild(option);
+        });
+        materiasSelect.disabled = false;
+      }
+    } catch (error) {
+      console.error('Error cargando materias:', error);
+      materiasSelect.innerHTML = '<option value="" selected disabled>Error al cargar materias</option>';
+      mostrarErrorAlUsuario('Error al cargar materias. Intente nuevamente.');
+    }
+  }
+
+  // Función para cargar secciones
+  async function cargarSecciones() {
+  seccionSelect.innerHTML = '<option value="" selected disabled>Cargando secciones...</option>';
+  seccionSelect.disabled = true;
+  
+  try {
+    const response = await fetch('http://localhost:3001/api/secciones');
+    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+    
+    const secciones = await response.json();
+    
+    seccionSelect.innerHTML = '<option value="" selected disabled>Seleccione una sección</option>';
+    
+    if (secciones.length === 0) {
+      seccionSelect.innerHTML = '<option value="" disabled>No hay secciones disponibles</option>';
+    } else {
+      secciones.forEach(seccion => {
+        const option = document.createElement('option');
+        option.value = seccion.id_seccion;
+        option.textContent = seccion.seccion;
+        seccionSelect.appendChild(option);
+      });
+      seccionSelect.disabled = false;
+    }
+  } catch (error) {
+    console.error('Error cargando secciones:', error);
+    seccionSelect.innerHTML = '<option value="" selected disabled>Error al cargar secciones</option>';
+    mostrarErrorAlUsuario('Error al cargar secciones. Intente nuevamente.');
+  }
+}
+
+  // Event listeners
+  estadoSelect.addEventListener('change', async function() {
+    const estadoId = this.value;
+    ciudadSelect.innerHTML = '<option value="" selected disabled>Cargando ciudades...</option>';
+    ciudadSelect.disabled = true;
+    
+    if (!estadoId) return;
+    
+    try {
+      const response = await fetch(`http://localhost:3001/api/estados/${estadoId}/ciudades`);
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      
+      const ciudades = await response.json();
+      
+      ciudadSelect.innerHTML = '<option value="" selected disabled>Seleccione una ciudad</option>';
+      ciudades.forEach(ciudad => {
+        const option = document.createElement('option');
+        option.value = ciudad.id_ciudad;
+        option.textContent = ciudad.ciudad;
+        ciudadSelect.appendChild(option);
+      });
+      
+      ciudadSelect.disabled = false;
+    } catch (error) {
+      console.error('Error cargando ciudades:', error);
+      ciudadSelect.innerHTML = '<option value="" selected disabled>Error al cargar ciudades</option>';
+      mostrarErrorAlUsuario('Error al cargar ciudades. Intente nuevamente.');
+    }
+  });
+
+  cursoSelect.addEventListener('change', function() {
+    cargarMateriasPorCurso(this.value);
+  });
+
+  // Validar cédula al perder foco
+  cedulaInput.addEventListener('blur', async function() {
+    const cedula = this.value.trim();
+    if (!cedula) return;
+    
+    try {
+      const response = await fetch(`http://localhost:3001/api/verificar-cedula?cedula=${encodeURIComponent(cedula)}`);
+      if (!response.ok) throw new Error('Error al verificar cédula');
+      
+      const data = await response.json();
+      if (data.existe) {
+        mostrarError(cedulaInput, 'Esta cédula ya está registrada en el sistema');
+        this.focus();
+      } else {
+        limpiarError(cedulaInput);
+      }
+    } catch (error) {
+      console.error('Error verificando cédula:', error);
+      mostrarError(cedulaInput, 'Error al verificar la cédula');
+    }
+  });
+
+  // Validar número de teléfono
+  numeroTelefonoInput.addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '').slice(0, 7);
+    if (this.value.length !== 7) {
+      mostrarError(this, 'Debe contener 7 dígitos');
+    } else {
+      limpiarError(this);
+    }
+  });
+
+  // Manejar botón Limpiar
+  btnLimpiar.addEventListener('click', function() {
+    estadoSelect.selectedIndex = 0;
+    ciudadSelect.innerHTML = '<option value="" selected disabled>Primero seleccione un estado</option>';
+    ciudadSelect.disabled = true;
+    cursoSelect.selectedIndex = 0;
+    materiasSelect.innerHTML = '<option value="" selected disabled>Primero seleccione un curso</option>';
+    materiasSelect.disabled = true;
+    seccionSelect.selectedIndex = -1;
+    
+    document.querySelectorAll('.is-invalid').forEach(el => {
+      el.classList.remove('is-invalid');
+    });
+    document.querySelectorAll('.invalid-feedback').forEach(el => {
+      el.style.display = 'none';
+    });
+  });
+
+  // Manejar envío del formulario
+  formRegistro.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Validar campos obligatorios
+    const camposRequeridos = [
+      { input: cedulaInput, nombre: 'Cédula' },
+      { input: document.getElementById('primerNombre'), nombre: 'Primer Nombre' },
+      { input: document.getElementById('primerApellido'), nombre: 'Primer Apellido' },
+      { input: document.getElementById('direccion'), nombre: 'Dirección' },
+      { input: estadoSelect, nombre: 'Estado' },
+      { input: ciudadSelect, nombre: 'Ciudad' },
+      { input: cursoSelect, nombre: 'Curso' },
+      { input: materiasSelect, nombre: 'Materias' },
+      { input: seccionSelect, nombre: 'Secciones' },
+      { input: rolSelect, nombre: 'Rol' },
+      { input: numeroTelefonoInput, nombre: 'Teléfono' }
+    ];
+
+    let formularioValido = true;
+    
+    camposRequeridos.forEach(campo => {
+      if (!campo.input.value || (campo.input.multiple && campo.input.selectedOptions.length === 0)) {
+        mostrarError(campo.input, `El campo ${campo.nombre} es obligatorio`);
+        formularioValido = false;
+      } else {
+        limpiarError(campo.input);
+      }
+    });
+
+    // Validar formato de teléfono
+    if (!/^\d{4}-\d{7}$/.test(`${codigoAreaSelect.value}-${numeroTelefonoInput.value}`)) {
+      mostrarError(numeroTelefonoInput, 'El teléfono debe tener formato 0412-1234567');
+      formularioValido = false;
+    }
+
+    if (!formularioValido) return;
+
+    // Mostrar loading en el botón
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = `
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      Registrando...
+    `;
+
+    try {
+      // Obtener valores del formulario
+      const formData = {
+        cedula: cedulaInput.value.trim(),
+        primerNombre: document.getElementById('primerNombre').value.trim(),
+        segundoNombre: document.getElementById('segundoNombre').value.trim(),
+        primerApellido: document.getElementById('primerApellido').value.trim(),
+        segundoApellido: document.getElementById('segundoApellido').value.trim(),
+        telefono: `${codigoAreaSelect.value}-${numeroTelefonoInput.value}`,
+        direccion: document.getElementById('direccion').value.trim(),
+        id_estado: estadoSelect.value,
+        id_ciudad: ciudadSelect.value,
+        materias: Array.from(materiasSelect.selectedOptions).map(opt => opt.value),
+        cursos: [cursoSelect.value], // Array con el curso seleccionado
+        secciones: Array.from(seccionSelect.selectedOptions).map(opt => opt.value),
+        rol: rolSelect.value,
+        id_nivel: 2 // Valor por defecto (ajustar según tu lógica)
+      };
+
+      // Enviar datos al servidor
+      const response = await fetch('http://localhost:3001/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al registrar el usuario');
+      }
+
+      // Mostrar mensaje de éxito
+      mostrarMensajeExito('Usuario registrado exitosamente');
+      
+      // Cerrar modal y recargar después de 1.5 segundos
+      setTimeout(() => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregar'));
+        modal.hide();
+        location.reload();
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error en el registro:', error);
+      mostrarError(btnGuardar, error.message);
+    } finally {
+      // Restaurar botón
+      btnGuardar.disabled = false;
+      btnGuardar.textContent = 'Guardar';
+    }
+  });
+
+  // Funciones auxiliares
+  function mostrarError(elemento, mensaje) {
+    elemento.classList.add('is-invalid');
+    const errorElement = elemento.nextElementSibling || elemento.parentNode.querySelector('.invalid-feedback');
+    if (errorElement) {
+      errorElement.textContent = mensaje;
+      errorElement.style.display = 'block';
+    }
+  }
+
+  function limpiarError(elemento) {
+    elemento.classList.remove('is-invalid');
+    const errorElement = elemento.nextElementSibling || elemento.parentNode.querySelector('.invalid-feedback');
+    if (errorElement) {
+      errorElement.style.display = 'none';
+    }
+  }
+
+  function mostrarMensajeExito(mensaje) {
+    const alerta = document.createElement('div');
+    alerta.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+    alerta.style.zIndex = '1100';
+    alerta.textContent = mensaje;
+    document.body.appendChild(alerta);
+    
+    setTimeout(() => {
+      alerta.remove();
+    }, 3000);
+  }
+
+  function mostrarErrorAlUsuario(mensaje) {
+    const alerta = document.createElement('div');
+    alerta.className = 'alert alert-danger position-fixed top-0 end-0 m-3';
+    alerta.style.zIndex = '1100';
+    alerta.textContent = mensaje;
+    document.body.appendChild(alerta);
+    
+    setTimeout(() => {
+      alerta.remove();
+    }, 5000);
+  }
+});
+</script>

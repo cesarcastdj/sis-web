@@ -1,0 +1,32 @@
+{
+  "name": "note-control-management-gllr",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:astro\" \"npm run dev:server\"",
+    "dev:astro": "astro dev",
+    "dev:server": "node server/server.js"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.2.7",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.3",
+    "astro": "^5.8.1",
+    "bcrypt": "^6.0.0",
+    "boostrap": "^2.0.0",
+    "bootstrap": "^5.3.5",
+    "boxicons": "^2.1.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.14.1",
+    "node": "^22.16.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

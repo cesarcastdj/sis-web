@@ -1,0 +1,354 @@
+---
+// Importa tus estilos CSS
+import "../style/NavigationBar.css";
+// Si tu logo está en la carpeta 'public' o 'assets', la ruta es correcta.
+---
+
+<nav class="bar-search">
+  <div class="bar-content">
+    <div class="bar-search__logo">
+      <img src="/public/SVG/Logo-1.svg" alt="Logo del Sistema Escolar" />
+    </div>
+
+    <div class="search" id="search">
+      <input
+        type="text"
+        class="search__input search__input--global"
+        placeholder="Buscar Estudiante..."
+        id="search-input"
+      />
+      <ul id="search-results" class="search-results">
+        <li class="search-result-item">
+          <i class="bx bx-search"></i>Gestión de Usuarios
+        </li>
+        <li class="search-result-item">
+          <i class="bx bx-search"></i>Control de Notas
+        </li>
+        <li class="search-result-item">
+          <i class="bx bx-search"></i>Reportes
+        </li>
+        <li class="search-result-item">
+          <i class="bx bx-search"></i>Configuración
+        </li>
+        <li class="search-result-item"><i class="bx bx-search"></i>Ayuda</li>
+      </ul>
+      <button class="search__button">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="icon icon-tabler icons-tabler-outline icon-tabler-search"
+        >
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+          <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
+          <path d="M21 21l-6 -6"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="icons-nav">
+      <div class="icons-content">
+        <div class="notification-container">
+          <button
+            class="bar-icons btn-icon"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasNotifications"
+            aria-controls="offcanvasNotifications"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-bell"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+              <path
+                d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"
+              ></path>
+              <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
+            </svg>
+            <span class="notification"></span>
+          </button>
+
+          <div
+            class="offcanvas offcanvas-start"
+            data-bs-scroll="true"
+            data-bs-backdrop="false"
+            tabindex="-1"
+            id="offcanvasNotifications"
+            aria-labelledby="offcanvasNotificationsLabel"
+          >
+            <div class="offcanvas-header">
+              <h5 class="offcanvas-title" id="offcanvasNotificationsLabel">
+                Notificaciones
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas"
+                aria-label="Close"
+                ><i class="bx bx-chevrons-left"></i></button
+              >
+            </div>
+
+            <div class="noticatacion-card">
+              <div class="offcanvas-body">
+                <div class="notification-content">
+                  <i class="bx bx-user-circle"></i>
+                </div>
+                <div class="notification-text">
+                  <h6 class="name-user-notifi">
+                    Juan Pérez <span>C.I: 12345678</span>
+                  </h6>
+                  <p class="message-user-notifi">
+                    Profe: ¿está seguro que mi nota en ciencias es 0,5?
+                  </p>
+                </div>
+              </div>
+              <div class="offcanvas-body">
+                <div class="notification-content">
+                  <i class="bx bx-user-circle"></i>
+                </div>
+                <div class="notification-text">
+                  <h6 class="name-user-notifi">
+                    Juan Pérez <span>C.I: 12345678</span>
+                  </h6>
+                  <p class="message-user-notifi">
+                    Profe: ¿está seguro que mi nota en ciencias es 0,5?
+                  </p>
+                </div>
+              </div>
+              <div class="offcanvas-body">
+                <div class="notification-content">
+                  <i class="bx bx-user-circle"></i>
+                </div>
+                <div class="notification-text">
+                  <h6 class="name-user-notifi">
+                    Juan Pérez <span>C.I: 12345678</span>
+                  </h6>
+                  <p class="message-user-notifi">
+                    Profe: ¿está seguro que mi nota en ciencias es 0,5?
+                  </p>
+                </div>
+              </div>
+              <div class="offcanvas-body">
+                <div class="notification-content">
+                  <i class="bx bx-user-circle"></i>
+                </div>
+                <div class="notification-text">
+                  <h6 class="name-user-notifi">
+                    Juan Pérez <span>C.I: 12345678</span>
+                  </h6>
+                  <p class="message-user-notifi">
+                    Profe: ¿está seguro que mi nota en ciencias es 0,5?
+                  </p>
+                </div>
+              </div>
+              <hr />
+              <button class="btn-view-all">Ver todas las notificaciones</button>
+            </div>
+          </div>
+
+          <button class="bar-icons btn-icon">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-user-shield"
+              ><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path
+                d="M6 21v-2a4 4 0 0 1 4 -4h2"></path><path
+                d="M22 16c0 4 -2.5 6 -3.5 6s-3.5 -2 -3.5 -6c1 0 2.5 -.5 3.5 -1.5c1 1 2.5 1.5 3.5 1.5z"
+              ></path><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path></svg
+            >
+          </button>
+
+          <button class="bar-icons btn-icon"
+            ><svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="icon icon-tabler icons-tabler-outline icon-tabler-settings"
+              ><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path
+                d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
+              ></path><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path></svg
+            >
+          </button>
+        </div>
+
+        <img
+          class="Perfil-icons"
+          src="/public/img/foto.jpg"
+          alt="Imagen de perfil de usuario"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#offcanvasWithBothOptions"
+          aria-controls="offcanvasWithBothOptions"
+        />
+
+        <div
+          class="offcanvas offcanvas-start"
+          data-bs-scroll="true"
+          tabindex="-1"
+          id="offcanvasWithBothOptions"
+          aria-labelledby="offcanvasWithBothOptionsLabel"
+        >
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">
+              Perfil
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="offcanvas"
+              aria-label="Close"
+            >
+              <i class="bx bx-chevrons-left"></i>
+            </button>
+          </div>
+          <div class="offcanvas-body-profile">
+            <div class="img-perfil-contetner">
+              <img
+                class="img-perfil"
+                src="/public/img/foto.jpg"
+                alt="Imagen de perfil de usuario"
+              />
+              <i class="bx bx-pencil"></i>
+            </div>
+            <div class="info-person-perfil">
+              <h5 id="nombreUsuario" class="title-perfil">Cargando...</h5>
+              <p id="emailUsuario" class="email-person">Cargando...</p>
+              <span id="rolUsuario" class="type-user">Cargando...</span>
+            </div>            
+            <hr />
+            <div class="edit-close-perfil">
+              <button class="btn-edit-perfil">
+                <i class="bx bx-pencil"></i> Editar
+              </button>
+              <button class="btn-close-perfil" id="logoutButton">
+                <i class="bx bx-log-out"></i> Cerrar Sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script type="module">
+  console.log('Script de NavigationBar.astro cargado.');
+
+  const logoutButton = document.getElementById('logoutButton');
+
+  document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const response = await fetch('http://localhost:3001/usuario', {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (!data.id) {
+      return;
+    }
+
+    // 🔹 Actualizar los datos en la interfaz
+    document.getElementById('nombreUsuario').textContent = `${data.primer_nombre} ${data.primer_apellido}`;
+    document.getElementById('emailUsuario').textContent = data.correo;
+    document.getElementById('rolUsuario').textContent = data.rol;
+  } catch (error) {
+    console.error('❌ Error obteniendo datos del usuario:', error);
+  }
+});
+
+  if (logoutButton) {
+    logoutButton.addEventListener('click', async () => { // Marcamos la función como async
+      console.log('Botón de Cerrar Sesión clicado.');
+      try {
+        // Realizar una petición POST al backend para cerrar la sesión del servidor
+        const response = await fetch('http://localhost:3001/logout', { // Ajusta la URL de tu backend si es diferente
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          // Es importante enviar 'credentials: "include"' para que el navegador incluya la cookie de sesión
+          credentials: 'include' 
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Respuesta del backend al logout:', data.message);
+
+          // Opcional: Elimina cualquier bandera de sesión que tengas en localStorage del frontend
+          // Si no usas 'isLoggedIn' en el frontend, puedes omitir esta línea.
+          localStorage.removeItem('isLoggedIn'); 
+          
+          // Redirige al usuario a la página de inicio o login después del cierre de sesión exitoso
+          window.location.href = '/'; 
+        } else {
+          const errorData = await response.json();
+          console.error('Error al cerrar sesión en el backend:', errorData.error || response.statusText);
+          alert('Error al cerrar sesión. Inténtalo de nuevo.');
+        }
+      } catch (error) {
+        console.error('Error de red o del servidor al cerrar sesión:', error);
+        alert('No se pudo conectar con el servidor para cerrar la sesión.');
+      }
+    });
+  } else {
+    console.warn('El botón con ID "logoutButton" no fue encontrado en el DOM.');
+  }
+
+  // --- Opcional: Para mantener el botón "Cerrar Sesión" oculto si el usuario NO está logueado ---
+  // Si en el futuro decides que el botón SOLO debe aparecer si hay una sesión activa,
+  // puedes usar la siguiente lógica, que requeriría una ruta en el backend para
+  // verificar el estado de la sesión (como tu '/usuario' pero accesible para todos).
+  // Por ahora, como pediste que siempre esté visible, la he comentado.
+  /*
+  function updateLogoutButtonVisibility() {
+      // Necesitarías una forma de saber si el usuario está logueado DESDE EL CLIENTE.
+      // Una opción es hacer una petición a '/usuario' y ver si responde con el usuario.
+      // const logoutButton = document.getElementById('logoutButton'); // Asegúrate que ya está definido
+      // if (logoutButton) {
+      //   fetch('http://localhost:3001/usuario', { credentials: 'include' })
+      //     .then(res => res.ok ? res.json() : Promise.reject('No autenticado'))
+      //     .then(user => {
+      //       logoutButton.style.display = 'block';
+      //       console.log('Botón de Cerrar Sesión visible (sesión activa).');
+      //     })
+      //     .catch(() => {
+      //       logoutButton.style.display = 'none';
+      //       console.log('Botón de Cerrar Sesión oculto (no autenticado).');
+      //     });
+      // }
+  }
+  // updateLogoutButtonVisibility(); // Llama esto al cargar el componente
+  // Y si tienes un evento para cuando el usuario inicia sesión/cierra sesión:
+  // window.addEventListener('authStatusChanged', updateLogoutButtonVisibility);
+  */
+</script>

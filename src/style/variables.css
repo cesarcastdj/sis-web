@@ -1,0 +1,97 @@
+/* Colores */
+:root {
+    /* color text*/
+    --color-primary: #A421BD;
+    /* Color principal */
+    --color-secondary: #EE85FC;
+    /* Color secundario */
+
+    --color-tertiary: #fff;
+    /* Color terciario */
+    --color-quaternary: #191919;
+    /* Color cuaternario */
+    --color-GRIS: #E3E3E3;
+    /* GRIS */
+
+    --color-GRIS-OP: #e3e3e3c1;
+    /* Color con opacidad */
+
+
+    --color-success: #28a745;
+    /* Color para éxito */
+    --color-danger: #dc3545;
+    /* Color para errores */
+    --color-warning: #ffc107;
+    /* Color para advertencias */
+    --color-info: #17a2b8;
+    /* Color para información */
+
+    --theme-light: #f8f9fa;
+    /* Color claro */
+    --theme-dark: #17021A;
+    /* Tema oscuro */
+
+    /* Tipografía */
+    --font-family-titleSub: "Playfair Display", serif;
+    --font-family-Paragraph: "Poppins", sans-serif;
+
+
+    --font-size-title: 2.25rem;
+    /* Tamaño de título */
+    --font-size-title2: 2.625rem;
+    /* Tamaño de título */
+    --font-size-subtitle: 1.25rem;
+    /* Tamaño de subtítulo */
+
+    --font-size-base: 1rem;
+    /* Tamaño base */
+    --font-size-medium-12: 0.75rem;
+    /* Tamaño pequeño */
+    --font-size-medium: 0.875rem;
+    /* Tamaño pequeño */
+    --font-size-large: 1.125rem;
+    /* Tamaño grande */
+
+    /* Espaciado */
+    --spacing-4: 0.25rem;
+    --spacing-8: 0.5rem;
+    --spacing-12: 0.75rem;
+    --spacing-16: 1rem;
+    --spacing-24: 1.5rem;
+    --spacing-34: 2rem;
+    --spacing-40: 2.5rem;
+    --spacing-50: 3.125rem;
+    --spacing-60: 3.75rem;
+
+    --ocpacity-0: 0;
+    --ocpacity-25: 0.25;
+    --ocpacity-50: 0.5;
+    --ocpacity-75: 0.75;
+    --ocpacity-100: 100;
+
+    --font-weight-100: 100;
+    --font-weight-200: 200;
+    --font-weight-300: 300;
+    --font-weight-400: 400;
+    --font-weight-500: 500;
+    --font-weight-600: 600;
+    --font-weight-700: 700;
+    --font-weight-800: 800;
+    --font-weight-900: 900;
+
+    /* Bordes */
+    --border-radius-4: 0.25rem;
+    --border-radius-8: 0.5rem;
+    --border-radius-12: 0.75rem;
+    --border-radius-16: 1rem;
+    --border-radius-24: 1.5rem;
+    --border-radius-50: 3.125rem;
+
+    /* Sombras */
+    --box-shadow-button1: 0 0px 12px rgb(164, 33, 189);
+    --box-shadow-button2: 0 0px 8px rgb(164, 33, 189);
+    --box-shadow-button3: 0 0px 4px rgb(164, 33, 189);
+
+    --box-shadow-button4: 0 0px 4px rgb(227, 227, 227);
+
+}

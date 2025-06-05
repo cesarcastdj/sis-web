@@ -1,0 +1,78 @@
+---
+import "../../style/style-admin/data-table.css";
+import "../../style/style-admin/Matricula.css";
+---
+
+<section class="data-content-section">
+  <section class="search-content-data">
+    <div class="welcome-search-data">
+      <h2 class="welcome-search-data__title">Estudiantes</h2>
+    </div>
+  </section>
+
+  <div class="display-table" id="table1">
+    <div class="tabla-info-person">
+      <table class="blueTable">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Periodo Académico</th>
+            <th scope="col">Cédula</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Apellido</th>
+            <th scope="col">Cursos</th>
+            <th scope="col">Materias</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Última Conexión</th>
+            <th scope="col"></th>
+          </tr>
+        </thead>
+        <tbody id="studentsTableBody"></tbody>
+      </table>
+    </div>
+    <div id="paginationControls" class="pagination"></div>
+  </div>
+</section>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function() {
+    let currentPage = 1;
+    const studentsTableBody = document.getElementById('studentsTableBody');
+    const paginationControls = document.getElementById('paginationControls');
+
+    async function loadStudents(page) {
+      try {
+        const response = await fetch('http://localhost:3001/api/estudiantes?page=' + page);
+        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
+        const data = await response.json();
+        const estudiantes = data.estudiantes;
+        currentPage = data.currentPage;
+
+        studentsTableBody.innerHTML = '';
+
+        estudiantes.forEach((estudiante, index) => {
+          console.log("🔍 Datos recibidos en el frontend:", estudiante); 
+
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${(page - 1) * 10 + index + 1}</td>
+            <td>${estudiante.periodoAcademico || 'Sin periodo'}</td>
+            <td>${estudiante.cedula || ''}</td>
+            <td>${estudiante.nombre || ''}</td>
+            <td>${estudiante.apellido || ''}</td>
+            <td>${estudiante.cursos.join(', ') || 'Sin cursos'}</td>
+            <td>${estudiante.materias.join(', ') || 'Sin materias'}</td>
+            <td>${estudiante.estado || ''}</td>
+            <td>${new Date(estudiante.ultimaConexion).toLocaleDateString() || 'Fecha desconocida'}</td>
+          `;
+          studentsTableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Error al cargar estudiantes:', error);
+      }
+    }
+
+    loadStudents(1);
+  });
+</script>

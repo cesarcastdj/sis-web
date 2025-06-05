@@ -1,0 +1,186 @@
+@import '../global.css';
+@import '../variables.css';
+
+.data-content-section .content-info-data .display-table {
+    padding-bottom: 3rem;
+}
+
+
+.data-content-section .data-general-control {
+    display: flex;
+    /* justify-content: space-between; */
+    gap: 1.5rem;
+    padding: 0.8rem;
+    font-family: var(--font-family-Paragraph);
+}
+
+.data-content-section .data-general-control .registro-control {
+    background: linear-gradient(to bottom, var(--color-secondary) 20%, transparent 80%);
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius-12);
+}
+
+.data-content-section .registro-control h5 {
+    font-size: var(--font-size-base);
+    opacity: var(--ocpacity-50);
+}
+
+.data-content-section .registro-control span {
+    font-size: 1.5rem;
+}
+
+.data-content-section .data-general-control .registro-control-flex {
+    display: flex;
+    gap: 1.5rem;
+    /* flex-direction: column; */
+}
+
+.data-content-section .data-general-control .registro-control .btn-accion-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.data-content-section .data-general-control .registro-control .btn-accion-control button {
+    border: none;
+    padding: 0.8rem 1rem;
+    background: var(--color-primary);
+    color: var(--color-tertiary);
+    width: 100%;
+    border-radius: var(--border-radius-8);
+    display: flex;
+    align-items: center;
+    margin: auto;
+    transition: 0.5s ease-out;
+}
+
+.data-content-section .data-general-control .registro-control .btn-accion-control button:hover {
+    background: var(--color-GRIS);
+    color: var(--color-quaternary);
+}
+
+.data-content-section .data-general-control .registro-control .btn-accion-control button i {
+    margin-right: 0.5rem;
+    font-size: 1.5rem;
+}
+
+
+/* Estilos del modal Agregar Estudiantes*/
+
+.modal-content {
+    background: var(--color-GRIS);
+}
+
+
+.modal-header .btn-close {
+    outline: none;
+}
+
+.modal-header {
+    background: var(--color-primary);
+    color: var(--color-tertiary);
+}
+
+.modal-title {
+    font-weight: var(--font-weight-500);
+    font-size: var(--font-size-subtitle);
+}
+
+.modal-body {
+    padding: 2rem 6rem;
+    font-family: var(--font-family-Paragraph);
+}
+
+
+/* 🔹 Estilos generales para el formulario */
+.modal-body form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 🔹 Label con formato mejorado */
+.modal-body label {
+    font-size: var(--font-size-medium-12);
+    font-weight: var(--font-weight-500);
+    font-family: var(--font-family-Paragraph);
+    color: var(--color-primary);
+}
+
+/* 🔹 Inputs con estilos personalizados */
+.modal-body input:not(.form-check-input),
+.modal-body textarea,
+.modal-body select {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border-radius: var(--border-radius-12);
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+    font-size: var(--font-size--12);
+    font-weight: var(--font-weight-300);
+    font-family: var(--font-family-Paragraph);
+    background: var(--color-GRIS);
+    transition: 0.3s linear;
+}
+
+/* 🔹 Placeholder con opacidad ajustada */
+.modal-body input::placeholder,
+.modal-body textarea::placeholder {
+    color: var(--color-primary);
+    opacity: var(--opacity-50);
+    font-size: var(--font-size-medium-12);
+    font-weight: var(--font-weight-400);
+}
+
+/* 🔹 Estilos al hacer hover en los inputs */
+.modal-body input:hover,
+.modal-body textarea:hover,
+.modal-body select:hover {
+    outline: none;
+    box-shadow: var(--box-shadow-button1);
+}
+
+/* 🔹 Estilos al enfocar el input */
+.modal-body input:focus,
+.modal-body textarea:focus,
+.modal-body select:focus {
+    outline: none;
+    box-shadow: var(--box-shadow-button1);
+}
+
+/* 🔹 Botón con efecto neon */
+/* Estilos mejorados para el botón con efecto de luz neón */
+.modal-body form button {
+    width: 45%;
+    flex-wrap: wrap;
+    margin: 0 auto;
+    padding: 10px 20px;
+    color: var(--color-tertiary);
+    background: var(--color-secondary);
+    border: none;
+    border-radius: var(--border-radius-12);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: 0.3s ease;
+    font-weight: var(--font-weight-300);
+}
+
+.modal-body form button:hover {
+    font-weight: var(--font-weight-500);
+    background: var(--color-primary);
+    color: var(--color-quaternary);
+    box-shadow: var(--box-shadow-button1);
+}
+
+.modal-body form button:focus {
+    font-weight: var(--font-weight-500);
+    outline: none;
+    box-shadow: var(--box-shadow-button1);
+    background: var(--color-secondary);
+}
+
+.campo-obligatorio {
+    color: inherit;
+    font-size: 1rem;
+}

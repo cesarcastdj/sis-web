@@ -1,0 +1,200 @@
+@import './variables.css';
+@import './global.css';
+
+.bar-home-content {
+    display: flex;
+    padding: 1rem 0.5rem;
+    flex-direction: column;
+    justify-content: space-between;
+    /* place-content: center; */
+    height: calc(100vh - 5rem);
+    overflow-y: auto;
+    font-family: var(--font-family-Paragraph);
+}
+
+.bar-home-content .close-sidebar {
+    margin: 0 1rem;
+    cursor: pointer;
+    display: flex;
+    padding: 0.5rem;
+}
+
+.bar-home-content .btn-buttuon-agreagar {
+    margin-bottom: 1.5rem;
+}
+
+.btn-buttuon-agreagar button {
+    background: var(--color-GRIS);
+    color: var(--color-quaternary);
+    padding: var(--spacing-12) var(--spacing-40);
+    border-radius: var(--border-radius-16);
+    border: none;
+    box-shadow: var(--box-shadow-button4);
+    cursor: pointer;
+    transition: 0.3s ease;
+    font-size: var(--font-size-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+}
+
+.btn-buttuon-agreagar button>i {
+    margin-right: var(--spacing-16);
+    font-size: var(--font-size-large);
+}
+
+.btn-buttuon-agreagar button:hover {
+    background: var(--color-primary);
+    color: var(--color-tertiary);
+    box-shadow: var(--box-shadow-button1);
+}
+
+/* list items */
+.bar-home-content .list-bar {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+
+.bar-home-content .list-bar li {
+    font-size: var(--font-size-medium);
+    padding: 0 var(--spacing-16);
+    color: var(--color-tertiary);
+    border-radius: var(--border-radius-16);
+    margin-bottom: 0.5rem;
+    transition: 0.3s ease-out;
+}
+
+.bar-home-content .list-bar ul {
+    padding: 0;
+    margin: 0;
+    display: block;
+}
+
+
+
+.bar-home-content .list-bar .active {
+    background: var(--color-primary);
+    color: var(--color-tertiary);
+    border-radius: var(--border-radius-16);
+    box-shadow: var(--box-shadow-button1);
+}
+
+.bar-home-content .list-bar .list-item:hover {
+    background: var(--color-primary);
+    color: var(--color-tertiary);
+    border-radius: var(--border-radius-16);
+    box-shadow: var(--box-shadow-button1);
+    cursor: pointer;
+}
+
+.bar-home-content .list-bar li > a {
+    display: flex; 
+    align-items: center;
+    padding: var(--spacing-8) var(--spacing-16);
+    width: 100%;
+}
+
+.bar-home-content .list-bar li a > i {
+    margin-right: var(--spacing-12);
+    font-size: 1.3rem;
+}
+
+.list-bar .list-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.list-bar .list-item .joda {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.list-bar .list-item .bx-chevron-down {
+    font-size: 1.2rem;
+    color: var(--color-tertiary);
+    transition: 0.3s ease-out;
+}
+
+.list-bar .list-item .sublist {
+    color: var(--color-tertiary);
+    font-size: var(--font-size-medium-12);
+    border-radius: var(--border-radius-16);
+    overflow: hidden;
+    max-height: 0;
+    transition: 0.3s ease-out;
+}
+
+/* .list-bar .list-item__sub:hover .sublist {
+    padding: var(--spacing-8) var(--spacing-12);
+    max-height: 500px;
+    opacity: 1;
+} */
+
+.list-bar .list-item__sub:focus-within .sublist {
+    padding: var(--spacing-8) var(--spacing-16);
+    max-height: 500px;
+    opacity: 1;
+}
+
+.list-bar .list-item .sublist .sublist-item {
+    transition: 0.3s ease-out;
+    border-radius: var(--border-radius-16);
+}
+
+.list-bar .list-item .sublist .sublist-item:focus {
+    /* display: none; */
+    transition: 0.3s ease-out;
+}
+
+.list-bar .list-item .sublist .sublist-item:hover {
+    display: block;
+    margin-bottom: 0.5rem;
+    border-radius: var(--border-radius-16);
+    background: var(--color-secondary);
+}
+
+.list-bar .list-item .sublist .sublist-item a {
+    display: flex; 
+    align-items: center;
+    padding: var(--spacing-8) var(--spacing-16);
+    width: 100%;
+}
+
+
+/* button minimizar */
+.bar-home-content .close-sidebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--color-primary);
+    border-radius: var(--border-radius-16);
+    color: var(--color-tertiary);
+    font-size: var(--font-size-medium);
+    cursor: pointer;
+    transition: 0.3s ease-out;
+    box-shadow: var(--box-shadow-button1);
+    border: none;
+    padding: var(--spacing-8) var(--spacing-12);
+    margin: 0;
+}
+
+.bar-home-content .close-sidebar>i {
+    font-size: 1.5rem;
+}
+
+.bar-home-content .close-sidebar:hover {
+    background: var(--color-secondary);
+    color: var(--color-tertiary);
+    box-shadow: var(--box-shadow-button1);
+}
+
+.bar-home-content .list-bar .list-item.expanded .sublist {
+    display: block;
+    /* Muestra las sublistas cuando el padre tiene la clase "expanded" */
+    max-height: 500px;
+}
