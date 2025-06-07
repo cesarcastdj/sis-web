@@ -1,15 +1,17 @@
 ---
 // Importa tus estilos CSS
-import "../style/NavigationBar.css";
+import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estilos para los modales y offcanvas.
 // Si tu logo está en la carpeta 'public' o 'assets', la ruta es correcta.
 ---
 
 <nav class="bar-search">
   <div class="bar-content">
+    <!-- Logo del Sistema Escolar -->
     <div class="bar-search__logo">
       <img src="/public/SVG/Logo-1.svg" alt="Logo del Sistema Escolar" />
     </div>
 
+    <!-- Barra de búsqueda -->
     <div class="search" id="search">
       <input
         type="text"
@@ -52,8 +54,10 @@ import "../style/NavigationBar.css";
       </button>
     </div>
 
+    <!-- Contenedor de iconos de navegación (campana, usuario, ajustes) -->
     <div class="icons-nav">
       <div class="icons-content">
+        <!-- Campana de notificaciones con offcanvas -->
         <div class="notification-container">
           <button
             class="bar-icons btn-icon"
@@ -83,6 +87,7 @@ import "../style/NavigationBar.css";
             <span class="notification"></span>
           </button>
 
+          <!-- Offcanvas de notificaciones -->
           <div
             class="offcanvas offcanvas-start"
             data-bs-scroll="true"
@@ -100,158 +105,117 @@ import "../style/NavigationBar.css";
                 class="btn-close"
                 data-bs-dismiss="offcanvas"
                 aria-label="Close"
-                ><i class="bx bx-chevrons-left"></i></button
               >
+                <i class="bx bx-chevrons-left"></i>
+              </button>
             </div>
-
             <div class="noticatacion-card">
-              <div class="offcanvas-body">
-                <div class="notification-content">
-                  <i class="bx bx-user-circle"></i>
-                </div>
-                <div class="notification-text">
-                  <h6 class="name-user-notifi">
-                    Juan Pérez <span>C.I: 12345678</span>
-                  </h6>
-                  <p class="message-user-notifi">
-                    Profe: ¿está seguro que mi nota en ciencias es 0,5?
-                  </p>
-                </div>
-              </div>
-              <div class="offcanvas-body">
-                <div class="notification-content">
-                  <i class="bx bx-user-circle"></i>
-                </div>
-                <div class="notification-text">
-                  <h6 class="name-user-notifi">
-                    Juan Pérez <span>C.I: 12345678</span>
-                  </h6>
-                  <p class="message-user-notifi">
-                    Profe: ¿está seguro que mi nota en ciencias es 0,5?
-                  </p>
-                </div>
-              </div>
-              <div class="offcanvas-body">
-                <div class="notification-content">
-                  <i class="bx bx-user-circle"></i>
-                </div>
-                <div class="notification-text">
-                  <h6 class="name-user-notifi">
-                    Juan Pérez <span>C.I: 12345678</span>
-                  </h6>
-                  <p class="message-user-notifi">
-                    Profe: ¿está seguro que mi nota en ciencias es 0,5?
-                  </p>
-                </div>
-              </div>
-              <div class="offcanvas-body">
-                <div class="notification-content">
-                  <i class="bx bx-user-circle"></i>
-                </div>
-                <div class="notification-text">
-                  <h6 class="name-user-notifi">
-                    Juan Pérez <span>C.I: 12345678</span>
-                  </h6>
-                  <p class="message-user-notifi">
-                    Profe: ¿está seguro que mi nota en ciencias es 0,5?
-                  </p>
-                </div>
-              </div>
-              <hr />
-              <button class="btn-view-all">Ver todas las notificaciones</button>
+              <!-- Aquí se inyectan dinámicamente las notificaciones -->
             </div>
+            <hr />
+            <button class="btn-view-all">Ver todas las notificaciones</button>
           </div>
-
-          <button class="bar-icons btn-icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="icon icon-tabler icons-tabler-outline icon-tabler-user-shield"
-              ><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path
-                d="M6 21v-2a4 4 0 0 1 4 -4h2"></path><path
-                d="M22 16c0 4 -2.5 6 -3.5 6s-3.5 -2 -3.5 -6c1 0 2.5 -.5 3.5 -1.5c1 1 2.5 1.5 3.5 1.5z"
-              ></path><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path></svg
-            >
-          </button>
-
-          <button class="bar-icons btn-icon"
-            ><svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="icon icon-tabler icons-tabler-outline icon-tabler-settings"
-              ><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path
-                d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
-              ></path><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path></svg
-            >
-          </button>
         </div>
 
-        <img
-          class="Perfil-icons"
-          src="/public/img/foto.jpg"
-          alt="Imagen de perfil de usuario"
-          data-bs-toggle="offcanvas"
-          data-bs-target="#offcanvasWithBothOptions"
-          aria-controls="offcanvasWithBothOptions"
-        />
+        <!-- Botón de escudo de usuario (no se le agregó funcionalidad en los scripts) -->
+        <button class="bar-icons btn-icon">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-user-shield"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M6 21v-2a4 4 0 0 1 4 -4h2"></path>
+            <path
+              d="M22 16c0 4 -2.5 6 -3.5 6s-3.5 -2 -3.5 -6c1 0 2.5 -.5 3.5 -1.5c1 1 2.5 1.5 3.5 1.5z"
+            ></path>
+            <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path>
+          </svg>
+        </button>
 
-        <div
-          class="offcanvas offcanvas-start"
-          data-bs-scroll="true"
-          tabindex="-1"
-          id="offcanvasWithBothOptions"
-          aria-labelledby="offcanvasWithBothOptionsLabel"
-        >
-          <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">
-              Perfil
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="offcanvas"
-              aria-label="Close"
-            >
-              <i class="bx bx-chevrons-left"></i>
-            </button>
+        <!-- Botón de configuración (no se le agregó funcionalidad en los scripts) -->
+        <button class="bar-icons btn-icon">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="icon icon-tabler icons-tabler-outline icon-tabler-settings"
+          >
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path
+              d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
+            ></path>
+            <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -8 0"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Imagen de perfil de usuario con offcanvas -->
+      <img
+        class="Perfil-icons"
+        src="/public/img/foto.jpg"
+        alt="Imagen de perfil de usuario"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#offcanvasWithBothOptions"
+        aria-controls="offcanvasWithBothOptions"
+      />
+
+      <!-- Offcanvas de perfil de usuario -->
+      <div
+        class="offcanvas offcanvas-start"
+        data-bs-scroll="true"
+        tabindex="-1"
+        id="offcanvasWithBothOptions"
+        aria-labelledby="offcanvasWithBothOptionsLabel"
+      >
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">
+            Perfil
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="offcanvas"
+            aria-label="Close"
+          >
+            <i class="bx bx-chevrons-left"></i>
+          </button>
+        </div>
+        <div class="offcanvas-body-profile">
+          <div class="img-perfil-contetner">
+            <img
+              class="img-perfil"
+              src="/public/img/foto.jpg"
+              alt="Imagen de perfil de usuario"
+            />
+            <i class="bx bx-pencil"></i>
           </div>
-          <div class="offcanvas-body-profile">
-            <div class="img-perfil-contetner">
-              <img
-                class="img-perfil"
-                src="/public/img/foto.jpg"
-                alt="Imagen de perfil de usuario"
-              />
-              <i class="bx bx-pencil"></i>
-            </div>
-            <div class="info-person-perfil">
-              <h5 id="nombreUsuario" class="title-perfil">Cargando...</h5>
-              <p id="emailUsuario" class="email-person">Cargando...</p>
-              <span id="rolUsuario" class="type-user">Cargando...</span>
-            </div>            
-            <hr />
-            <div class="edit-close-perfil">
-              <button class="btn-edit-perfil">
-                <i class="bx bx-pencil"></i> Editar
-              </button>
-              <button class="btn-close-perfil" id="logoutButton">
-                <i class="bx bx-log-out"></i> Cerrar Sesión
-              </button>
-            </div>
+          <div class="info-person-perfil">
+            <h5 id="nombreUsuario" class="title-perfil">Cargando...</h5>
+            <p id="emailUsuario" class="email-person">Cargando...</p>
+            <span id="rolUsuario" class="type-user">Cargando...</span>
+          </div>
+          <hr />
+          <div class="edit-close-perfil">
+            <button class="btn-edit-perfil">
+              <i class="bx bx-pencil"></i> Editar
+            </button>
+            <button class="btn-close-perfil" id="logoutButton">
+              <i class="bx bx-log-out"></i> Cerrar Sesión
+            </button>
           </div>
         </div>
       </div>
@@ -259,96 +223,354 @@ import "../style/NavigationBar.css";
   </div>
 </nav>
 
+<!-- Modal de asignación (modalAsignarUsuario) -->
+<div class="modal fade" id="modalAsignarUsuario" tabindex="-1"
+     aria-labelledby="modalAsignarUsuarioLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body">
+        <button type="button" class="btn-close"
+                data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <!-- Logo GLLR -->
+        <img class="logo-login" src="/public/SVG/Logo-1.svg" alt="GLLR Logo">
+        <h5 class="modal-title" id="modalAsignarUsuarioLabel">
+          Completar registro de usuario
+        </h5>
+        <p class="login-modal-p">Asigna el rol y los detalles para este nuevo usuario.</p>
+
+        <form id="formAsignacionUsuario">
+          <input type="hidden" id="inputIdNotificacion" name="id_notificacion" />
+          <input type="hidden" id="inputIdUsuario" name="id_usuario" />
+          <div class="mb-3">
+            <label class="form-label section-title">Usuario:</label>
+            <p id="infoUsuario" class="fw-bold"></p>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="rolSelect" class="form-label">Rol <span class="campo-obligatorio">*</span></label>
+              <select id="rolSelect" name="rol" class="form-select" required>
+                <option value="" disabled selected>Selecciona un rol</option>
+                <option value="profesor">Profesor</option>
+                <option value="estudiante">Estudiante</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="seccionesSelect" class="form-label">Secciones <span class="campo-obligatorio">*</span></label>
+              <select id="seccionesSelect" name="secciones" class="form-select" required>
+                <option value="" disabled selected>Seleccione una sección</option>
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-4">
+              <label for="cursosSelect" class="form-label">Cursos <span class="campo-obligatorio">*</span></label>
+              <select id="cursosSelect" name="cursos" class="form-select" required>
+                <option value="" disabled selected>Seleccione un curso</option>
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-12">
+              <label for="materiasSelect" class="form-label">Materias <span class="campo-obligatorio">*</span></label>
+              <select id="materiasSelect" name="materias" class="form-select" required>
+                <option value="" disabled selected>Seleccione una materia</option>
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary-custom"
+                data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="btnGuardarAsignacion"
+                class="btn btn-primary-custom">Guardar y procesar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast “Listo” (confirmación de éxito) -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div id="toastConfirmacion"
+       class="toast align-items-center text-white bg-success border-0"
+       role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        ¡Listo! El usuario ha sido procesado.
+      </div>
+      <button type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast" aria-label="Cerrar"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast de Error (para errores de logout u otros) -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div id="toastError"
+       class="toast align-items-center text-white bg-danger border-0"
+       role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toastErrorBody">
+        Hubo un error. Por favor, inténtalo de nuevo.
+      </div>
+      <button type="button"
+              class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast" aria-label="Cerrar"></button>
+    </div>
+  </div>
+</div>
+
+
 <script type="module">
-  console.log('Script de NavigationBar.astro cargado.');
+  // Importa Bootstrap Bundle con Popper para que los offcanvas y modales funcionen
+  import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js';
 
-  const logoutButton = document.getElementById('logoutButton');
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM completamente cargado. Inicializando funciones de navegación.');
+    cargarUsuarioLogueado();
+    cargarNotificaciones();
+    configurarLogout();
+    configurarAsignacion();
+  });
 
-  document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    const response = await fetch('http://localhost:3001/usuario', {
-      method: 'GET',
-      credentials: 'include'
-    });
+  // Función para mostrar un toast de error
+  function mostrarToastError(message = 'Ocurrió un error inesperado.') {
+    const toastErrorEl = document.getElementById('toastError');
+    const toastErrorBody = document.getElementById('toastErrorBody');
+    if (toastErrorBody) {
+      toastErrorBody.textContent = message;
+    }
+    if (toastErrorEl) {
+      const toast = new bootstrap.Toast(toastErrorEl);
+      toast.show();
+    } else {
+      console.error("No se encontró el elemento 'toastError' para mostrar el mensaje:", message);
+    }
+  }
 
-    const data = await response.json();
 
-    if (!data.id) {
+  // 1) Carga datos del usuario logueado en el offcanvas de perfil
+  async function cargarUsuarioLogueado() {
+    try {
+      const res = await fetch('http://localhost:3001/usuario', {
+        method: 'GET',
+        credentials: 'include' // Incluye cookies de sesión
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.id) {
+        // Si la respuesta no es OK o no hay ID de usuario, registra un error y no actualiza la UI
+        console.warn('No se pudo obtener datos del usuario logueado o el usuario no está autenticado.');
+        // Puedes optar por dejar los textos en "Cargando..." o poner "No disponible"
+        return;
+      }
+
+      // Actualiza los datos en la interfaz del perfil
+      document.getElementById('nombreUsuario').textContent = `${data.primer_nombre} ${data.primer_apellido}`;
+      document.getElementById('emailUsuario').textContent = data.correo;
+      document.getElementById('rolUsuario').textContent = data.rol;
+    } catch (error) {
+      console.error('❌ Error obteniendo datos del usuario:', error);
+      // No mostrar toast de error aquí, ya que es una carga inicial y podría ser normal si no hay sesión
+    }
+  }
+
+  // 2) Carga notificaciones pendientes y las inyecta en el offcanvas
+  async function cargarNotificaciones() {
+    const btnBell = document.querySelector('.notification-container button');
+    const dot = btnBell.querySelector('.notification');
+    const container = document.querySelector('.noticatacion-card');
+    container.innerHTML = ''; // Limpia las notificaciones anteriores
+
+    try {
+      const resp = await fetch('http://localhost:3001/api/notificaciones', {
+        credentials: 'include'
+      });
+      const { notificaciones } = await resp.json();
+
+      if (notificaciones.length > 0) {
+        dot.style.display = 'block'; // Muestra el punto si hay notificaciones
+      } else {
+        dot.style.display = 'none'; // Oculta el punto si no hay notificaciones
+        container.innerHTML = `<p class="text-center text-muted p-4">Sin notificaciones pendientes</p>`;
+        return;
+      }
+
+      // Añade las notificaciones dinámicamente
+      notificaciones.forEach(n => {
+        const card = document.createElement('div');
+        card.className = 'offcanvas-body notificacion-item'; // Clase para aplicar estilos
+        card.dataset.notificacionId = n.id_notificacion;
+        card.dataset.usuarioId = n.id_usuario;
+        card.innerHTML = `
+          <div class="notification-content">
+            <i class="bx bx-user-circle"></i>
+          </div>
+          <div class="notification-text">
+            <h6 class="name-user-notifi">
+              ${n.primer_nombre} ${n.primer_apellido} <span>C.I: ${n.cedula}</span>
+            </h6>
+            <p class="message-user-notifi">${n.mensaje}</p>
+          </div>`;
+        // Abre el modal de asignación al hacer clic en la tarjeta de notificación
+        card.addEventListener('click', () => abrirModalAsignacion(n));
+        container.appendChild(card);
+      });
+    } catch (error) {
+      console.error('Error cargando notificaciones:', error);
+      container.innerHTML = `<p class="text-center text-danger p-4">Error al cargar notificaciones.</p>`;
+    }
+  }
+
+  // 3) Abrir modal y poblar selects (para asignación de usuario)
+  async function abrirModalAsignacion({ id_notificacion, id_usuario, primer_nombre, primer_apellido, cedula }) {
+    // Rellena los campos ocultos y la información del usuario en el modal
+    document.getElementById('inputIdNotificacion').value = id_notificacion;
+    document.getElementById('inputIdUsuario').value = id_usuario;
+    document.getElementById('infoUsuario').textContent = `${primer_nombre} ${primer_apellido} — C.I: ${cedula}`;
+
+    // Carga los selects de secciones y cursos
+    await cargarSelect('/api/secciones', 'seccionesSelect');
+    await cargarSelect('/api/cursos', 'cursosSelect');
+
+    // Limpia el select de materias al abrir el modal
+    document.getElementById('materiasSelect').innerHTML = '';
+
+    // Configura el evento change para el select de cursos para cargar materias
+    document.getElementById('cursosSelect').onchange = async e => {
+      const cursoIds = Array.from(e.target.selectedOptions).map(o => o.value);
+      const materias = [];
+      for (let id of cursoIds) {
+        try {
+          const resp = await fetch(`http://localhost:3001/api/cursos/${id}/materias`, { credentials: 'include' });
+          const body = await resp.json();
+          materias.push(...body);
+        } catch (error) {
+          console.error(`Error al cargar materias para el curso ${id}:`, error);
+          mostrarToastError(`No se pudieron cargar las materias para un curso seleccionado.`);
+        }
+      }
+      document.getElementById('materiasSelect').innerHTML = materias
+        .map(m => `<option value="${m.id_materia}">${m.materia}</option>`)
+        .join('');
+    };
+
+    // Muestra el modal de asignación
+    const modalAsignarUsuario = new bootstrap.Modal(document.getElementById('modalAsignarUsuario'));
+    modalAsignarUsuario.show();
+  }
+
+  // 4) Helper para poblar selects (reutilizable)
+  async function cargarSelect(api, selectId) {
+    try {
+      const resp = await fetch(`http://localhost:3001${api}`, { credentials: 'include' });
+      if (!resp.ok) {
+        throw new Error(`Error HTTP: ${resp.status}`);
+      }
+      const items = await resp.json();
+      const sel = document.getElementById(selectId);
+      if (sel) {
+        sel.innerHTML = items
+          .map(it => `<option value="${it[Object.keys(it)[0]]}">${Object.values(it)[1]}</option>`)
+          .join('');
+      } else {
+        console.warn(`Elemento select con ID '${selectId}' no encontrado.`);
+      }
+    } catch (error) {
+      console.error(`Error al cargar el select para ${api}:`, error);
+      mostrarToastError(`No se pudieron cargar las opciones para ${selectId}.`);
+    }
+  }
+
+  // 5) Guardar y procesar asignación de usuario
+  function configurarAsignacion() {
+    const btnGuardar = document.getElementById('btnGuardarAsignacion');
+    if (!btnGuardar) {
+      console.warn('El botón con ID "btnGuardarAsignacion" no fue encontrado en el DOM.');
       return;
     }
 
-    // 🔹 Actualizar los datos en la interfaz
-    document.getElementById('nombreUsuario').textContent = `${data.primer_nombre} ${data.primer_apellido}`;
-    document.getElementById('emailUsuario').textContent = data.correo;
-    document.getElementById('rolUsuario').textContent = data.rol;
-  } catch (error) {
-    console.error('❌ Error obteniendo datos del usuario:', error);
-  }
-});
+    btnGuardar.addEventListener('click', async () => {
+      const id_usuario = parseInt(document.getElementById('inputIdUsuario').value);
+      const id_notificacion = parseInt(document.getElementById('inputIdNotificacion').value);
+      const rol = document.getElementById('rolSelect').value;
+      const secciones = Array.from(document.getElementById('seccionesSelect').selectedOptions).map(o => parseInt(o.value));
+      const cursos = Array.from(document.getElementById('cursosSelect').selectedOptions).map(o => parseInt(o.value));
+      const materias = Array.from(document.getElementById('materiasSelect').selectedOptions).map(o => parseInt(o.value));
 
-  if (logoutButton) {
-    logoutButton.addEventListener('click', async () => { // Marcamos la función como async
-      console.log('Botón de Cerrar Sesión clicado.');
       try {
-        // Realizar una petición POST al backend para cerrar la sesión del servidor
-        const response = await fetch('http://localhost:3001/logout', { // Ajusta la URL de tu backend si es diferente
+        const resp = await fetch('http://localhost:3001/asignar-usuario', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ id_usuario, rol, secciones, cursos, materias })
+        });
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          throw new Error(data.error || `Error en asignación: ${resp.statusText}`);
+        }
+
+        // Mostrar toast “Listo”
+        const toastEl = document.getElementById('toastConfirmacion');
+        if (toastEl) {
+          new bootstrap.Toast(toastEl).show();
+        }
+
+        // Cerrar modal
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById('modalAsignarUsuario'));
+        if (modalInstance) {
+          modalInstance.hide();
+        }
+
+        // Remover notificación procesada de la UI
+        document.querySelector(`.notificacion-item[data-notificacion-id="${id_notificacion}"]`)?.remove();
+        const remaining = document.querySelectorAll('.notificacion-item').length;
+        // Oculta/muestra el punto de notificación
+        document.querySelector('.notification').style.display = remaining > 0 ? 'block' : 'none';
+
+      } catch (error) {
+        console.error('Error al procesar usuario:', error);
+        mostrarToastError(`No se pudo completar el registro: ${error.message}`);
+      }
+    });
+  }
+
+  // 6) Configurar logout
+  function configurarLogout() {
+    const btn = document.getElementById('logoutButton');
+    if (!btn) {
+      console.warn('El botón con ID "logoutButton" no fue encontrado en el DOM.');
+      return;
+    }
+    btn.addEventListener('click', async (event) => {
+      event.preventDefault(); // Evita el comportamiento por defecto del botón
+      try {
+        const response = await fetch('http://localhost:3001/logout', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          // Es importante enviar 'credentials: "include"' para que el navegador incluya la cookie de sesión
-          credentials: 'include' 
+          credentials: 'include'
         });
 
         if (response.ok) {
           const data = await response.json();
           console.log('Respuesta del backend al logout:', data.message);
-
-          // Opcional: Elimina cualquier bandera de sesión que tengas en localStorage del frontend
-          // Si no usas 'isLoggedIn' en el frontend, puedes omitir esta línea.
-          localStorage.removeItem('isLoggedIn'); 
-          
-          // Redirige al usuario a la página de inicio o login después del cierre de sesión exitoso
-          window.location.href = '/'; 
+          // Opcional: Elimina cualquier bandera de sesión que tengas en localStorage
+          localStorage.removeItem('isLoggedIn');
+          // Redirige al usuario
+          window.location.href = '/';
         } else {
           const errorData = await response.json();
           console.error('Error al cerrar sesión en el backend:', errorData.error || response.statusText);
-          alert('Error al cerrar sesión. Inténtalo de nuevo.');
+          mostrarToastError(`Error al cerrar sesión: ${errorData.error || response.statusText}`);
         }
       } catch (error) {
         console.error('Error de red o del servidor al cerrar sesión:', error);
-        alert('No se pudo conectar con el servidor para cerrar la sesión.');
+        mostrarToastError('No se pudo conectar con el servidor para cerrar la sesión.');
       }
     });
-  } else {
-    console.warn('El botón con ID "logoutButton" no fue encontrado en el DOM.');
   }
-
-  // --- Opcional: Para mantener el botón "Cerrar Sesión" oculto si el usuario NO está logueado ---
-  // Si en el futuro decides que el botón SOLO debe aparecer si hay una sesión activa,
-  // puedes usar la siguiente lógica, que requeriría una ruta en el backend para
-  // verificar el estado de la sesión (como tu '/usuario' pero accesible para todos).
-  // Por ahora, como pediste que siempre esté visible, la he comentado.
-  /*
-  function updateLogoutButtonVisibility() {
-      // Necesitarías una forma de saber si el usuario está logueado DESDE EL CLIENTE.
-      // Una opción es hacer una petición a '/usuario' y ver si responde con el usuario.
-      // const logoutButton = document.getElementById('logoutButton'); // Asegúrate que ya está definido
-      // if (logoutButton) {
-      //   fetch('http://localhost:3001/usuario', { credentials: 'include' })
-      //     .then(res => res.ok ? res.json() : Promise.reject('No autenticado'))
-      //     .then(user => {
-      //       logoutButton.style.display = 'block';
-      //       console.log('Botón de Cerrar Sesión visible (sesión activa).');
-      //     })
-      //     .catch(() => {
-      //       logoutButton.style.display = 'none';
-      //       console.log('Botón de Cerrar Sesión oculto (no autenticado).');
-      //     });
-      // }
-  }
-  // updateLogoutButtonVisibility(); // Llama esto al cargar el componente
-  // Y si tienes un evento para cuando el usuario inicia sesión/cierra sesión:
-  // window.addEventListener('authStatusChanged', updateLogoutButtonVisibility);
-  */
 </script>

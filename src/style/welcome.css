@@ -1,21 +1,84 @@
 /* importar variables */
-@import './variables.css';
-@import './global.css';
+@import './variables.css'; /* Asegúrate de que este archivo exista con tus variables */
+@import './global.css'; /* Asegúrate de que este archivo exista con tus estilos globales */
+
+/* Variables de ejemplo si no tienes variables.css y global.css */
+:root {
+    --theme-dark: #1a1a2e;
+    --color-tertiary: #e0e0e0;
+    --color-primary: #8a2be2; /* Un púrpura vibrante */
+    --color-secondary: #4a148c; /* Un púrpura más oscuro */
+    --color-quaternary: #ffffff; /* Blanco */
+    --color-black: #000000; /* Nueva variable para texto negro */
+    --color-pink-hover: #FF69B4; /* Rosa vibrante para el hover */
+    --color-light-grey: #f0f0f0; /* Gris muy claro para el base de los botones */
+    --color-dark-purple: #301934; /* Tono de púrpura oscuro del degradado */
+    --color-gradient-start: #2a0a2f; /* Inicio del degradado oscuro para nav/footer */
+    --color-gradient-end: #6a05ad; /* Fin del degradado, un púrpura más intenso */
+
+    --font-family-Paragraph: 'Inter', sans-serif;
+    --font-family-titleSub: 'Playfair Display', serif;
+
+    --font-size-base: 1rem;
+    --font-size-medium: 1.125rem;
+    --font-size-medium-12: 0.875rem;
+    --font-size-title: 2rem;
+
+    --font-weight-300: 300;
+    --font-weight-400: 400;
+    --font-weight-500: 500;
+    --font-weight-700: 700;
+
+    --ocpacity-75: 0.75;
+    --ocpacity-50: 0.5;
+
+    --border-radius-12: 12px;
+    --border-radius-16: 16px;
+    --border-radius-24: 24px;
+
+    --box-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --box-shadow-button-white-base: 0 0 25px rgba(0, 0, 0, 0.7); /* Aumentada la sombra para MÁS visibilidad */
+    --box-shadow-button-pink-hover: 0 0 40px rgba(255, 105, 180, 1); /* Sombra rosa para hover MÁS INTENSA */
+    --box-shadow-button-gradient: 0 0 30px rgba(106, 5, 173, 0.9); /* Sombra para botones con gradiente MÁS INTENSA */
+}
 
 body {
-    background: var(--theme-dark);
-    color: var(--color-tertiary);
+    /* Degradado de fondo en el body */
+    background: linear-gradient(135deg, #1A1A2E 0%, var(--color-dark-purple) 100%); /* Degradado oscuro de púrpura/negro */
+    color: var(--color-GRIS);
     font-family: var(--font-family-Paragraph);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Evita el scroll horizontal */
+    position: relative;
+    min-height: 100vh; /* Asegura que el body ocupe toda la altura */
+}
+
+/* Estilos para el fondo de imagen difuminada */
+.welcome-background-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/public/img/images.jpg'); /* Asegúrate de que esta ruta sea correcta */
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px) brightness(0.4); /* Ajustado a 0.9 para que sea menos oscuro */
+    z-index: -2; /* Detrás del contenido pero delante de las elipses */
+    pointer-events: none; /* Permite interacciones a través de él */
 }
 
 .welcome-contents {
     width: 100%;
-    height: 100vh;
+    min-height: calc(100vh - 80px); /* Altura de la sección principal menos el footer */
     display: flex;
-    justify-content: center;
+    flex-direction: column; /* Cambiado a columna para el header */
+    justify-content: flex-start; /* Alinea el contenido arriba */
     align-items: center;
     overflow: hidden;
     position: relative;
+    padding-top: 80px; /* Espacio para el header fijo */
 }
 
 .welcome-elipce {
@@ -23,6 +86,8 @@ body {
     width: 32%;
     max-width: 30%;
     z-index: -1;
+    opacity: 0.6; /* Ligeramente más visible */
+    filter: brightness(1.5); /* Más brillante para destacar */
 }
 
 .welcome-elipce-1 {
@@ -35,96 +100,196 @@ body {
     left: -15vw;
 }
 
-.welcome-contents .welcome-content-info {
-    width: 90%;
+/* Barra de navegación (Header) */
+.navbar-gllr {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* Gradiente para el nav */
+    background: linear-gradient(90deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
+    backdrop-filter: blur(15px); /* Más blur */
+    -webkit-backdrop-filter: blur(15px);
+    padding: 1rem 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
+    z-index: 1000; /* Asegura que esté por encima de todo */
+}
+
+.navbar-gllr .container {
+    display: flex; /* Habilitar flexbox */
+    align-items: center;
+    position: relative; /* Necesario para posicionar el logo absolutamente */
+    justify-content: flex-end; /* Por defecto, empuja los botones a la derecha */
     max-width: 1200px;
-    display: flex;
-    margin: auto;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 2rem;
-    margin-top: 4rem;
+    padding: 0 15px;
 }
 
-.welcome-contents .welcome-content-info .welcome-content-title {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 90%;
+.navbar-gllr .navbar-logo {
+    position: absolute; /* Sacar el logo del flujo normal */
+    left: 50%; /* Posicionar a la mitad del contenedor */
+    transform: translateX(-50%); /* Compensar la mitad del ancho del logo para centrarlo realmente */
+    z-index: 2; /* Asegura que el logo esté por encima de otros elementos si se solapan */
 }
 
-.welcome-contents .welcome-content-info .welcome-content-title .welcome-title {
-    font-size: 50px;
+.navbar-gllr .navbar-logo img {
+    max-height: 45px; /* Tamaño del logo en el navbar un poco más grande */
+}
+
+.navbar-gllr .navbar-buttons {
+    z-index: 1; /* Asegura que los botones sean clickeables */
+}
+
+.navbar-gllr .navbar-buttons .btn {
+    padding: 0.7rem 1.4rem; /* Botones un poco más grandes */
+    border-radius: var(--border-radius-12);
+    font-size: var(--font-size-base); /* Tamaño de fuente ligeramente mayor */
     font-weight: var(--font-weight-500);
+    color: var(--color-GRIS);
+    margin-left: 15px; /* Más espaciado */
+    display: inline-flex;
+    align-items: center;
+    gap: 8px; /* Más espacio entre texto e ícono */
+}
+
+/* Estilos para los botones de la barra de navegación (GRADIENTE, TEXTO BLANCO) */
+.btn-nav-gradient-primary {
+    background: linear-gradient(90deg, #6a05ad 0%, #9e00c2 100%); /* Gradiente morado vibrante */
+    color: var(--color-GRIS); /* Texto blanco */
+    border: none;
+    box-shadow: var(--box-shadow-button-gradient); /* Sombra para el gradiente */
+    transition: all 0.3s ease;
+}
+
+.btn-nav-gradient-primary:hover {
+    background: linear-gradient(90deg, #9e00c2 0%, #6a05ad 100%); /* Gradiente inverso al hover */
+    box-shadow: var(--box-shadow-button-pink-hover); /* Sombra rosa para el hover */
+    transform: translateY(-3px) scale(1.02);
+}
+
+.btn-nav-gradient-secondary {
+    background: transparent;
+    color: var(--color-GRIS)    ; /* Texto blanco */
+    border: 2px solid var(--color-GRIS); /* Borde blanco */
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.3); /* Sombra interior suave */
+    transition: all 0.3s ease;
+}
+
+.btn-nav-gradient-secondary:hover {
+    background: var(--color-pink-hover); /* Fondo rosa al pasar el cursor */
+    color: var(--color-black); /* Texto negro al pasar el cursor */
+    border: 2px solid var(--color-pink-hover); /* Borde rosa en hover */
+    box-shadow: var(--box-shadow-button-pink-hover); /* Sombra rosa exterior */
+    transform: translateY(-3px) scale(1.02);
+}
+
+
+/* Estilos de botones personalizados para el Hero y Modales (BLANCOS, TEXTO NEGRO, HOVER ROSA) */
+.btn-primary-custom {
+    background: var(--color-GRIS); /* Fondo blanco */
+    color: var(--color-GRIS);/* Texto negro */
+    border: none;
+    box-shadow: var(--box-shadow-button-white-base); /* Sombra sutil para el blanco */
+    transition: all 0.3s ease;
+}
+
+.btn-primary-custom:hover {
+    background: var(--color-pink-hover); /* Fondo rosa al pasar el cursor */
+    color: var(--color-black); /* Texto negro al pasar el cursor */
+    box-shadow: var(--box-shadow-button-pink-hover); /* Sombra rosa */
+    transform: translateY(-3px) scale(1.02); /* Efecto de "levantar" y crecer ligeramente */
+}
+
+.btn-secondary-custom {
+    background: var(--color-GRIS);
+    color: var(--color-black); /* Texto negro */
+    border: 2px solid var(--color-black); /* Borde negro */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra interior suave */
+    transition: all 0.3s ease;
+}
+
+.btn-secondary-custom:hover {
+    background: var(--color-pink-hover); /* Fondo rosa al pasar el cursor */
+    color: var(--color-black); /* Texto negro al pasar el cursor */
+    border: 2px solid var(--color-pink-hover); /* Borde rosa en hover */
+    box-shadow: var(--box-shadow-button-pink-hover); /* Sombra rosa exterior */
+    transform: translateY(-3px) scale(1.02); /* Efecto de "levantar" y crecer ligeramente */
+}
+
+/* Contenido principal (Hero Section) */
+.welcome-content-info {
+    width: 90%;
+    max-width: 800px; /* Más estrecho para el contenido central */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 1.8rem; /* Más espaciado entre elementos */
+    margin-top: 6rem; /* Ajusta según el tamaño del header y el espacio deseado */
+    position: relative; /* Asegura que esté sobre la imagen de fondo */
+    z-index: 1;
+    padding-bottom: 3rem; /* Espacio antes del footer */
+}
+
+.welcome-content-text {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.welcome-content-info .welcome-title {
+    font-size: 3.8rem; /* Título aún más grande */
+    font-weight: var(--font-weight-700);
     font-family: var(--font-family-titleSub);
-    color: var(--color-tertiary);
+    color: var(--color-tertiary); /* Título blanco */
     margin: 1rem 0;
-    text-align: center;
+    line-height: 1.2; /* Espaciado entre líneas */
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.7), 0 0 40px rgba(138, 43, 226, 0.6); /* Efecto neón más marcado */
 }
 
-.welcome-contents .welcome-content-info .welcome-content-title .welcome-content-sub-paragraph {
-    font-size: var(--font-size-medium);
-    opacity: var(--ocpacity-75);
-    font-weight: var(--var-weight-300);
+.welcome-content-info .welcome-content-sub-paragraph {
+    font-size: 1.25rem; /* Párrafo más grande */
+    opacity: 0.9; /* Mayor opacidad */
+    font-weight: var(--font-weight-300);
     font-family: var(--font-family-Paragraph);
-    color: var(--color-tertiary);
-    text-align: center;
-    margin-bottom: 2.5rem;
+    color: var(--color-GRIS);
+    margin-bottom: 3rem; /* Más espacio */
+    max-width: 650px; /* Limita el ancho del párrafo */
 }
 
-.welcome-contents .welcome-content-info .welcome-content-title .welcome-logo {
-    max-width: 20vh;
+.welcome-content-info .welcome-logo {
+    display: none; /* El logo principal ahora está en el navbar */
 }
 
 .welcome-content-image {
-    width: 100%;
+    display: none; /* La imagen de fondo ahora es CSS */
 }
 
-.welcome-content-image .welcome-image {
-    border-radius: var(--border-radius-16);
-    box-shadow: var(--box-shadow-button2);
+.welcome-action-button {
+    width: 65%; /* Ajusta el ancho de los botones */
+    max-width: 320px;
+    margin-bottom: 1.2rem; /* Más espacio entre los botones */
+    padding: 1rem 2.5rem; /* Botones más grandes */
+    font-size: 1.2rem; /* Texto más grande */
+    font-weight: var(--font-weight-700); /* Texto más negrita */
 }
 
-.welcome-contents .welcome-content-info .welcome-login {
-    width: 40%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    outline: none;
-    border: none;
-    padding: 0.8rem 2rem;
-    background: var(--color-primary);
-    border-radius: var(--border-radius-12);
-    box-shadow: var(--box-shadow-md);
+.welcome-no-account {
     color: var(--color-tertiary);
-    cursor: pointer;
-    font-size: var(--font-size-medium);
-    font-weight: var(--font-weight-500);
-    font-family: var(--font-family-Paragraph);
-    box-shadow: var(--box-shadow-button1);
-}
-
-.welcome-contents .welcome-content-info .welcome-login svg {
-    margin-left: 1rem;
-    width: 20px;
-    height: 20px;
-}
-
-.welcome-contents .welcome-content-info .welcome-login:hover {
-    color: var(--color-quaternary);
-    transition: color 0.3s linear;
+    font-size: var(--font-size-base);
+    margin-top: 1rem;
+    margin-bottom: 0.8rem;
+    opacity: 0.8; /* Ligeramente transparente */
 }
 
 /* ----------------------- */
+/* MODAL LOGIN & REGISTER */
 
-/* MODAL LOGIN */
-
-/* Animación personalizada para el modal */
 .modal.fade .modal-dialog {
     transform: translateY(100%);
-    transition: transform 0.3s linear;
+    transition: transform 0.4s ease-out; /* Transición un poco más larga */
 }
 
 .modal.fade.show .modal-dialog {
@@ -135,87 +300,103 @@ body {
     overflow: hidden;
 }
 
+/* Estilo general para todos los modal-dialog */
 .modal-dialog {
-    max-width: 650px;
+    max-width: 550px; /* Reducido para un modal más compacto */
     margin: 1.75rem auto;
     padding: 0 1rem;
 }
 
+/* Sobrescribir para el modal-fullscreen si es necesario */
+.modal-dialog.modal-fullscreen {
+    max-width: 100vw; /* Ocupa todo el ancho */
+    width: 100vw; /* Asegura el 100% del ancho */
+    height: 100vh; /* Ocupa todo el alto */
+    margin: 0; /* Elimina márgenes */
+    padding: 0; /* Elimina padding */
+}
+/* Estilo para modal-lg (para el nuevo formulario de registro) */
+.modal-dialog.modal-lg {
+    max-width: 800px; /* Tamaño más grande para el formulario de registro */
+}
+
+
 .modal-content {
     border-radius: var(--border-radius-24);
-    box-shadow: var(--box-shadow-button2);
-    background: rgba(255, 255, 255, 0.663);
-    border: none;
-    color: var(--color-quaternary);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.7); /* Sombra más pronunciada */
+    background: #191919 !important; /* Fondo completamente negro para el modal (¡Con !important!) */
+    border: 1px solid rgba(138, 43, 226, 0.5); /* Borde morado sutil */
+    color: var(--color-quaternary); /* Texto blanco por defecto en el modal */
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(25px); /* Más blur */
+    -webkit-backdrop-filter: blur(25px);
+    display: flex; /* Asegura que el contenido se organice bien */
+    flex-direction: column; /* Contenido en columna */
 }
 
 .modal-content .logo-login {
     width: 100%;
-    max-width: 20vh;
+    max-width: 18vh; /* Logo más grande en el modal */
     margin: auto;
-    margin-top: 2rem;
-}
-
-.modal-dialog .ellipse-login {
-    position: absolute;
-    width: 50%;
-    max-width: 45%;
-    top: -30%;
-    left: 50%;
-    transform: translateX(-50%);
+    margin-top: 1.5rem;
 }
 
 .modal-dialog .btn-close {
     position: absolute;
-        top: 1rem;
-        right: 1rem;
-        width: 1.5rem;
-        height: 1.5rem;
-        /* border: none; */
-        color: var(--color-quaternary);
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: color 0.3s ease, transform 0.2s ease;
+    top: 1.8rem; /* Ajustado la posición */
+    right: 1.8rem;
+    width: 2rem; /* Tamaño más grande */
+    height: 2rem;
+    background: var(--color-primary) !important; /* Color del icono de cerrar a rosa */
+    border: none;
+    color: var(--color-quaternary) !important; /* Color del icono de cerrar a blanco */
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.9); /* Sombra rosa para visibilidad más fuerte */
+    border-radius: 50%; /* Hacerlo circular */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-dialog .btn-close:hover {
-    outline: none;
-    color: var(--color-primary);
-    transform: scale(1.1);
-    box-shadow: var(--box-shadow-button3);
+    color: var(--color-primary) !important; /* Púrpura en hover */
+    transform: scale(1.3);
+    box-shadow: 0 0 20px rgba(255, 105, 180, 1); /* Sombra rosa más fuerte en hover */
+    background: var(--color-primary) !important; /* Fondo púrpura al pasar el mouse */
 }
 
 .modal-dialog .btn-close:focus {
     outline: none;
-    box-shadow: var(--box-shadow-button3);
+    box-shadow: none;
 }
 
 .modal-dialog .modal-title {
-    font-size: var(--font-size-title);
+    font-size: 2.5rem; /* Título del modal más grande */
     font-weight: var(--font-weight-700);
     font-family: var(--font-family-titleSub);
-    color: var(--color-quaternary);
+    color: var(--color-quaternary); /* Título blanco */
     text-align: center;
-    margin-bottom: 1rem;
-
+    margin-bottom: 0.8rem;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
 .modal-dialog .login-modal-p {
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-400);
-    opacity: var(--ocpacity-50);
+    opacity: 0.8; /* Opacidad ajustada */
     font-family: var(--font-family-Paragraph);
-    color: var(--color-quaternary);
+    color: var(--color-quaternary); /* Párrafo blanco */
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
 }
 
 .modal-body {
-    padding: 2.5rem;
+    padding: 2.5rem; /* Relleno del cuerpo del modal */
+    overflow-y: auto; /* Permite scroll si el contenido es muy largo */
 }
 
 .modal-body form {
@@ -227,133 +408,338 @@ body {
     font-size: var(--font-size-medium-12);
     font-weight: var(--font-weight-500);
     font-family: var(--font-family-Paragraph);
-    color: var(--color-quaternary);
+    color: var(--color-quaternary); /* Etiquetas blancas */
+    margin-bottom: 0.5rem;
 }
 
-.modal-body input {
+.modal-body input,
+.modal-body select { /* Aplicar estilos a inputs y selects */
     width: 100%;
-    padding: 0.8rem 1rem;
+    padding: 0.9rem 1.2rem; /* Más padding */
     border-radius: var(--border-radius-12);
-    border: none;
-    color: var(--color-primary);
-    font-size: var(--font-size--12);
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Borde blanco sutil */
+    color: var(--color-quaternary) !important; /* Texto del input BLANCO (¡Añadido !important!) */
+    font-size: var(--font-size-base);
     font-weight: var(--font-weight-300);
     font-family: var(--font-family-Paragraph);
-    background: var(--color-GRIS);
+    background: rgba(255, 255, 255, 0.05); /* Fondo blanco muy transparente */
     transition: 0.3s linear;
 }
 
-.modal-body input:hover {
-    outline: none;
-    /* Elimina el contorno predeterminado */
-    box-shadow: none;
-    /* Elimina cualquier sombra adicional */
-    box-shadow: var(--box-shadow-button1);
+/* Estilo para las opciones del select (dropdown) */
+.modal-body select option {
+    background: #191919; /* Fondo oscuro para las opciones */
+    color: var(--color-quaternary); /* Texto blanco para las opciones */
 }
 
-.modal-body input:hover label {
-    color: var(--color-primary);
+/* Asegurar que el texto visible en el select sea blanco cuando no está abierto */
+.modal-body select {
+    color: var(--color-quaternary);
+}
+/* Asegurar que el color del texto del placeholder en el select sea consistente */
+.modal-body select:invalid {
+    color: rgba(255, 255, 255, 0.7); /* Color para placeholder de select */
+}
+
+
+.modal-body input:hover,
+.modal-body input:focus,
+.modal-body select:hover,
+.modal-body select:focus { /* Aplicar estilos a inputs y selects */
+    outline: none;
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.8); /* Efecto neón al hover/focus más intenso */
+    border-color: var(--color-primary); /* Borde morado */
+    background: rgba(255, 255, 255, 0.1); /* Fondo ligeramente más oscuro */
 }
 
 .modal-body input::placeholder {
-    color: var(--color-primary);
-    opacity: var(--ocpacity-50);
+    color: var(--color-quaternary); /* Placeholder blanco */
+    opacity: 0.7; /* Mayor opacidad para el placeholder */
     font-size: var(--font-size-medium-12);
     font-weight: var(--font-weight-400);
 }
 
-.modal-body input:focus {
-    outline: none;
-    /* Elimina el contorno predeterminado */
-    box-shadow: none;
-    /* Elimina cualquier sombra adicional */
-    box-shadow: var(--box-shadow-button1);
+/* Estilos para el nuevo modal de registro de estudiantes (registerModal) */
+/* .modal-header { /* Se mantiene pero ahora solo aplica al header de modalAgregar si lo tuviera */
+/* border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil en el header del modal */
+/* padding: 1.5rem 2.5rem; /* Padding consistente */
+/* } */
+
+/* .modal-header .modal-title {
+    text-align: left; /* Alinea el título a la izquierda */
+/* font-size: 2rem; /* Tamaño de título más acorde */
+/* margin: 0; */
+/* text-shadow: none; /* Quitar sombra extra si no se desea */
+/* } */
+
+.modal-body .section-title {
+    font-size: 1.5rem; /* Tamaño de títulos de sección */
+    color: var(--color-primary); /* Color púrpura para títulos de sección */
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: var(--font-weight-700);
 }
 
-/* Estilos mejorados para el botón con efecto de luz neón */
-.modal-body form button {
-  padding: 10px 20px;
-  color: var(--color-tertiary);
-  background: var(--color-secondary);
-  border: none;
-  border-radius: var(--border-radius-12);
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  transition:  0.3s ease;
-  font-weight: var(--font-weight-300);
+.campo-obligatorio {
+    color: var(--color-pink-hover); /* Color para el asterisco de campo obligatorio */
+    font-weight: var(--font-weight-700);
 }
 
-.modal-body form button:hover {
-    font-weight: var(--font-weight-500);
-    background: var(--color-primary);
+.separador-telefono { /* Este estilo se mantiene por si se usa en otros formularios */
     color: var(--color-quaternary);
-    box-shadow: var(--box-shadow-button1);
+    font-size: var(--font-size-base);
 }
 
-.modal-body form button:focus {
+/* Estilos específicos para los botones DENTRO de los modales (BLANCOS, TEXTO NEGRO, HOVER ROSA) */
+.modal-body .btn-primary-custom,
+.modal-body .btn-secondary-custom {
+    background: var(--color-GRIS) !important; /* Fondo blanco (¡Con !important!) */
+    color: var(--color-black) !important; /* Texto negro (¡Con !important!) */
+    border: none !important; /* Elimina borde si lo hubiera */
+    box-shadow: var(--box-shadow-button-white-base) !important; /* Sombra sutil (¡Con !important!) */
+    transition: all 0.3s ease !important;
+}
+
+.modal-body .btn-secondary-custom {
+    border: 2px solid var(--color-black) !important; /* Borde negro para el secundario */
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1) !important; /* Sombra interior suave */
+}
+
+.modal-body .btn-primary-custom:hover,
+.modal-body .btn-secondary-custom:hover {
+    background: var(--color-pink-hover) !important; /* Fondo rosa al pasar el cursor (¡Con !important!) */
+    color: var(--color-black) !important; /* Texto negro al pasar el cursor (¡Con !important!) */
+    box-shadow: var(--box-shadow-button-pink-hover) !important; /* Sombra rosa (¡Con !important!) */
+    transform: translateY(-2px) scale(1.02) !important;
+}
+
+/* Ajustes específicos para los botones deshabilitados en modales */
+.modal-body .btn-primary-custom:disabled,
+.modal-body .btn-secondary-custom:disabled {
+    background: rgba(255, 255, 255, 0.3) !important; /* Blanco más transparente cuando deshabilitado */
+    color: rgba(0, 0, 0, 0.5) !important; /* Texto gris semi-transparente */
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    border: none !important; /* Asegura que no tenga borde si era secundario */
+}
+
+/* Estilo para el botón de alerta personalizado */
+.custom-alert-modal .modal-body .btn.btn-primary-custom {
+    background: var(--color-quaternary) !important; /* Fondo blanco para el botón de alerta */
+    color: var(--color-black) !important; /* Texto negro */
+    box-shadow: var(--box-shadow-button-white-base) !important;
+}
+
+.custom-alert-modal .modal-body .btn.btn-primary-custom:hover {
+    background: var(--color-pink-hover) !important; /* Fondo rosa en hover */
+    color: var(--color-black) !important;
+    box-shadow: var(--box-shadow-button-pink-hover) !important;
+}
+
+.modal-body .btn-link {
+    color: var(--color-quaternary); /* Links en modales a blanco */
+    text-decoration: none;
     font-weight: var(--font-weight-500);
-    outline: none;
-    box-shadow: var(--box-shadow-button1);
-    background: var(--color-secondary);
+    transition: color 0.3s ease;
+}
+
+.modal-body .btn-link:hover {
+    color: var(--color-pink-hover); /* Links en modales a rosa en hover */
+    text-decoration: underline;
+}
+
+/* Estilos para el input-group (para el botón de mostrar/ocultar contraseña) */
+.input-group .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group .btn.toggle-password {
+    background-color: rgba(255, 255, 255, 0.05); /* Fondo ligeramente transparente */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-left: none; /* Sin borde a la izquierda */
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    color: var(--color-quaternary); /* Color del icono blanco */
+    transition: all 0.3s ease;
+}
+
+.input-group .btn.toggle-password:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Fondo más oscuro al hover */
+    color: var(--color-primary); /* Color púrpura al hover */
+    box-shadow: none; /* Eliminar sombra extra */
+}
+
+
+/* Pie de página (Footer) */
+.footer-gllr {
+    /* Gradiente para el footer */
+    background: linear-gradient(90deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
+    padding: 2rem 0;
+    text-align: center; /* Centra el contenido del footer, incluyendo el logo */
+    color: var(--color-tertiary);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+}
+
+.footer-gllr .footer-logo img {
+    max-height: 50px;
+    margin-bottom: 1rem;
+}
+
+.footer-gllr .footer-social-icons a {
+    color: var(--color-tertiary);
+    font-size: 2rem; /* Íconos un poco más grandes */
+    margin: 0 12px; /* Más espaciado */
+    transition: color 0.3s ease;
+}
+
+.footer-gllr .footer-social-icons a:hover {
+    color: var(--color-pink-hover); /* Iconos de social media a rosa en hover */
+}
+
+.footer-gllr .footer-copyright {
+    font-size: var(--font-size-medium-12);
+    opacity: 0.8; /* Mayor opacidad */
+    margin-top: 1rem;
+}
+
+/* Modal de alerta personalizado */
+.custom-alert-modal .modal-content {
+    background: #191919 !important; /* Fondo completamente negro para el modal de alerta (¡Añadido !important!) */
+    border: 1px solid var(--color-primary);
+    box-shadow: 0 0 30px rgba(138, 43, 226, 0.8);
+    color: var(--color-quaternary);
+}
+
+.custom-alert-modal .modal-body {
+    padding: 2.5rem;
+}
+
+.custom-alert-modal .modal-body p {
+    font-size: 1.2rem; /* Texto de alerta más grande */
+    font-weight: var(--font-weight-500);
+}
+
+/* Estilos para el texto de feedback de validación (Errores) */
+.invalid-feedback {
+    color: var(--color-pink-hover) !important; /* Un rosa brillante para el texto de error */
+    font-weight: bold !important; /* Negrita para mayor visibilidad */
+    font-size: 0.875em; /* Tamaño estándar de Bootstrap */
+    margin-top: 0.25rem; /* Espaciado estándar */
+    display: none; /* Asegura que se oculte por defecto */
+}
+
+/* Estilos para el texto de fortaleza de contraseña */
+small.form-text {
+    color: var(--color-tertiary) !important; /* Color gris claro por defecto para el feedback de fortaleza */
+    font-size: 0.875em; /* Tamaño estándar de Bootstrap */
+    margin-top: 0.25rem; /* Espaciado estándar */
 }
 
 
 /* Diseño Responsivo */
 
-@media (max-width: 768px) {
-  .welcome-contents .welcome-content-info .welcome-content-title .welcome-title {
-    font-size: 30px;
-  }
-
-  .welcome-contents .welcome-content-info .welcome-content-title .welcome-content-sub-paragraph {
-    font-size: var(--font-size-medium-12);
-  }
-
-  .welcome-contents .welcome-content-info .welcome-login {
-    width: 80%;
-    font-size: var(--font-size-medium-12);
-  }
+/* Para pantallas más pequeñas que 992px (md breakpoint de Bootstrap) */
+@media (max-width: 991.98px) {
+    /* En pantallas medianas, mantenemos el logo centrado absoluto pero ajustamos el padding */
+    .navbar-gllr .navbar-buttons {
+        margin-left: auto; /* Empuja los botones a la derecha */
+    }
+    .welcome-content-info .welcome-title {
+        font-size: 2.8rem;
+    }
+    .welcome-content-info .welcome-content-sub-paragraph {
+        font-size: 1rem;
+    }
+    .welcome-action-button {
+        width: 85%;
+        font-size: 1.1rem;
+    }
+    /* Asegurar que el modal fullscreen se adapte */
+    .modal-dialog.modal-fullscreen {
+        max-width: 100vw;
+        height: 100vh;
+    }
+    .modal-dialog.modal-fullscreen .modal-body {
+        padding: 1.5rem; /* Ajustar padding para pantallas pequeñas */
+    }
 }
-@media (max-width: 576px) {
-  .welcome-contents .welcome-content-info .welcome-content-title .welcome-title {
-    font-size: 25px;
-  }
 
-  .welcome-contents .welcome-content-info .welcome-content-title .welcome-content-sub-paragraph {
-    font-size: var(--font-size-medium-12);
-  }
-
-  .welcome-contents .welcome-content-info .welcome-login {
-    width: 90%;
-    font-size: var(--font-size-medium-12);
-  }
+/* Para pantallas más pequeñas que 768px (sm breakpoint de Bootstrap) */
+@media (max-width: 767.98px) {
+    .navbar-gllr .container {
+        flex-direction: row; /* Volver a layout de fila */
+        justify-content: space-between; /* Espaciar logo y botones */
+    }
+    .navbar-gllr .navbar-logo {
+        position: static; /* Eliminar posicionamiento absoluto */
+        left: auto;
+        transform: none;
+        margin-right: auto; /* Empuja los botones a la derecha, el logo se alinea a la izquierda */
+        text-align: left; /* Asegura que el contenido del logo se alinee a la izquierda */
+    }
+    .navbar-gllr .navbar-buttons {
+        margin-left: auto; /* Mantener push a la derecha */
+    }
+    .welcome-content-info .welcome-title {
+        font-size: 2.2rem;
+    }
+    .welcome-content-info .welcome-content-sub-paragraph {
+        font-size: 0.95rem;
+    }
+    .welcome-action-button {
+        width: 95%;
+        font-size: 1rem;
+    }
+    .modal-dialog {
+        max-width: 95%; /* Modales más anchos en móviles */
+    }
+    .modal-body {
+        padding: 1.8rem;
+    }
+    .modal-dialog .modal-title {
+        font-size: 2rem;
+    }
+    .modal-dialog .login-modal-p {
+        font-size: var(--font-size-medium-12);
+    }
 }
+
+/* Para pantallas más pequeñas que 576px (xs breakpoint de Bootstrap) */
+@media (max-width: 575.98px) {
+    .welcome-content-info .welcome-title {
+        font-size: 1.8rem;
+    }
+    .welcome-action-button {
+        width: 100%;
+        padding: 0.7rem 1.5rem;
+    }
+    .modal-dialog .btn-close {
+        top: 1rem;
+        right: 1rem;
+        font-size: 0.9rem;
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+    /* Para pantallas extra pequeñas, puedes hacer que los botones del nav sean más pequeños o se apilen */
+    .navbar-gllr .navbar-buttons .btn {
+        width: calc(50% - 10px); /* Para que los dos botones quepan en una línea */
+        margin: 0 5px;
+        font-size: 0.9rem;
+        padding: 0.6rem 1rem;
+    }
+}
+
+/* Ajustes adicionales para móviles */
 @media (max-width: 400px) {
-  .welcome-contents .welcome-content-info .welcome-content-title .welcome-title {
-    font-size: 20px;
-  }
-
-  .welcome-contents .welcome-content-info .welcome-content-title .welcome-content-sub-paragraph {
-    font-size: var(--font-size-medium-12);
-  }
-
-  .welcome-contents .welcome-content-info .welcome-login {
-    width: 100%;
-    font-size: var(--font-size-medium-12);
-  }
-}
-@media (max-width: 320px) {
-  .welcome-contents .welcome-content-info .welcome-content-title .welcome-title {
-    font-size: 18px;
-  }
-
-  .welcome-contents .welcome-content-info .welcome-content-title .welcome-content-sub-paragraph {
-    font-size: var(--font-size-medium-12);
-  }
-
-  .welcome-contents .welcome-content-info .welcome-login {
-    width: 100%;
-    font-size: var(--font-size-medium-12);
-  }
+    .welcome-content-info .welcome-title {
+        font-size: 1.5rem;
+    }
+    .modal-header .modal-title {
+        font-size: 1.5rem; /* Ajustar tamaño de título en modal fullscreen */
+    }
+    .modal-body .section-title {
+        font-size: 1.2rem;
+    }
 }

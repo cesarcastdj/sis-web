@@ -44,262 +44,145 @@ function isAuthenticated(req, res, next) {
 // Registro
 // --- En tu server.js o app.js ---
 
+// Registro de usuarios con notificación
 app.post('/register', async (req, res) => {
   try {
-    // 1) Desestructurar lo que envía el front
     const {
-      cedula,
-      primerNombre,
-      segundoNombre = null,
-      primerApellido,
-      segundoApellido = null,
-      correo = null,
-      telefono = null,
-      direccion,
-      id_estado,
-      id_ciudad,
-      materias   = [],
-      cursos     = [],
-      secciones  = [],
-      rol,
-      contrasena = null   // si algún día la envías
+      cedula, primerNombre, segundoNombre = null,
+      primerApellido, segundoApellido = null,
+      correo = null, telefono = null, direccion,
+      id_estado, id_ciudad, contraseña, ultima_conexion = null
     } = req.body;
 
-    // 2) Inferir id_nivel según rol
-    const niveles = { admin: 1, profesor: 2, estudiante: 3 };
-    const id_nivel = niveles[rol] || niveles.estudiante;
-
-    // 3) Validaciones mínimas
-    if (!cedula || !primerNombre || !primerApellido ||
-        !direccion || !id_estado || !id_ciudad || !rol) {
-      return res
-        .status(400)
-        .json({
-          error:
-            'Faltan: cédula, primerNombre, primerApellido, dirección, estado, ciudad o rol.'
-        });
-    }
-    if ((rol === 'estudiante' || rol === 'profesor') && secciones.length === 0) {
-      return res
-        .status(400)
-        .json({ error: 'El rol requiere al menos 1 sección.' });
+    // 📌 Validar campos obligatorios
+    if (!cedula || !primerNombre || !primerApellido || !direccion || !id_estado || !id_ciudad) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios' });
     }
 
-    // 4) Comprobar que la cédula no exista
-    db.query(
-      'SELECT id_usuario FROM usuarios WHERE cedula = ?',
-      [cedula],
-      async (err, rows) => {
-        if (err) {
-          console.error('Error verificando cédula:', err);
-          return res
-            .status(500)
-            .json({ error: 'Error interno al verificar cédula.' });
-        }
-        if (rows.length > 0) {
-          return res
-            .status(400)
-            .json({ error: 'Esta cédula ya está registrada.' });
-        }
+    // 📌 Validar que no exista esa cédula
+    db.query('SELECT id_usuario FROM usuarios WHERE cedula = ?', [cedula], (err, rows) => {
+      if (err) return res.status(500).json({ error: 'Error al verificar cédula' });
+      if (rows.length > 0) return res.status(400).json({ error: 'Cédula ya registrada' });
 
-        // 5) Insertar dirección
-        db.query(
-          'INSERT INTO direccion (direccion, id_ciudad, id_estado) VALUES (?, ?, ?)',
-          [direccion, id_ciudad, id_estado],
-          async (err, dirResult) => {
+      // 📌 Insertar dirección antes de registrar el usuario
+      db.query('INSERT INTO direccion (direccion, id_ciudad, id_estado) VALUES (?, ?, ?)', 
+        [direccion, id_ciudad, id_estado], async (err, dirResult) => {
+          if (err) return res.status(500).json({ error: 'Error al insertar dirección' });
+
+          const id_direccion = dirResult.insertId;
+          const hashed = contraseña ? await hashPassword(contraseña) : null;
+
+          // 📌 Asignar valores por defecto
+          const rol = 'pendiente';       // por defecto
+          const id_nivel = 4;            // nivel "pendiente"
+
+          const sql = `
+            INSERT INTO usuarios (
+              cedula, primer_nombre, segundo_nombre,
+              primer_apellido, segundo_apellido, telefono,
+              correo, contraseña, rol, id_direccion, id_nivel, ultima_conexion
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+
+          const values = [
+            cedula, primerNombre, segundoNombre,
+            primerApellido, segundoApellido, telefono,
+            correo, hashed, rol, id_direccion, id_nivel, ultima_conexion
+          ];
+
+          db.query(sql, values, (err, userResult) => {
             if (err) {
-              console.error('Error creando dirección:', err);
-              return res
-                .status(500)
-                .json({ error: 'Error interno al crear dirección.' });
+              console.error('Error insertando usuario:', err);
+              return res.status(500).json({ error: 'Error al registrar usuario' });
             }
-            const id_direccion = dirResult.insertId;
 
-            // 6) Hashear contraseña si viene
-            const hashed = contrasena
-              ? await hashPassword(contrasena)
-              : null;
+            const id_usuario = userResult.insertId;
 
-            // 7) Insertar usuario (11 columnas)
-            const sqlUser = `
-              INSERT INTO usuarios
-                (cedula,
-                 primer_nombre,
-                 segundo_nombre,
-                 primer_apellido,
-                 segundo_apellido,
-                 telefono,
-                 correo,
-                 contraseña,
-                 rol,
-                 id_direccion,
-                 id_nivel)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
-            const paramsUser = [
-              cedula,
-              primerNombre,
-              segundoNombre,
-              primerApellido,
-              segundoApellido,
-              telefono,
-              correo,
-              hashed,
-              rol,
-              id_direccion,
-              id_nivel
-            ];
-
-            db.query(sqlUser, paramsUser, (err, userResult) => {
-              if (err) {
-                console.error('Error insertando usuario:', {
-                  message: err.message,
-                  code:    err.code,
-                  sql:     err.sql
-                });
-                return res
-                  .status(500)
-                  .json({ error: 'Error interno al registrar usuario.' });
-              }
-              const id_usuario = userResult.insertId;
-
-              // 8) Relaciones intermedias
-              if (secciones.length) {
-                const vs = secciones.map(id_sec => [id_usuario, id_sec]);
-                db.query(
-                  'INSERT INTO usuario_seccion (id_usuario, id_seccion) VALUES ?',
-                  [vs],
-                  e => e && console.error('usuario_seccion:', e)
-                );
-              }
-              if (materias.length) {
-                const vs = materias.map(id_mat => [id_usuario, id_mat]);
-                db.query(
-                  'INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?',
-                  [vs],
-                  e => e && console.error('usuario_materias:', e)
-                );
-              }
-              if (cursos.length) {
-                const vs = cursos.map(id_cur => [id_usuario, id_cur]);
-                db.query(
-                  'INSERT INTO usuario_cursos (id_usuario, id_curso) VALUES ?',
-                  [vs],
-                  e => e && console.error('usuario_cursos:', e)
-                );
-              }
-
-              // 9) Respuesta final
-              return res.json({
-                message: 'Usuario registrado exitosamente',
-                usuario: { id_usuario, cedula, rol, id_nivel }
-              });
+            // 📌 Registrar la notificación para la administradora (id_admin = 1)
+            db.query(`
+              INSERT INTO notificaciones (id_usuario, id_admin, mensaje, estado) 
+              VALUES (?, ?, 'Usuario por confirmación', 'pendiente')
+            `, [id_usuario, 1], (err) => {
+              if (err) console.error("Error creando notificación:", err);
             });
-          }
-        );
-      }
-    );
+
+            return res.json({
+              message: 'Usuario registrado. Espera aprobación del administrador.',
+              usuario: { id_usuario, cedula }
+            });
+          });
+        }
+      );
+    });
   } catch (error) {
     console.error('Catch /register:', error);
-    return res
-      .status(500)
-      .json({ error: 'Error interno del servidor.' });
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
-
-// Registrar credenciales
-app.post('/registrar-credenciales', async (req, res) => {
+// Esta es una api para terminar el registro de un usuario
+app.post('/asignar-usuario', async (req, res) => {
   try {
-    const { id_usuario, correo, contraseña } = req.body;
+    const { id_usuario, rol, secciones, cursos, materias } = req.body;
 
-    // 1) Validaciones básicas
-    if (!id_usuario || !correo || !contraseña) {
-      return res
-        .status(400)
-        .json({ error: 'Faltan campos obligatorios: id_usuario, correo o contraseña.' });
-    }
+    // 📌 Asignar nivel según el rol
+    const niveles = { admin: 1, profesor: 2, estudiante: 3 };
+    const id_nivel = niveles[rol];
 
-    // 2) Formato de correo + fuerza mínima de contraseña
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(correo)) {
-      return res.status(400).json({ error: 'Formato de correo inválido.' });
-    }
-    if (contraseña.length < 6) {
-      return res
-        .status(400)
-        .json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
-    }
+    db.query('UPDATE usuarios SET rol = ?, id_nivel = ? WHERE id_usuario = ?', 
+      [rol, id_nivel, id_usuario], (err) => {
+        if (err) return res.status(500).json({ error: 'Error asignando usuario.' });
 
-    // 3) Verificar que el usuario exista y que aún no tenga correo asignado
-    db.query(
-      'SELECT correo FROM usuarios WHERE id_usuario = ?',
-      [id_usuario],
-      async (err, results) => {
-        if (err) {
-          console.error('Error buscando usuario:', err);
-          return res.status(500).json({ error: 'Error interno al buscar usuario.' });
+        // 📌 Guardar relaciones en usuario_seccion, usuario_cursos, usuario_materias
+        if (secciones.length) {
+          db.query('INSERT INTO usuario_seccion (id_usuario_seccion, id_usuario, id_seccion) VALUES ?', 
+            [secciones.map(id_sec => [id_usuario_seccion, id_usuario, id_sec])]);
         }
-        if (results.length === 0) {
-          return res.status(404).json({ error: 'Usuario no encontrado.' });
+        if (materias.length) {
+          db.query('INSERT INTO usuario_materias (id_usuario_materia, id_usuario, id_materia) VALUES ?', 
+            [materias.map(id_mat => [id_usuario_materia, id_usuario, id_mat])]);
         }
-        if (results[0].correo) {
-          return res
-            .status(400)
-            .json({ error: 'Este usuario ya tiene correo asignado.' });
+        if (cursos.length) {
+          db.query('INSERT INTO usuario_cursos (id_usuario_curso, id_usuario  , id_curso, fecha_inscripcion) VALUES ?', 
+            [cursos.map(id_cur => [id_usuario_curso, id_usuario, id_cur, fecha_inscripcion])]);
         }
 
-        // 4) Verificar que el correo no esté en uso por otro usuario
-        db.query(
-          'SELECT id_usuario FROM usuarios WHERE correo = ?',
-          [correo],
-          async (err2, rows2) => {
-            if (err2) {
-              console.error('Error validando correo único:', err2);
-              return res
-                .status(500)
-                .json({ error: 'Error interno al verificar correo.' });
-            }
-            if (rows2.length > 0) {
-              return res
-                .status(400)
-                .json({ error: 'El correo ya está registrado.' });
-            }
+        // 📌 Marcar la notificación como "procesada"
+        db.query('UPDATE notificaciones SET estado = "procesado" WHERE id_usuario = ?', [id_usuario]);
 
-            // 5) Hash de la contraseña
-            const hashed = await hashPassword(contraseña);
-
-            // 6) UPDATE en la tabla usuarios
-            db.query(
-              'UPDATE usuarios SET correo = ?, contraseña = ? WHERE id_usuario = ?',
-              [correo, hashed, id_usuario],
-              (err3) => {
-                if (err3) {
-                  console.error('Error actualizando credenciales:', err3);
-                  return res
-                    .status(500)
-                    .json({ error: 'Error interno al guardar credenciales.' });
-                }
-
-                // 7) Respuesta al cliente
-                return res.json({
-                  message: 'Credenciales registradas correctamente.',
-                  usuario: { id_usuario, correo }
-                });
-              }
-            );
-          }
-        );
-      }
-    );
+        res.json({ message: 'Usuario asignado correctamente.' });
+    });
   } catch (error) {
-    console.error('Catch /registrar-credenciales:', error);
-    return res
-      .status(500)
-      .json({ error: 'Error interno del servidor.' });
+    res.status(500).json({ error: 'Error interno del servidor.' });
   }
-  res.json({ message: 'Datos recibidos correctamente' });
 });
+
+// Obtener notificaciones pendientes
+app.get('/api/notificaciones', (req, res) => {
+  db.query(`
+    SELECT 
+      n.id_notificacion,
+      n.id_usuario,
+      u.primer_nombre,
+      u.primer_apellido,
+      u.cedula,
+      n.mensaje,
+      n.fecha,
+      n.estado
+    FROM notificaciones n
+    JOIN usuarios u ON n.id_usuario = u.id_usuario
+    WHERE n.estado = 'pendiente'
+    ORDER BY n.fecha DESC;
+  `, (err, results) => {
+    if (err) {
+      console.error("Error obteniendo notificaciones:", err);
+      return res.status(500).json({ error: "Error al obtener notificaciones" });
+    }
+    res.json({ notificaciones: results });
+  });
+});
+
+
 
 // Obtener estados
 // server.js
@@ -364,6 +247,19 @@ app.get('/api/secciones', (req, res) => {
 app.get('/api/verificar-cedula', (req, res) => {
   const { cedula } = req.query;
   db.query('SELECT id_usuario FROM usuarios WHERE cedula = ?', [cedula], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Error en la consulta' });
+
+    if (results.length > 0) {
+      res.json({ existe: true, id_usuario: results[0].id_usuario });
+    } else {
+      res.json({ existe: false });
+    }
+  });
+});
+
+app.get('/api/verificar-correo', (req, res) => {
+  const { email } = req.query;
+  db.query('SELECT id_usuario FROM usuarios WHERE correo = ?', [email], (err, results) => {
     if (err) return res.status(500).json({ error: 'Error en la consulta' });
 
     if (results.length > 0) {
