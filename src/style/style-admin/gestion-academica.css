@@ -1,0 +1,661 @@
+@import '../global.css';
+@import '../variables.css';
+
+/* Contenedor principal de la sección de contenido - Ahora abarca todo el bloque blanco */
+.data-content-section {
+    background-color: white; /* Fondo blanco para todo el bloque */
+    margin-right: 0; /* Eliminar el margen derecho */
+    margin-top: 0; /* Eliminar el margen superior */
+    border-radius: var(--border-radius-16); /* Bordes redondeados en la parte superior del bloque general */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave para todo el bloque */
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Borde sutil para todo el bloque */
+    overflow: hidden; /* Asegurar que el contenido no se desborde */
+    display: flex; /* Apilar la sección de búsqueda y las tarjetas */
+    flex-direction: column;
+}
+
+/* Estilos de la sección del encabezado (Gestión Académica) - Ahora solo maneja su contenido y padding */
+.data-content-section .search-content-data.header-section {
+    background: none; /* Eliminar el fondo, ahora lo maneja el padre */
+    padding: 1.5rem 1rem;
+    border-radius: 0; /* Eliminar bordes redondeados aquí para unirse al padre */
+    margin-bottom: 0; /* Eliminar el margen inferior para unirlo */
+    text-align: center; /* Centrar el contenido de la sección */
+    box-shadow: none; /* Eliminar sombra, ahora lo maneja el padre */
+    border: none; /* Eliminar borde, ahora lo maneja el padre */
+}
+
+.data-content-section .search-content-data .welcome-search-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centrar los elementos horizontalmente */
+    justify-content: center;
+}
+
+.data-content-section .search-content-data .welcome-search-data__title {
+    font-size: 2.2rem; /* Ajusta el tamaño del título si es necesario */
+    color: var(--color-quaternary); /* Color del título, según la nueva especificación general */
+    margin-bottom: 0.5rem;
+}
+
+.data-content-section .search-content-data .welcome-search-data__text {
+    font-size: 1.1rem; /* Ajusta el tamaño del texto si es necesario */
+    color: var(--color-quaternary); /* Color del texto, según la nueva especificación general */
+    opacity: 0.8;
+}
+
+/* Estilos del área principal de contenido (las tarjetas) - Ahora solo maneja su contenido y padding */
+.data-content-section .content-info-data {
+    background: none; /* Eliminar el fondo, ahora lo maneja el padre */
+    border-radius: 0; /* Eliminar bordes redondeados aquí para unirse al padre */
+    box-shadow: none; /* Eliminar sombra, ahora lo maneja el padre */
+    border: none; /* Eliminar borde, ahora lo maneja el padre */
+    padding: 2rem; /* Espaciado interno */
+    margin-top: 0; /* Eliminar cualquier margen entre secciones */
+}
+
+
+/* Estilos de la nueva cuadrícula (las tarjetas individuales) */
+.data-content-section .data-general-control.grid-layout {
+    display: grid;
+    /* Ajusta las columnas para que quepan 2 o 3 tarjetas dependiendo del tamaño de la pantalla */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 0; /* Eliminar el padding para unir más */
+    font-family: var(--font-family-Paragraph);
+    justify-content: center; /* Centrar la cuadrícula horizontalmente */
+    align-items: stretch; /* Estirar elementos para que tengan la misma altura */
+    margin-top: 0; /* Eliminar margen superior */
+}
+
+.data-content-section .data-general-control .registro-control {
+    /* Ajuste del degradado para ser más sutil y mantener la apariencia de la imagen */
+    background: linear-gradient(to bottom, var(--color-primary) 5%, transparent 95%); /* Degradado sutil */
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius-12);
+    display: flex; /* Usar flexbox para el contenido interno */
+    flex-direction: column;
+    align-items: flex-start; /* Alinear contenido a la izquierda */
+    justify-content: space-between; /* Espacio entre elementos */
+    min-height: 250px; /* Altura mínima consistente para todas las tarjetas */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra para simular la tarjeta */
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Borde para las tarjetas */
+    text-align: left; /* Asegurar que el texto dentro de la tarjeta se alinee a la izquierda */
+    transition: transform 0.2s ease-in-out; /* Animación de hover */
+}
+
+.data-content-section .data-general-control .registro-control:hover {
+    transform: translateY(-5px); /* Pequeño levantamiento al pasar el ratón */
+}
+
+.data-content-section .registro-control .card-icon-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem; /* Aumentado el margen para separar del texto */
+    width: 100%; /* Asegura que ocupe todo el ancho para la alineación */
+    justify-content: flex-start; /* Alinear el icono y el título a la izquierda */
+}
+
+.data-content-section .registro-control .card-icon-title i {
+    font-size: 3rem; /* Tamaño grande para los iconos */
+    color: var(--color-primary); /* Color del icono */
+    background: var(--color-tertiary); /* Fondo del icono para que se vea como la imagen */
+    border-radius: 50%; /* Icono redondo */
+    padding: 0.5rem; /* Espaciado alrededor del icono */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Sombra para el icono */
+}
+
+.data-content-section .registro-control .card-title {
+    font-size: 1.2rem; /* Tamaño de fuente para el título */
+    opacity: 1; /* Asegurar que no tenga opacidad si no es deseada */
+    margin: 0; /* Eliminar margen predeterminado */
+    color: var(--color-quaternary); /* Color de texto general */
+    font-weight: var(--font-weight-500);
+}
+
+.data-content-section .registro-control .card-stat {
+    font-size: 1rem; /* Tamaño para las estadísticas */
+    margin-bottom: 0.5rem; /* Margen para separar las estadísticas */
+    color: var(--color-quaternary); /* Color de texto general */
+    font-weight: var(--font-weight-400);
+    width: 100%; /* Asegurar que ocupe todo el ancho */
+}
+
+/* Estilo para los p vacíos en la tarjeta de Periodos para igualar la altura */
+.card-stat.empty-stat {
+    visibility: hidden; /* Oculta el contenido pero mantiene el espacio */
+    line-height: 1rem; /* Ajusta la altura para que coincida con las otras estadísticas */
+    margin-bottom: 0.5rem;
+}
+
+
+.data-content-section .data-general-control .registro-control .btn-accion-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%; /* Ocupar todo el ancho disponible */
+    margin-top: 1rem; /* Espacio superior para separar de las estadísticas */
+}
+
+.data-content-section .data-general-control .registro-control .btn-accion-control .btn-card {
+    border: none;
+    padding: 0.8rem 1rem;
+    background: var(--color-primary); /* Color de fondo de los botones */
+    color: var(--color-tertiary); /* Color del texto del botón */
+    width: 100%;
+    border-radius: var(--border-radius-8);
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centrar texto y icono */
+    transition: 0.3s ease-out; /* Transición más suave */
+    font-size: 0.9rem;
+    font-weight: var(--font-weight-400);
+    box-shadow: var(--box-shadow-button1); /* Sombra para los botones */
+}
+
+.data-content-section .data-general-control .registro-control .btn-accion-control .btn-card i {
+    margin-right: 0.5rem;
+    font-size: 1.2rem; /* Tamaño de icono más pequeño para los botones */
+}
+
+.data-content-section .data-general-control .registro-control .btn-accion-control .btn-card:hover {
+    background: var(--color-secondary); /* Color de hover diferente */
+    color: var(--color-quaternary); /* Color del texto del botón al hacer hover */
+    box-shadow: var(--box-shadow-button1);
+    transform: scale(1.02); /* Pequeña escala al pasar el ratón */
+}
+
+/* Estilos específicos para la tarjeta de Periodos */
+.registro-control.periodos-card {
+    /* El min-height global ya debería manejar esto */
+}
+
+/* Estilos del modal Agregar Estudiantes y Curso (basados en qw.txt) */
+/* Clases personalizadas para el ancho del modal */
+.modal-dialog-custom-width {
+    max-width: 750px; /* Ancho personalizado para el modal */
+}
+.modal-dialog.modal-lg { /* Estilo para el modal-lg */
+    max-width: 80% !important; /* Más ancho para las tablas */
+}
+
+
+/* Sobrescribir para el modal-fullscreen si es necesario */
+.modal-dialog.modal-fullscreen {
+    max-width: 100vw; /* Ocupa todo el ancho */
+    width: 100vw; /* Asegura el 100% del ancho */
+    height: 100vh; /* Ocupa todo el alto */
+    margin: 0; /* Elimina márgenes */
+    padding: 0; /* Elimina padding */
+}
+
+.modal-content {
+    border-radius: var(--border-radius-24); /* Bordes redondeados más grandes */
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.7); /* Sombra más pronunciada */
+    background: #191919 !important; /* Fondo completamente negro para el modal */
+    border: 1px solid var(--color-primary); /* Borde púrpura primario, más visible */
+    color: var(--color-tertiary); /* Texto blanco por defecto en el modal */
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(25px); /* Más blur */
+    -webkit-backdrop-filter: blur(25px);
+    display: flex; /* Asegura que el contenido se organice bien */
+    flex-direction: column; /* Contenido en columna */
+}
+
+.modal-header {
+    background-color: #191919; /* Fondo negro para el encabezado del modal */
+    color: var(--color-tertiary); /* Color de texto del encabezado */
+    border-bottom: 1px solid var(--color-primary); /* Borde inferior púrpura primario */
+    border-radius: var(--border-radius-24) var(--border-radius-24) 0 0; /* Bordes redondeados solo en la parte superior */
+    padding: 1.5rem 2.5rem; /* Padding consistente */
+}
+
+/* Estilos para el botón de cerrar */
+.modal-header .btn-close {
+    position: absolute;
+    top: 1.8rem;
+    right: 1.8rem;
+    width: 2.5rem; /* Tamaño del círculo */
+    height: 2.5rem; /* Tamaño del círculo */
+    background: var(--color-pink-hover) !important; /* Fondo rosa para el círculo */
+    border: 1px solid var(--color-pink-hover); /* Borde rosa para el círculo */
+    border-radius: 50%; /* Hacerlo circular */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.9); /* Sombra neón rosa */
+    opacity: 1; /* Asegurar visibilidad */
+}
+
+.modal-header .btn-close i { /* Estilo del ícono 'x' dentro del botón */
+    color: var(--color-tertiary) !important; /* Color blanco para la 'x' */
+    font-size: 1.5rem; /* Tamaño de la 'x' */
+    text-shadow: none; /* Eliminar sombra extra si la tiene */
+}
+
+.modal-header .btn-close:hover {
+    background: var(--color-pink-hover) !important; /* Mantener fondo rosa al hover */
+    box-shadow: 0 0 20px rgba(255, 105, 180, 1); /* Sombra más intensa al hover */
+    border-color: var(--color-primary) !important; /* Borde púrpura al hover */
+    transform: scale(1.1); /* Ligeramente más grande al hover */
+}
+
+
+.modal-title {
+    font-weight: var(--font-weight-700);
+    font-size: 2.5rem; /* Título del modal más grande */
+    color: var(--color-tertiary) !important; /* Color del título del modal a blanco */
+    text-align: center;
+    margin-bottom: 0.8rem;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); /* Efecto neón en el título */
+    font-family: var(--font-family-titleSub); /* Fuente de título */
+}
+
+.modal-body {
+    padding: 2.5rem; /* Relleno del cuerpo del modal */
+    font-family: var(--font-family-Paragraph);
+    color: var(--color-tertiary) !important; /* Color de texto general para el cuerpo del modal a blanco */
+    overflow-y: auto; /* Permite scroll si el contenido es muy largo */
+    max-height: 80vh; /* Altura máxima para forzar el scroll */
+}
+
+/* 🔹 Estilos generales para el formulario */
+.modal-body form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 🔹 Label con formato mejorado */
+.modal-body label {
+    font-size: var(--font-size-medium-12);
+    font-weight: var(--font-weight-500);
+    font-family: var(--font-family-Paragraph);
+    color: var(--color-tertiary) !important; /* Etiquetas blancas, asegurando !important */
+    margin-bottom: 0.5rem;
+}
+
+/* 🔹 Títulos de sección dentro del modal (Ej: Información Personal) */
+.modal-body .section-title {
+    font-size: 1.5rem; /* Tamaño de fuente para los títulos de sección */
+    font-weight: var(--font-weight-700); /* Negrita */
+    color: var(--color-tertiary) !important; /* Títulos de sección blancos, asegurando !important */
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--color-primary); /* Línea de separación púrpura */
+    padding-bottom: 0.5rem;
+}
+
+
+/* 🔹 Inputs con estilos personalizados */
+.modal-body input:not(.form-check-input),
+.modal-body textarea,
+.modal-body select {
+    width: 100%;
+    padding: 0.9rem 1.2rem; /* Más padding */
+    border-radius: var(--border-radius-12);
+    border: 1px solid var(--color-primary); /* Borde púrpura más visible */
+    color: var(--color-tertiary) !important; /* Texto del input BLANCO */
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-300);
+    font-family: var(--font-family-Paragraph);
+    background: rgba(255, 255, 255, 0.05); /* Fondo blanco ligeramente más opaco */
+    transition: 0.3s linear;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* Sombra interna sutil */
+}
+
+/* Estilo para las opciones del select (dropdown) */
+.modal-body select option {
+    background: #191919; /* Fondo oscuro para las opciones */
+    color: var(--color-tertiary); /* Texto blanco para las opciones */
+}
+
+/* Asegurar que el texto visible en el select sea blanco cuando no está abierto */
+.modal-body select {
+    color: var(--color-tertiary);
+}
+/* Asegurar que el color del texto del placeholder en el select sea consistente */
+.modal-body select:invalid {
+    color: rgba(255, 255, 255, 0.7); /* Color para placeholder de select */
+}
+
+
+/* 🔹 Estilos al hacer hover y focus en los inputs */
+.modal-body input:hover,
+.modal-body input:focus,
+.modal-body textarea:hover,
+.modal-body textarea:focus,
+.modal-body select:hover,
+.modal-body select:focus {
+    outline: none;
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.8); /* Efecto neón al hover/focus más intenso */
+    border-color: var(--color-primary); /* Borde morado */
+    background: rgba(255, 255, 255, 0.1); /* Fondo ligeramente más oscuro y opaco al hover/focus */
+}
+
+/* 🔹 Placeholder con opacidad ajustada */
+.modal-body input::placeholder,
+.modal-body textarea::placeholder {
+    color: var(--color-tertiary) !important; /* Placeholder blanco, asegurando !important */
+    opacity: 0.8; /* Mayor opacidad para el placeholder */
+    font-size: var(--font-size-medium-12);
+    font-weight: var(--font-weight-400);
+}
+
+/* Estilos para los mensajes de validación */
+.modal-body .invalid-feedback {
+    color: var(--color-pink-hover) !important; /* Un rosa brillante para el texto de error */
+    font-weight: bold !important; /* Negrita para mayor visibilidad */
+    font-size: 0.875em; /* Tamaño estándar de Bootstrap */
+    margin-top: 0.25rem; /* Espaciado estándar */
+    display: none; /* Asegura que se oculte por defecto */
+}
+
+.modal-body input.is-invalid,
+.modal-body select.is-invalid,
+.modal-body textarea.is-invalid {
+    border-color: #dc3545 !important; /* Borde rojo para campos inválidos */
+    box-shadow: 0 0 0 0.25rem rgba(220,53,69,.25) !important;
+}
+
+
+/* 🔹 Botones del formulario del modal (basados en qw.txt) */
+.modal-body form button {
+    width: 45%;
+    flex-wrap: wrap;
+    margin: 0 auto; /* Centrar los botones */
+    padding: 1rem 2.5rem; /* Más padding para que sean más grandes */
+    font-size: 1.2rem; /* Texto más grande */
+    font-weight: var(--font-weight-700); /* Texto más negrita */
+    border-radius: var(--border-radius-12); /* Bordes redondeados */
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal-body form button[type="submit"] { /* Botón principal de guardar */
+    background-color: #ee85fcc0; /* Gradiente morado vibrante */
+    color: var(--color-tertiary); /* Texto blanco */
+    border: none; /* Sin borde para el gradiente */
+    box-shadow: var(--box-shadow-button-gradient); /* Sombra para el gradiente */
+}
+
+.modal-body form button[type="submit"]:hover {
+    background-color: var(--color-primary); /* Gradiente inverso al hover */
+    box-shadow: var(--box-shadow-button-pink-hover); /* Sombra rosa para el hover */
+    transform: translateY(-3px) scale(1.02);
+}
+
+.modal-body form button[type="reset"] { /* Botón secundario/limpiar */
+    background-color: #ee85fcc0; /* Fondo rosa para el botón limpiar */
+    color: var(--color-tertiary); /* Texto blanco para el botón limpiar */
+    border: 2px solid var(--color-pink-hover); /* Borde rosa */
+    box-shadow: var(--box-shadow-button-pink-hover); /* Sombra rosa para el botón limpiar */
+}
+
+.modal-body form button[type="reset"]:hover {
+    background-color: var(--color-primary);; /* Fondo púrpura al pasar el cursor */
+    color: var(--color-tertiary); /* Texto blanco al pasar el cursor */
+    border: 2px solid var(--color-primary); /* Borde púrpura en hover */
+    box-shadow: var(--box-shadow-button-gradient); /* Sombra de gradiente en hover */
+    transform: translateY(-3px) scale(1.02);
+}
+
+
+/* Estilos para el switch (Desea agregar una materia?) */
+.form-check-input:checked {
+    background-color: var(--color-primary); /* Color del switch cuando está activado */
+    border-color: var(--color-primary);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--color-primary-rgb), .25); /* Sombra de foco para el switch */
+}
+
+.campo-obligatorio {
+    color: var(--color-pink-hover); /* Color rosa para el asterisco de campo obligatorio */
+    font-size: 1rem;
+}
+
+.separador-telefono {
+    color: var(--color-tertiary); /* Cambiado a tertiary para visibilidad */
+    font-size: var(--font-size-base);
+}
+
+/* Estilos para las listas de selección personalizadas (estudiantes) */
+.custom-select-list {
+  border: 1px solid var(--color-secondary); /* Darker border */
+  border-radius: var(--border-radius-12); /* Rounded corners */
+  max-height: 200px; /* Limita la altura del contenedor */
+  overflow-y: auto; /* Habilita el scroll vertical */
+  background-color: var(--theme-dark); /* Dark background */
+  font-family: var(--font-family-Paragraph);
+  padding: 0.5rem; /* Inner padding */
+  box-shadow: var(--box-shadow-button1); /* Subtle shadow */
+}
+.custom-select-list-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px; /* Más padding para mayor área de clic */
+  cursor: pointer;
+  border-radius: var(--border-radius-8); /* Esquinas redondeadas para los ítems */
+  margin-bottom: 4px; /* Espacio entre ítems */
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  position: relative; /* Necesario para el posicionamiento del checkbox */
+  color: var(--color-tertiary); /* Texto claro en fondo oscuro */
+}
+.custom-select-list-item:last-child {
+  border-bottom: none;
+}
+.custom-select-list-item:hover {
+  background-color: var(--color-dark-purple); /* Púrpura más oscuro al pasar el ratón */
+  transform: translateY(-1px); /* Ligero levantamiento al pasar el ratón */
+}
+.custom-select-list-item.selected {
+  background: linear-gradient(to right, var(--color-primary) 10%, var(--color-pink-hover) 100%); /* Fondo con gradiente */
+  color: var(--color-quaternary); /* Texto blanco al seleccionar */
+  box-shadow: 0 0 8px var(--color-primary); /* Brillo neón */
+}
+
+/* Ocultar el checkbox nativo pero mantener su funcionalidad */
+.custom-select-list-item input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  /* Asegura que el input no capture los eventos de clic */
+  pointer-events: none;
+}
+
+/* Estilo visual del checkbox personalizado */
+.custom-select-list-item label {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  cursor: pointer;
+  margin-bottom: 0;
+  position: relative;
+  /* Asegura que el label no capture los eventos de clic, permitiendo que el div padre los maneje */
+  pointer-events: none;
+}
+.custom-select-list-item label::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-primary); /* Borde púrpura para desmarcado */
+  border-radius: 4px;
+  margin-right: 12px;
+  background-color: transparent;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.custom-select-list-item input[type="checkbox"]:checked + label::before {
+  background-color: var(--color-primary); /* Fondo púrpura al marcar */
+  border-color: var(--color-primary); /* Borde púrpura para marcado */
+}
+.custom-select-list-item input[type="checkbox"]:checked + label::after {
+  content: '\2713'; /* Símbolo de checkmark */
+  font-size: 16px; /* Aumentado para mejor visibilidad */
+  font-weight: bold; /* Añadido para mayor grosor */
+  color: var(--color-quaternary); /* Checkmark blanco */
+  position: absolute;
+  left: 3px; /* Ajuste de posición */
+  top: 1px; /* Ajuste para centrar verticalmente */
+  line-height: 1;
+}
+
+/* Estilos para el switch personalizado */
+.custom-switch-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 50px;
+  height: 28px;
+}
+
+.custom-switch-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.custom-switch-label {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: #ccc; /* Gris cuando está apagado */
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  position: relative;
+}
+
+.custom-switch-label::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background-color: #fff; /* Blanco para el círculo */
+  border-radius: 50%;
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.custom-switch-checkbox:checked + .custom-switch-label {
+  background-color: var(--color-primary); /* Morado cuando está encendido */
+}
+
+.custom-switch-checkbox:checked + .custom-switch-label::after {
+  transform: translateX(22px); /* Mueve el círculo */
+  background-color: var(--color-pink-hover); /* Rosado para el círculo cuando está encendido */
+}
+
+
+/* Estilos de la tabla de cursos (NUEVOS) */
+.table-dark {
+    --bs-table-bg: #191919; /* Fondo de la tabla más oscuro */
+    --bs-table-color: var(--color-tertiary); /* Texto blanco */
+    --bs-table-border-color: var(--color-secondary); /* Borde de tabla más oscuro */
+    --bs-table-striped-bg: #2a2a2a; /* Fondo de filas impares */
+    --bs-table-hover-bg: #3a3a3a; /* Fondo al pasar el ratón */
+}
+
+.table-dark thead th {
+    background-color: var(--color-primary); /* Fondo de encabezado púrpura */
+    color: var(--color-quaternary); /* Texto blanco en encabezado */
+    border-bottom: 2px solid var(--color-pink-hover); /* Borde inferior vibrante */
+    font-weight: var(--font-weight-700);
+}
+
+.table-responsive {
+    border-radius: var(--border-radius-12);
+    overflow: hidden; /* Asegura que los bordes redondeados se apliquen al contenedor de la tabla */
+    border: 1px solid var(--color-secondary); /* Borde alrededor de la tabla */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3); /* Sombra para la tabla */
+}
+
+/* Estilos para el Dropdown de Acciones (3 puntos) */
+.dropdown-toggle::after {
+    display: none; /* Oculta la flecha por defecto de Bootstrap */
+}
+
+.dropdown-menu {
+    background-color: #191919; /* Fondo oscuro para el menú */
+    border: 1px solid var(--color-primary); /* Borde púrpura */
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.5); /* Sombra neón */
+    border-radius: var(--border-radius-8);
+}
+
+.dropdown-item {
+    color: var(--color-tertiary); /* Texto blanco */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: var(--color-dark-purple); /* Fondo púrpura oscuro al pasar el ratón */
+    color: var(--color-pink-hover); /* Texto rosa vibrante al pasar el ratón */
+}
+
+
+/* Responsive adjustments for modals from qw.txt */
+@media (max-width: 991.98px) {
+    .modal-dialog-custom-width { /* Ajuste para el ancho personalizado en pantallas más pequeñas */
+        max-width: 95%; 
+    }
+    .modal-dialog.modal-lg { /* Ajuste para el modal-lg en pantallas más pequeñas */
+        max-width: 95% !important; 
+    }
+}
+
+@media (max-width: 767.98px) {
+    .modal-dialog-custom-width {
+        max-width: 95%; /* Modales más anchos en móviles */
+    }
+    .modal-body {
+        padding: 1.8rem;
+    }
+    .modal-dialog .modal-title {
+        font-size: 2rem;
+    }
+    .table-responsive {
+        font-size: 0.8rem; /* Reducir tamaño de fuente de tabla en móviles */
+    }
+    .table-dark thead th, .table-dark tbody td {
+        padding: 0.5rem; /* Menos padding en celdas de tabla */
+    }
+}
+
+@media (max-width: 575.98px) {
+    .modal-dialog .btn-close {
+        top: 1rem;
+        right: 1rem;
+        font-size: 0.9rem;
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+    .modal-body form button {
+        width: 100%; /* Botones de modal en columna en pantallas pequeñas */
+        margin-bottom: 0.8rem;
+    }
+    .d-flex.justify-content-between.mt-4 { /* Ajuste para los botones de Limpiar/Guardar */
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media (max-width: 400px) {
+    .modal-header .modal-title {
+        font-size: 1.5rem; /* Ajustar tamaño de título en modal fullscreen */
+    }
+    .modal-body .section-title {
+        font-size: 1.2rem;
+    }
+}

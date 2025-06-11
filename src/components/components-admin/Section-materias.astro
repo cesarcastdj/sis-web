@@ -1,0 +1,740 @@
+---
+// src/pages/admin/materias.astro
+import "../../style/style-admin/materias.css";
+---
+
+<section class="data-content-section">
+  <!-- Nueva sección del Título "Materias Académicas" -->
+  <section class="materias-header-card">
+    <div class="welcome-search-data">
+      <h2 class="welcome-search-data__title">Materias Académicas</h2>
+    </div>
+  </section>
+
+  <!-- Sección de Tarjeta Consolidada de Resumen de Materias -->
+  <section class="content-info-data">
+    <section class="data-general-control">
+      <!-- Tarjeta Consolidada de Materias -->
+      <div class="registro-control consolidated-materias-card">
+        <div class="card-icon-title">
+          <i class='bx bxs-book-bookmark'></i> <!-- Icono para materias -->
+          <h5 class="card-title">Resumen de Materias Académicas</h5>
+        </div>
+        <div class="materias-summary-grid">
+          <div class="summary-item">
+            <span class="summary-count" id="totalMateriasCount">0</span>
+            <span class="summary-label">Total</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="activeMateriasCount">0</span>
+            <span class="summary-label">Activas</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="totalEstudiantesEnMateriasCount">0</span>
+            <span class="summary-label">Estudiantes Inscritos</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="totalProfesoresAsignadosMateriasCount">0</span>
+            <span class="summary-label">Profesores Asignados</span>
+          </div>
+        </div>
+        <!-- Botón para añadir materia, dentro de la tarjeta de resumen -->
+        <div class="mt-3 text-center">
+          <div class="btn-accion-control">
+            <button class="btn btn-card" id="btnAnadirMateria" data-bs-toggle="modal" data-bs-target="#modalAnadirMateria">
+              <i class='bx bx-plus me-2'></i>Añadir Materia
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- La tabla de Materias -->
+  <div class="display-table" id="tableMaterias">
+    <div class="d-flex justify-content-end mb-3">
+      <input type="text" id="searchInput" class="form-control w-25" placeholder="Buscar materia...">
+    </div>
+    <div class="tabla-info-person">
+      <table class="table table-dark table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Nombre de la Materia</th>
+            <th scope="col">Curso Asociado</th>
+            <th scope="col">Período</th>
+            <th scope="col">Sección</th>
+            <th scope="col">Profesores Asignados</th>
+            <th scope="col">Estudiantes Inscritos</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="materiasTableBody">
+          <!-- Contenido de la tabla de materias se carga aquí dinámicamente -->
+          <tr>
+            <td colspan="9" class="text-center">Cargando materias...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <nav aria-label="Page navigation" class="pagination-container">
+      <ul class="pagination-list" id="paginationMaterias">
+        <!-- Los botones de paginación se insertarán aquí -->
+      </ul>
+    </nav>
+  </div>
+</section>
+
+<!-- Modales -->
+
+<!-- Modal para Añadir Materia -->
+<div class="modal fade" id="modalAnadirMateria" tabindex="-1" aria-labelledby="modalAnadirMateriaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAnadirMateriaLabel">Añadir Nueva Materia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formAnadirMateria">
+          <div class="mb-3">
+            <label for="nombreMateria" class="form-label">Nombre de la Materia <span class="campo-obligatorio">*</span></label>
+            <input type="text" class="form-control" id="nombreMateria" required>
+            <div class="invalid-feedback">Por favor, ingresa el nombre de la materia.</div>
+          </div>
+          <div class="mb-3">
+            <label for="idCurso" class="form-label">Curso Asociado <span class="campo-obligatorio">*</span></label>
+            <select class="form-select" id="idCurso" required>
+              <option value="">Selecciona un curso</option>
+              <!-- Opciones de cursos se cargarán aquí -->
+            </select>
+            <div class="invalid-feedback">Por favor, selecciona un curso.</div>
+          </div>
+          <div class="mb-3">
+            <label for="estudiantesMateria" class="form-label">Asignar Estudiantes a la Materia (Opcional)</label>
+            <select class="form-select" id="estudiantesMateria" multiple>
+              <!-- Opciones de estudiantes se cargarán aquí -->
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="profesoresMateria" class="form-label">Asignar Profesores a la Materia (Opcional)</label>
+            <select class="form-select" id="profesoresMateria" multiple>
+              <!-- Opciones de profesores se cargarán aquí -->
+            </select>
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <button type="reset" class="btn btn-secondary">Limpiar</button>
+            <button type="submit" class="btn btn-primary">Añadir Materia</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Editar Materia -->
+<div class="modal fade" id="modalEditarMateria" tabindex="-1" aria-labelledby="modalEditarMateriaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarMateriaLabel">Editar Materia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarMateria">
+          <input type="hidden" id="editMateriaId">
+          <div class="mb-3">
+            <label for="editNombreMateria" class="form-label">Nombre de la Materia <span class="campo-obligatorio">*</span></label>
+            <input type="text" class="form-control" id="editNombreMateria" required>
+            <div class="invalid-feedback">Por favor, ingresa el nombre de la materia.</div>
+          </div>
+          <div class="mb-3">
+            <label for="editIdCurso" class="form-label">Curso Asociado <span class="campo-obligatorio">*</span></label>
+            <select class="form-select" id="editIdCurso" required>
+              <option value="">Selecciona un curso</option>
+              <!-- Opciones de cursos se cargarán aquí -->
+            </select>
+            <div class="invalid-feedback">Por favor, selecciona un curso.</div>
+          </div>
+          <div class="mb-3">
+            <label for="editEstudiantesMateria" class="form-label">Estudiantes Asignados</label>
+            <select class="form-select" id="editEstudiantesMateria" multiple>
+              <!-- Opciones de estudiantes se cargarán aquí -->
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="editProfesoresMateria" class="form-label">Profesores Asignados</label>
+            <select class="form-select" id="editProfesoresMateria" multiple>
+              <!-- Opciones de profesores se cargarán aquí -->
+            </select>
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts de Bootstrap y JavaScript personalizado -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<script is:inline>
+  const API_BASE_URL = 'http://localhost:3001/api'; // Ajusta esto a la URL de tu backend
+
+  // ==========================================================
+  // FUNCIONES DE UTILIDAD PARA MODALES DE CONFIRMACIÓN Y ALERTA
+  // Reutilizadas de tus implementaciones anteriores
+  // ==========================================================
+
+  /**
+   * Muestra un modal de confirmación personalizado.
+   * @param {string} mensaje El mensaje a mostrar en el modal.
+   * @param {string} titulo El título del modal.
+   * @returns {Promise<boolean>} Resuelve a true si se confirma, false si se cancela o se cierra.
+   */
+  async function mostrarConfirmacion(mensaje, titulo = "Confirmación") {
+    return new Promise((resolve) => {
+      const modalId = 'customConfirmModal';
+      let confirmModalElement = document.getElementById(modalId);
+
+      // Si el modal ya existe, lo eliminamos para evitar duplicados de listeners
+      if (confirmModalElement) {
+        confirmModalElement.remove();
+      }
+
+      const confirmModalHtml = `
+        <div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="customConfirmModalLabel">${titulo}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
+                  <i class='bx bx-x'></i>
+                </button>
+              </div>
+              <div class="modal-body">
+                ${mensaje}
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtnModal">Confirmar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
+
+      confirmModalElement = document.getElementById(modalId);
+      const customConfirmModal = new bootstrap.Modal(confirmModalElement);
+
+      const confirmActionBtn = document.getElementById('confirmActionBtnModal');
+      const cleanupAndResolve = (result) => {
+        customConfirmModal.hide(); // Oculta el modal
+        // Espera a que el modal esté completamente oculto antes de removerlo
+        confirmModalElement.addEventListener('hidden.bs.modal', () => {
+          confirmModalElement.remove(); // Elimina el elemento del DOM
+          resolve(result);
+        }, { once: true });
+      };
+
+      if (confirmActionBtn) {
+        confirmActionBtn.addEventListener('click', () => {
+          cleanupAndResolve(true);
+        }, { once: true });
+      } else {
+        console.error("ERROR: [mostrarConfirmacion] Botón 'confirmActionBtnModal' no encontrado.");
+        cleanupAndResolve(false);
+      }
+
+      // Añadir listener para el cierre del modal (ej. tecla ESC, clic fuera)
+      confirmModalElement.addEventListener('hidden.bs.modal', () => {
+        // Si ya se resolvió por un clic en los botones, no hacemos nada.
+        // Si se cierra por otras vías, resolvemos a false.
+        // Esto se maneja mejor con la bandera `once: true` y `cleanupAndResolve`
+        // asegurando que solo se resuelva una vez.
+      }, { once: true }); // Usar `once: true` para que el listener se remueva solo
+
+      customConfirmModal.show();
+    });
+  }
+
+  /**
+   * Muestra un mensaje de alerta temporal en la parte superior de la pantalla.
+   * @param {string} mensaje El mensaje a mostrar.
+   * @param {string} tipo El tipo de alerta ('success' o 'danger').
+   * @param {number} duracion La duración en milisegundos (por defecto 5000).
+   */
+  function mostrarAlerta(mensaje, tipo, duracion = 5000) {
+    const alertContainer = document.getElementById('alertContainer') || (() => {
+      const div = document.createElement('div');
+      div.id = 'alertContainer';
+      div.style.position = 'fixed';
+      div.style.top = '20px';
+      div.style.left = '50%';
+      div.style.transform = 'translateX(-50%)';
+      div.style.zIndex = '9999';
+      div.style.width = 'auto';
+      div.style.maxWidth = '90%';
+      document.body.appendChild(div);
+      return div;
+    })();
+
+    const alertElement = document.createElement('div');
+    alertElement.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertElement.role = 'alert';
+    alertElement.textContent = mensaje;
+
+    alertContainer.appendChild(alertElement);
+
+    setTimeout(() => {
+      // Usa Bootstrap's native dismiss method
+      const bsAlert = new bootstrap.Alert(alertElement);
+      bsAlert.dispose(); // Cierra el alerta y lo remueve del DOM
+    }, duracion);
+  }
+
+  // ==========================================================
+  // LÓGICA DE CARGA DE DATOS Y MANEJO DE LA TABLA
+  // ==========================================================
+
+  let currentPage = 1;
+  const itemsPerPage = 10; // Ajusta según tu preferencia
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await fetchMateriasSummary();
+    await fetchMaterias(currentPage);
+    await loadSelectOptions();
+
+    // Event listener para el formulario de añadir materia
+    const formAnadirMateria = document.getElementById('formAnadirMateria');
+    if (formAnadirMateria) {
+      formAnadirMateria.addEventListener('submit', anadirMateria);
+    }
+
+    // Event listener para el formulario de editar materia
+    const formEditarMateria = document.getElementById('formEditarMateria');
+    if (formEditarMateria) {
+      formEditarMateria.addEventListener('submit', editarMateria);
+    }
+  });
+
+
+  async function fetchMateriasSummary() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias/resumen`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      document.getElementById('totalMateriasCount').textContent = data.totalMaterias;
+      document.getElementById('activeMateriasCount').textContent = data.materiasActivas;
+      document.getElementById('totalEstudiantesEnMateriasCount').textContent = data.totalEstudiantesEnMaterias;
+      document.getElementById('totalProfesoresAsignadosMateriasCount').textContent = data.totalProfesoresAsignadosMaterias;
+    } catch (error) {
+      console.error('Error al obtener resumen de materias:', error);
+      mostrarAlerta('No se pudo cargar el resumen de materias.', 'danger');
+    }
+  }
+
+  async function fetchMaterias(page) {
+    const tableBody = document.getElementById('materiasTableBody');
+    const paginationMaterias = document.getElementById('paginationMaterias');
+    tableBody.innerHTML = '<tr><td colspan="9" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Cargando materias...</td></tr>';
+    paginationMaterias.innerHTML = '';
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias-academicas?page=${page}&limit=${itemsPerPage}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      tableBody.innerHTML = ''; // Limpiar el mensaje de carga
+
+      if (data.materias.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="9" class="text-center">No se encontraron materias.</td></tr>';
+        return;
+      }
+
+      data.materias.forEach((materia, index) => {
+        const row = tableBody.insertRow();
+        row.innerHTML = `
+          <td>${((page - 1) * itemsPerPage) + index + 1}</td>
+          <td>${materia.nombre_materia}</td>
+          <td>${materia.nombre_curso || 'N/A'}</td>
+          <td>${materia.nombre_periodo || 'N/A'}</td>
+          <td>${materia.nombre_seccion || 'N/A'}</td>
+          <td>${materia.total_profesores_materia}</td>
+          <td>${materia.total_estudiantes_materia}</td>
+          <td>
+            <span ${materia.estado === 1 ? 'bg-success' : (materia.estado === 0 ? 'bg-danger' : 'bg-warning')}">
+              ${materia.estado === 1 ? 'Activo' : (materia.estado === 0 ? 'Inactivo' : 'Desconocido')}
+            </span>
+          </td>
+          <td>
+            <div class="dropdown">
+              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton${materia.id_materia}" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class='bx bx-dots-vertical-rounded'></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${materia.id_materia}">
+                <li><a class="dropdown-item edit-materia-btn" href="#" data-id="${materia.id_materia}"><i class='bx bx-edit-alt'></i> Editar</a></li>
+                <li><a class="dropdown-item delete-materia-btn" href="#" data-id="${materia.id_materia}"><i class='bx bx-trash'></i> Eliminar</a></li>
+                <li><a class="dropdown-item gestionar-notas-btn" href="#"><i class='bx bx-spreadsheet'></i> Gestionar Actividades/Notas</a></li>
+              </ul>
+            </div>
+          </td>
+        `;
+      });
+
+      setupPagination(data.totalPages, page);
+      attachTableEventListeners(); // Attach event listeners after content is loaded
+
+    } catch (error) {
+      console.error('Error al cargar las materias:', error);
+      tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">Error al cargar las materias.</td></tr>';
+      mostrarAlerta('Error al cargar las materias.', 'danger');
+    }
+  }
+
+  function setupPagination(totalPages, currentPage) {
+    const paginationContainer = document.getElementById('paginationMaterias');
+    paginationContainer.innerHTML = ''; // Limpiar paginación existente
+
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (currentPage <= 3) {
+        endPage = Math.min(totalPages, 5);
+    } else if (currentPage >= totalPages - 2) {
+        startPage = Math.max(1, totalPages - 4);
+    }
+
+    if (startPage > 1) {
+        paginationContainer.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+        if (startPage > 2) {
+            paginationContainer.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      paginationContainer.innerHTML += `
+        <li class="page-item ${i === currentPage ? 'active' : ''}">
+          <a class="page-link" href="#" data-page="${i}">${i}</a>
+        </li>
+      `;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationContainer.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+        paginationContainer.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+    }
+
+    // Attach event listeners to new pagination links
+    paginationContainer.querySelectorAll('.page-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = parseInt(e.target.dataset.page);
+        if (page && page !== currentPage) {
+          currentPage = page;
+          fetchMaterias(currentPage);
+        }
+      });
+    });
+  }
+
+  // Cargar opciones para los selects de cursos, estudiantes y profesores
+  async function loadSelectOptions() {
+    const studentStatus = materia.estado === 1 ? 'Activo' : (materia.estado === 0 ? 'Inactivo' : 'Desconocido'); 
+    const idCursoSelect = document.getElementById('idCurso');
+    const editIdCursoSelect = document.getElementById('editIdCurso');
+    const estudiantesMateriaSelect = document.getElementById('estudiantesMateria');
+    const editEstudiantesMateriaSelect = document.getElementById('editEstudiantesMateria');
+    const profesoresMateriaSelect = document.getElementById('profesoresMateria');
+    const editProfesoresMateriaSelect = document.getElementById('editProfesoresMateria');
+
+    try {
+      // Obtener cursos (solo activos)
+      const cursosResponse = await fetch(`${API_BASE_URL}/cursos`); // Asegúrate de que esta ruta filtra por activo
+      const cursos = await cursosResponse.json();
+      populateSelect(idCursoSelect, cursos, 'id_curso', 'curso'); // 'curso' es el nombre de la columna en tu DB
+      populateSelect(editIdCursoSelect, cursos, 'id_curso', 'curso');
+
+      // Obtener estudiantes (solo activos para asignación)
+      const estudiantesResponse = await fetch(`${API_BASE_URL}/estudiantes?estado=activo&limit=9999`);
+      const estudiantesData = await estudiantesResponse.json();
+      const estudiantes = estudiantesData.estudiantes.map(est => ({
+        id_usuario: est.id_usuario,
+        nombre_completo: `${est.primer_nombre} ${est.primer_apellido} (${est.cedula})`
+      }));
+      populateSelect(estudiantesMateriaSelect, estudiantes, 'id_usuario', 'nombre_completo');
+      populateSelect(editEstudiantesMateriaSelect, estudiantes, 'id_usuario', 'nombre_completo');
+
+      // Obtener profesores (solo activos para asignación)
+      const profesoresResponse = await fetch(`${API_BASE_URL}/profesores?estado=activo&limit=9999`);
+      const profesoresData = await profesoresResponse.json();
+      const profesores = profesoresData.profesores.map(prof => ({
+        id_usuario: prof.id_usuario,
+        nombre_completo: `${prof.primer_nombre} ${prof.primer_apellido} (${prof.cedula})`
+      }));
+      populateSelect(profesoresMateriaSelect, profesores, 'id_usuario', 'nombre_completo');
+      populateSelect(editProfesoresMateriaSelect, profesores, 'id_usuario', 'nombre_completo');
+
+    } catch (error) {
+      console.error('Error al cargar opciones de select:', error);
+      mostrarAlerta('Error al cargar opciones de cursos, estudiantes o profesores.', 'danger');
+    }
+  }
+
+  function populateSelect(selectElement, items, idKey, nameKey) {
+    selectElement.innerHTML = '<option value="">Selecciona una opción</option>'; // Restablecer a la opción por defecto
+    items.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item[idKey];
+      option.textContent = item[nameKey];
+      selectElement.appendChild(option);
+    });
+  }
+
+  function attachTableEventListeners() {
+    // Event listeners para botones de editar
+    document.querySelectorAll('.edit-materia-btn').forEach(button => {
+      button.removeEventListener('click', handleEditMateria); // Evitar duplicados
+      button.addEventListener('click', handleEditMateria);
+    });
+
+    // Event listeners para botones de cambiar estado
+    document.querySelectorAll('.estado-materia-btn').forEach(button => {
+      button.removeEventListener('click', handleChangeMateriaEstado); // Evitar duplicados
+      button.addEventListener('click', handleChangeMateriaEstado);
+    });
+
+    // Event listeners para botones de eliminar
+    document.querySelectorAll('.delete-materia-btn').forEach(button => {
+      button.removeEventListener('click', handleDeleteMateria); // Evitar duplicados
+      button.addEventListener('click', handleDeleteMateria);
+    });
+  }
+
+  // ==========================================================
+  // MANEJO DE FORMULARIOS Y ACCIONES
+  // ==========================================================
+
+  async function anadirMateria(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const nombreMateria = form.elements['nombreMateria'].value.trim();
+    const idCurso = form.elements['idCurso'].value;
+    const estudiantesAsignados = Array.from(form.elements['estudiantesMateria'].selectedOptions).map(option => option.value);
+    const profesoresAsignados = Array.from(form.elements['profesoresMateria'].selectedOptions).map(option => option.value);
+
+    // Validación básica
+    if (!nombreMateria || !idCurso) {
+      form.classList.add('was-validated'); // Muestra feedback de Bootstrap
+      mostrarAlerta('Por favor, completa todos los campos obligatorios.', 'danger');
+      return;
+    }
+
+    const data = {
+      nombreMateria,
+      id_curso: parseInt(idCurso),
+      estudiantesAsignados,
+      profesoresAsignados
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias-academicas`, { // Ruta para añadir materia
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al añadir la materia.');
+      }
+
+      const result = await response.json();
+      mostrarAlerta(result.message, 'success');
+      
+      const modalElement = document.getElementById('modalAnadirMateria');
+      const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+      if (bootstrapModal) bootstrapModal.hide();
+
+      form.reset(); // Limpiar el formulario
+      form.classList.remove('was-validated'); // Quitar la validación visual
+
+      await fetchMateriasSummary();
+      await fetchMaterias(currentPage); // Recargar la tabla
+    } catch (error) {
+      console.error('Error al añadir materia:', error);
+      mostrarAlerta(error.message || 'Ocurrió un error al añadir la materia.', 'danger');
+    }
+  }
+
+  async function handleEditMateria(event) {
+    const materiaId = event.currentTarget.dataset.id;
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}`); // Obtener detalles de la materia
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const materia = await response.json();
+
+      // Llenar el modal de edición con los datos de la materia
+      document.getElementById('editMateriaId').value = materia.id_materia;
+      document.getElementById('editNombreMateria').value = materia.nombre_materia;
+      document.getElementById('editIdCurso').value = materia.id_curso;
+
+      // Seleccionar estudiantes asignados
+      const editEstudiantesMateriaSelect = document.getElementById('editEstudiantesMateria');
+      Array.from(editEstudiantesMateriaSelect.options).forEach(option => {
+        option.selected = materia.estudiantes_info.some(est => String(est.id_usuario) === option.value);
+      });
+
+      // Seleccionar profesores asignados
+      const editProfesoresMateriaSelect = document.getElementById('editProfesoresMateria');
+      Array.from(editProfesoresMateriaSelect.options).forEach(option => {
+        option.selected = materia.profesores_info.some(prof => String(prof.id_usuario) === option.value);
+      });
+
+
+      const modalElement = document.getElementById('modalEditarMateria');
+      const bootstrapModal = new bootstrap.Modal(modalElement);
+      bootstrapModal.show();
+
+    } catch (error) {
+      console.error('Error al cargar datos para editar materia:', error);
+      mostrarAlerta('Error al cargar los datos de la materia para edición.', 'danger');
+    }
+  }
+
+  async function editarMateria(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const materiaId = form.elements['editMateriaId'].value;
+    const nombreMateria = form.elements['editNombreMateria'].value.trim();
+    const idCurso = form.elements['editIdCurso'].value;
+    const estudiantesAsignados = Array.from(form.elements['editEstudiantesMateria'].selectedOptions).map(option => option.value);
+    const profesoresAsignados = Array.from(form.elements['editProfesoresMateria'].selectedOptions).map(option => option.value);
+
+    if (!nombreMateria || !idCurso) {
+      form.classList.add('was-validated');
+      mostrarAlerta('Por favor, completa todos los campos obligatorios.', 'danger');
+      return;
+    }
+
+    const data = {
+      nombre_materia: nombreMateria,
+      id_curso: parseInt(idCurso),
+      estudiantes: estudiantesAsignados,
+      profesores: profesoresAsignados
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}`, { // Ruta PUT para actualizar
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al actualizar la materia.');
+      }
+
+      const result = await response.json();
+      mostrarAlerta(result.message, 'success');
+
+      const modalElement = document.getElementById('modalEditarMateria');
+      const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+      if (bootstrapModal) bootstrapModal.hide();
+
+      form.classList.remove('was-validated');
+      await fetchMateriasSummary();
+      await fetchMaterias(currentPage); // Recargar la tabla
+    } catch (error) {
+      console.error('Error al actualizar materia:', error);
+      mostrarAlerta(error.message || 'Ocurrió un error al actualizar la materia.', 'danger');
+    }
+  }
+
+  async function handleChangeMateriaEstado(event) {
+    const materiaId = event.currentTarget.dataset.id;
+    const estadoActual = event.currentTarget.dataset.estado;
+    const nuevoEstado = estadoActual === 'activo' ? 'inactivo' : 'activo';
+
+    const confirmacion = await mostrarConfirmacion(
+      `¿Estás seguro de que quieres ${nuevoEstado === 'activo' ? 'activar' : 'desactivar'} esta materia?`,
+      `${nuevoEstado === 'activo' ? 'Activar' : 'Desactivar'} Materia`
+    );
+
+    if (confirmacion) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}/estado`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: nuevoEstado })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al cambiar el estado de la materia.');
+        }
+
+        const result = await response.json();
+        mostrarAlerta(result.message, 'success');
+        await fetchMateriasSummary();
+        await fetchMaterias(currentPage); // Recargar la tabla
+      } catch (error) {
+        console.error('Error al cambiar estado de la materia:', error);
+        mostrarAlerta(error.message || 'Ocurrió un error al cambiar el estado de la materia.', 'danger');
+      }
+    }
+  }
+
+  async function handleDeleteMateria(event) {
+    const materiaId = event.currentTarget.dataset.id;
+
+    const confirmacion = await mostrarConfirmacion(
+      `¿Estás seguro de que quieres eliminar esta materia? Esta acción es irreversible.`,
+      `Eliminar Materia`
+    );
+
+    if (confirmacion) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al eliminar la materia.');
+        }
+
+        const result = await response.json();
+        mostrarAlerta(result.message, 'success');
+        await fetchMateriasSummary();
+        await fetchMaterias(currentPage); // Recargar la tabla
+      } catch (error) {
+        console.error('Error al eliminar materia:', error);
+        mostrarAlerta(error.message || 'Ocurrió un error al eliminar la materia.', 'danger');
+      }
+    }
+  }
+
+</script>

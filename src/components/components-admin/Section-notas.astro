@@ -1,0 +1,1211 @@
+---
+import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS para estilos de notas */
+---
+
+<!-- Nueva sección del Título "Notas Académicas" -->
+<section class="notas-header-card">
+  <div class="welcome-search-data">
+    <h2 class="welcome-search-data__title">Notas Académicas</h2>
+  </div>
+</section>
+
+<section class="data-content-section">
+  <!-- Sección de Tarjeta Consolidada de Resumen de Notas -->
+  <section class="content-info-data">
+    <section class="data-general-control grid-layout">
+      <div class="registro-control consolidated-notas-card">
+        <div class="card-icon-title">
+          <i class='bx bxs-book-content'></i> <!-- Icono para notas -->
+          <h5 class="card-title">Resumen de Notas Académicas</h5>
+        </div>
+        <div class="notas-summary-grid">
+          <div class="summary-item">
+            <span class="summary-count" id="totalNotasCount">0</span>
+            <span class="summary-label">Total Notas</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="promedioGeneralNotas">N/A</span>
+            <span class="summary-label">Promedio General</span>
+          </div>
+          <!-- Puedes añadir más items de resumen aquí si los necesitas -->
+        </div>
+        <!-- Botón para añadir nota -->
+        <div class="mt-3 text-center">
+          <button class="btn btn-primary" id="btnAnadirNota" data-bs-toggle="modal" data-bs-target="#modalAnadirNota">
+            <i class='bx bx-plus me-2'></i>Añadir Nota
+          </button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- La tabla de Notas Académicas -->
+  <div class="display-table mt-4" id="tableNotas">
+    <div class="tabla-info-person">
+      <table class="table table-dark table-hover table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Estudiante</th>
+            <th scope="col">Materia</th>
+            <th scope="col">Periodo</th>
+            <th scope="col">Curso/Sección</th>
+            <th scope="col">Nota</th>
+            <th scope="col">Descripción</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="notasTableBody">
+          <tr>
+            <td colspan="9" class="text-center">Cargando notas académicas...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="paginationControls" class="pagination text-center mt-3"></div>
+  </div>
+</section>
+
+<!-- Modal para Añadir Nueva Nota Académica -->
+<div class="modal fade" id="modalAnadirNota" tabindex="-1" aria-labelledby="modalAnadirNotaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAnadirNotaLabel">Añadir Nueva Nota Académica</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formAnadirNota">
+          <h6 class="section-title">Información de la Nota</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="anadirPeriodo" class="form-label">Periodo Académico</label>
+              <select class="form-select" id="anadirPeriodo" required>
+                <option value="">Seleccione un Periodo</option>
+                <!-- Opciones cargadas dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="anadirCurso" class="form-label">Curso / Sección</label>
+              <select class="form-select" id="anadirCurso" required disabled>
+                <option value="">Seleccione un Curso</option>
+                <!-- Opciones cargadas dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="anadirEstudiante" class="form-label">Estudiante</label>
+              <select class="form-select" id="anadirEstudiante" required disabled>
+                <option value="">Seleccione un Estudiante</option>
+                <!-- Opciones cargadas dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="anadirMateria" class="form-label">Materia</label>
+              <select class="form-select" id="anadirMateria" required disabled>
+                <option value="">Seleccione una Materia</option>
+                <!-- Opciones cargadas dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="anadirValorNota" class="form-label">Valor de la Nota</label>
+              <input type="number" step="0.01" min="0" max="20" class="form-control" id="anadirValorNota" placeholder="Ej. 18.50" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="anadirFechaNota" class="form-label">Fecha de la Nota</label>
+              <input type="date" class="form-control" id="anadirFechaNota" required />
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="anadirDescripcionNota" class="form-label">Descripción de la Nota</label>
+            <input type="text" class="form-control" id="anadirDescripcionNota" placeholder="Ej. Examen Final" />
+          </div>
+          <div class="mb-3">
+            <label for="anadirObservaciones" class="form-label">Observaciones</label>
+            <textarea class="form-control" id="anadirObservaciones" rows="3" placeholder="Comentarios adicionales sobre la nota..."></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardarNota">Guardar Nota</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Ver Más Información de la Nota -->
+<div class="modal fade" id="modalVerMasInformacionNota" tabindex="-1" aria-labelledby="modalVerMasInformacionNotaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalVerMasInformacionNotaLabel">Detalles de la Nota Académica</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h6 class="section-title">Información de la Nota</h6>
+        <p><strong>Estudiante:</strong> <span id="detalleNotaEstudiante"></span></p>
+        <p><strong>Materia:</strong> <span id="detalleNotaMateria"></span></p>
+        <p><strong>Periodo:</strong> <span id="detalleNotaPeriodo"></span></p>
+        <p><strong>Curso/Sección:</strong> <span id="detalleNotaCurso"></span></p>
+        <p><strong>Valor:</strong> <span id="detalleNotaValor"></span></p>
+        <p><strong>Descripción:</strong> <span id="detalleNotaDescripcion"></span></p>
+        <p><strong>Fecha:</strong> <span id="detalleNotaFecha"></span></p>
+        <p><strong>Observaciones:</strong> <span id="detalleNotaObservaciones"></span></p>
+        <p><strong>Registrado el:</strong> <span id="detalleNotaCreadoEn"></span></p>
+        <p><strong>Última Actualización:</strong> <span id="detalleNotaActualizadoEn"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Editar Nota Académica -->
+<div class="modal fade" id="modalEditarNota" tabindex="-1" aria-labelledby="modalEditarNotaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarNotaLabel">Editar Nota Académica</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarNota">
+          <input type="hidden" id="editIdNota" />
+          <h6 class="section-title">Información de la Nota</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="editPeriodo" class="form-label">Periodo Académico</label>
+              <select class="form-select" id="editPeriodo" required>
+                <!-- Opciones cargadas dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="editCurso" class="form-label">Curso / Sección</label>
+              <select class="form-select" id="editCurso" required disabled>
+                <!-- Opciones cargadas dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="editEstudiante" class="form-label">Estudiante</label>
+              <select class="form-select" id="editEstudiante" required disabled>
+                <!-- Opciones cargadas dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="editMateria" class="form-label">Materia</label>
+              <select class="form-select" id="editMateria" required disabled>
+                <!-- Opciones cargadas dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="editValorNota" class="form-label">Valor de la Nota</label>
+              <input type="number" step="0.01" min="0" max="20" class="form-control" id="editValorNota" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="editFechaNota" class="form-label">Fecha de la Nota</label>
+              <input type="date" class="form-control" id="editFechaNota" required />
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="editDescripcionNota" class="form-label">Descripción de la Nota</label>
+            <input type="text" class="form-control" id="editDescripcionNota" />
+          </div>
+          <div class="mb-3">
+            <label for="editObservaciones" class="form-label">Observaciones</label>
+            <textarea class="form-control" id="editObservaciones" rows="3"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardarEdicionNota">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts de Bootstrap y JavaScript personalizado -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log("DEBUG: DOMContentLoaded - Script principal de Notas cargado.");
+    console.log("DEBUG: window.bootstrap is", typeof window.bootstrap); // Verificación de Bootstrap
+
+    let currentPage = 1;
+    const itemsPerPage = 5; 
+    const notasTableBody = document.getElementById('notasTableBody');
+    const paginationControls = document.getElementById('paginationControls');
+
+    // Contadores y promedios
+    const totalNotasCount = document.getElementById('totalNotasCount');
+    const promedioGeneralNotas = document.getElementById('promedioGeneralNotas');
+
+    // Modales
+    const modalAnadirNota = new bootstrap.Modal(document.getElementById('modalAnadirNota'));
+    const modalVerMasInformacionNota = new bootstrap.Modal(document.getElementById('modalVerMasInformacionNota'));
+    const modalEditarNota = new bootstrap.Modal(document.getElementById('modalEditarNota'));
+
+    // Elementos del formulario Añadir Nota
+    const formAnadirNota = document.getElementById('formAnadirNota');
+    const anadirPeriodo = document.getElementById('anadirPeriodo');
+    const anadirCurso = document.getElementById('anadirCurso');
+    const anadirEstudiante = document.getElementById('anadirEstudiante');
+    const anadirMateria = document.getElementById('anadirMateria');
+    const anadirValorNota = document.getElementById('anadirValorNota');
+    const anadirFechaNota = document.getElementById('anadirFechaNota');
+    const anadirDescripcionNota = document.getElementById('anadirDescripcionNota');
+    const anadirObservaciones = document.getElementById('anadirObservaciones');
+    const btnGuardarNota = document.getElementById('btnGuardarNota');
+
+    // Elementos del modal Ver Más Información
+    const detalleNotaEstudiante = document.getElementById('detalleNotaEstudiante');
+    const detalleNotaMateria = document.getElementById('detalleNotaMateria');
+    const detalleNotaPeriodo = document.getElementById('detalleNotaPeriodo');
+    const detalleNotaCurso = document.getElementById('detalleNotaCurso');
+    const detalleNotaValor = document.getElementById('detalleNotaValor');
+    const detalleNotaDescripcion = document.getElementById('detalleNotaDescripcion');
+    const detalleNotaFecha = document.getElementById('detalleNotaFecha');
+    const detalleNotaObservaciones = document.getElementById('detalleNotaObservaciones');
+    const detalleNotaCreadoEn = document.getElementById('detalleNotaCreadoEn');
+    const detalleNotaActualizadoEn = document.getElementById('detalleNotaActualizadoEn');
+
+    // Elementos del formulario Editar Nota
+    const formEditarNota = document.getElementById('formEditarNota');
+    const editIdNota = document.getElementById('editIdNota');
+    const editPeriodo = document.getElementById('editPeriodo');
+    const editCurso = document.getElementById('editCurso');
+    const editEstudiante = document.getElementById('editEstudiante');
+    const editMateria = document.getElementById('editMateria');
+    const editValorNota = document.getElementById('editValorNota');
+    const editFechaNota = document.getElementById('editFechaNota');
+    const editDescripcionNota = document.getElementById('editDescripcionNota');
+    const editObservaciones = document.getElementById('editObservaciones');
+    const btnGuardarEdicionNota = document.getElementById('btnGuardarEdicionNota');
+
+    // --- Lógica de Habilitación/Deshabilitación del botón Añadir Nota ---
+    function validarFormularioAnadirNota() {
+      const periodoValido = anadirPeriodo.value !== "";
+      const cursoValido = anadirCurso.value !== "";
+      const estudianteValido = anadirEstudiante.value !== "";
+      const materiaValida = anadirMateria.value !== "";
+      const valorNotaValido = anadirValorNota.value !== "";
+      const fechaNotaValida = anadirFechaNota.value !== "";
+      
+      btnGuardarNota.disabled = !(periodoValido && cursoValido && estudianteValido && materiaValida && valorNotaValido && fechaNotaValida);
+    }
+
+    anadirPeriodo.addEventListener("change", validarFormularioAnadirNota);
+    anadirCurso.addEventListener("change", validarFormularioAnadirNota);
+    anadirEstudiante.addEventListener("change", validarFormularioAnadirNota);
+    anadirMateria.addEventListener("change", validarFormularioAnadirNota);
+    anadirValorNota.addEventListener("input", validarFormularioAnadirNota);
+    anadirFechaNota.addEventListener("input", validarFormularioAnadirNota);
+
+    // --- Lógica de Habilitación/Deshabilitación del botón Editar Nota ---
+    function validarFormularioEditarNota() {
+      const periodoValido = editPeriodo.value !== "";
+      const cursoValido = editCurso.value !== "";
+      const estudianteValido = editEstudiante.value !== "";
+      const materiaValida = editMateria.value !== "";
+      const valorNotaValido = editValorNota.value !== "";
+      const fechaNotaValida = editFechaNota.value !== "";
+      
+      btnGuardarEdicionNota.disabled = !(periodoValido && cursoValido && estudianteValido && materiaValida && valorNotaValido && fechaNotaValida);
+    }
+    
+    editPeriodo.addEventListener("change", validarFormularioEditarNota);
+    editCurso.addEventListener("change", validarFormularioEditarNota);
+    editEstudiante.addEventListener("change", validarFormularioEditarNota);
+    editMateria.addEventListener("change", validarFormularioEditarNota);
+    editValorNota.addEventListener("input", validarFormularioEditarNota);
+    editFechaNota.addEventListener("input", validarFormularioEditarNota);
+
+    // --- Funciones para cargar dropdowns dinámicamente ---
+    async function loadPeriodosDropdown(selectElement, selectedId = null) {
+        try {
+            const response = await fetch('http://localhost:3001/api/periodos-academicos'); // Obtener todos los periodos
+            if (!response.ok) throw new Error('Error al cargar periodos para el dropdown.');
+            const data = await response.json();
+            const periodos = data.periodos;
+
+            selectElement.innerHTML = '<option value="">Seleccione un Periodo</option>';
+            periodos.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id_periodo;
+                option.textContent = p.periodo;
+                if (selectedId && p.id_periodo === selectedId) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+            console.log(`DEBUG: Dropdown de periodos cargado con ${periodos.length} elementos.`);
+        } catch (error) {
+            console.error('❌ Error al cargar dropdown de periodos:', error);
+            mostrarErrorAlUsuario('No se pudieron cargar los periodos.');
+        }
+    }
+
+    async function loadCursosDropdown(selectElement, periodoId, selectedId = null) {
+        selectElement.innerHTML = '<option value="">Seleccione un Curso</option>';
+        selectElement.disabled = true;
+        if (!periodoId) return;
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/cursos?id_periodo=${periodoId}`);
+            if (!response.ok) throw new Error('Error al cargar cursos para el dropdown.');
+            const data = await response.json();
+            const cursos = data.cursos; // Asumiendo que tu API devuelve { cursos: [...], totalCount: ... }
+
+            cursos.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.id_curso;
+                option.textContent = c.nombre_curso;
+                if (selectedId && c.id_curso === selectedId) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+            selectElement.disabled = false;
+            console.log(`DEBUG: Dropdown de cursos cargado con ${cursos.length} elementos para periodo ${periodoId}.`);
+        } catch (error) {
+            console.error('❌ Error al cargar dropdown de cursos:', error);
+            mostrarErrorAlUsuario('No se pudieron cargar los cursos para el periodo seleccionado.');
+        }
+    }
+
+    async function loadEstudiantesDropdown(selectElement, cursoId, selectedId = null) {
+        selectElement.innerHTML = '<option value="">Seleccione un Estudiante</option>';
+        selectElement.disabled = true;
+        if (!cursoId) return;
+
+        try {
+            // Asumiendo que tienes un endpoint para obtener estudiantes por curso
+            const response = await fetch(`http://localhost:3001/api/usuarios?tipo_usuario=estudiante&id_curso=${cursoId}&limit=all`);
+            if (!response.ok) throw new Error('Error al cargar estudiantes para el dropdown.');
+            const data = await response.json();
+            const estudiantes = data.usuarios; // Asumiendo que tu API devuelve { usuarios: [...], totalCount: ... }
+
+            estudiantes.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.id_usuario;
+                option.textContent = `${s.nombre} ${s.apellido}`; // Asume que tienes nombre y apellido
+                if (selectedId && s.id_usuario === selectedId) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+            selectElement.disabled = false;
+            console.log(`DEBUG: Dropdown de estudiantes cargado con ${estudiantes.length} elementos para curso ${cursoId}.`);
+        } catch (error) {
+            console.error('❌ Error al cargar dropdown de estudiantes:', error);
+            mostrarErrorAlUsuario('No se pudieron cargar los estudiantes para el curso seleccionado.');
+        }
+    }
+
+    async function loadMateriasDropdown(selectElement, cursoId, selectedId = null) {
+        selectElement.innerHTML = '<option value="">Seleccione una Materia</option>';
+        selectElement.disabled = true;
+        if (!cursoId) return;
+
+        try {
+            // Asumiendo que tienes un endpoint para obtener materias por curso
+            const response = await fetch(`http://localhost:3001/api/materias?id_curso=${cursoId}&limit=all`);
+            if (!response.ok) throw new Error('Error al cargar materias para el dropdown.');
+            const data = await response.json();
+            const materias = data.materias; // Asumiendo que tu API devuelve { materias: [...], totalCount: ... }
+
+            materias.forEach(m => {
+                const option = document.createElement('option');
+                option.value = m.id_materia;
+                option.textContent = m.nombre_materia;
+                if (selectedId && m.id_materia === selectedId) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+            selectElement.disabled = false;
+            console.log(`DEBUG: Dropdown de materias cargado con ${materias.length} elementos para curso ${cursoId}.`);
+        } catch (error) {
+            console.error('❌ Error al cargar dropdown de materias:', error);
+            mostrarErrorAlUsuario('No se pudieron cargar las materias para el curso seleccionado.');
+        }
+    }
+
+    // --- Eventos de cambio para los dropdowns de añadir nota ---
+    anadirPeriodo.addEventListener('change', () => {
+        const selectedPeriodoId = anadirPeriodo.value;
+        anadirCurso.value = ''; // Reset curso
+        anadirEstudiante.value = ''; // Reset estudiante
+        anadirMateria.value = ''; // Reset materia
+        anadirEstudiante.disabled = true;
+        anadirMateria.disabled = true;
+        loadCursosDropdown(anadirCurso, selectedPeriodoId);
+        validarFormularioAnadirNota();
+    });
+
+    anadirCurso.addEventListener('change', () => {
+        const selectedCursoId = anadirCurso.value;
+        anadirEstudiante.value = ''; // Reset estudiante
+        anadirMateria.value = ''; // Reset materia
+        loadEstudiantesDropdown(anadirEstudiante, selectedCursoId);
+        loadMateriasDropdown(anadirMateria, selectedCursoId);
+        validarFormularioAnadirNota();
+    });
+
+    // --- Eventos de cambio para los dropdowns de editar nota ---
+    editPeriodo.addEventListener('change', async () => {
+        const selectedPeriodoId = editPeriodo.value;
+        await loadCursosDropdown(editCurso, selectedPeriodoId);
+        editEstudiante.value = '';
+        editMateria.value = '';
+        editEstudiante.disabled = true;
+        editMateria.disabled = true;
+        validarFormularioEditarNota();
+    });
+
+    editCurso.addEventListener('change', async () => {
+        const selectedCursoId = editCurso.value;
+        await loadEstudiantesDropdown(editEstudiante, selectedCursoId);
+        await loadMateriasDropdown(editMateria, selectedCursoId);
+        validarFormularioEditarNota();
+    });
+
+
+    // --- Lógica del formulario Añadir Nota ---
+    formAnadirNota.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      console.log("DEBUG: Formulario de añadir nota enviado. Iniciando validación...");
+
+      // Validación básica del lado del cliente
+      let valid = true;
+      if (anadirPeriodo.value === '') { mostrarError(anadirPeriodo, 'El periodo es obligatorio.'); valid = false; } else { limpiarError(anadirPeriodo); }
+      if (anadirCurso.value === '') { mostrarError(anadirCurso, 'El curso es obligatorio.'); valid = false; } else { limpiarError(anadirCurso); }
+      if (anadirEstudiante.value === '') { mostrarError(anadirEstudiante, 'El estudiante es obligatorio.'); valid = false; } else { limpiarError(anadirEstudiante); }
+      if (anadirMateria.value === '') { mostrarError(anadirMateria, 'La materia es obligatoria.'); valid = false; } else { limpiarError(anadirMateria); }
+      if (anadirValorNota.value === '' || parseFloat(anadirValorNota.value) < 0 || parseFloat(anadirValorNota.value) > 20) { mostrarError(anadirValorNota, 'La nota debe ser un número entre 0 y 20.'); valid = false; } else { limpiarError(anadirValorNota); }
+      if (anadirFechaNota.value === '') { mostrarError(anadirFechaNota, 'La fecha es obligatoria.'); valid = false; } else { limpiarError(anadirFechaNota); }
+
+      if (!valid) {
+        console.log("DEBUG: Validación de formulario fallida. Deteniendo envío.");
+        return;
+      }
+
+      console.log("DEBUG: Validación de formulario exitosa. Mostrando confirmación...");
+      const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de que quieres añadir esta nota para ${anadirEstudiante.options[anadirEstudiante.selectedIndex].text} en ${anadirMateria.options[anadirMateria.selectedIndex].text}?`
+        );
+      
+      console.log("DEBUG: Resultado de la confirmación:", confirmResult);
+
+      if (!confirmResult) {
+        console.log("DEBUG: Adición de nota cancelada por el usuario.");
+        return;
+      }
+      
+      btnGuardarNota.disabled = true;
+      btnGuardarNota.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Guardando...
+      `;
+      console.log("DEBUG: Botón de guardar deshabilitado y spinner activado. Intentando enviar datos al backend...");
+
+      try {
+        const formData = {
+          id_periodo: anadirPeriodo.value,
+          id_curso: anadirCurso.value,
+          id_usuario: anadirEstudiante.value,
+          id_materia: anadirMateria.value,
+          valor_nota: parseFloat(anadirValorNota.value),
+          descripcion_nota: anadirDescripcionNota.value.trim(),
+          fecha_nota: anadirFechaNota.value,
+          observaciones: anadirObservaciones.value.trim()
+        };
+
+        console.log("DEBUG: Datos a enviar (frontend - añadir nota):", formData); 
+
+        const response = await fetch('http://localhost:3001/api/notas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        console.log("DEBUG: Solicitud de fetch completada. Procesando respuesta...");
+
+
+        const data = await response.json();
+        console.log("DEBUG: Datos recibidos del backend:", data);
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al añadir la nota académica');
+        }
+
+        console.log("DEBUG: Respuesta del backend (añadir nota):", data);
+        mostrarMensajeExito('Nota académica añadida exitosamente');
+        
+        setTimeout(() => {
+          modalAnadirNota.hide();
+          console.log("DEBUG: Modal de añadir nota oculto.");
+          loadNotas(currentPage); // Recarga la tabla para reflejar los cambios
+          console.log("DEBUG: Tabla de notas recargada.");
+        }, 1500);
+
+      } catch (error) {
+        console.error('❌ Error en la adición de la nota académica (frontend):', error); 
+        mostrarErrorAlUsuario(`Error al añadir nota: ${error.message}`);
+      } finally {
+        btnGuardarNota.disabled = false;
+        btnGuardarNota.textContent = 'Guardar Nota';
+        console.log("DEBUG: Proceso de añadir nota finalizado (finally block).");
+      }
+    });
+
+    // --- Lógica del formulario Editar Nota ---
+    formEditarNota.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      console.log("DEBUG: Formulario de edición de nota enviado. Iniciando validación...");
+
+      let valid = true;
+      if (editPeriodo.value === '') { mostrarError(editPeriodo, 'El periodo es obligatorio.'); valid = false; } else { limpiarError(editPeriodo); }
+      if (editCurso.value === '') { mostrarError(editCurso, 'El curso es obligatorio.'); valid = false; } else { limpiarError(editCurso); }
+      if (editEstudiante.value === '') { mostrarError(editEstudiante, 'El estudiante es obligatorio.'); valid = false; } else { limpiarError(editEstudiante); }
+      if (editMateria.value === '') { mostrarError(editMateria, 'La materia es obligatoria.'); valid = false; } else { limpiarError(editMateria); }
+      if (editValorNota.value === '' || parseFloat(editValorNota.value) < 0 || parseFloat(editValorNota.value) > 20) { mostrarError(editValorNota, 'La nota debe ser un número entre 0 y 20.'); valid = false; } else { limpiarError(editValorNota); }
+      if (editFechaNota.value === '') { mostrarError(editFechaNota, 'La fecha es obligatoria.'); valid = false; } else { limpiarError(editFechaNota); }
+
+      if (!valid) {
+        console.log("DEBUG: Validación de formulario de edición fallida. Deteniendo envío.");
+        return;
+      }
+
+      console.log("DEBUG: Validación de formulario de edición exitosa. Mostrando confirmación...");
+      const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de guardar los cambios para la nota de ${editEstudiante.options[editEstudiante.selectedIndex].text}?`
+        );
+      if (!confirmResult) {
+        console.log("DEBUG: Edición de nota cancelada por el usuario.");
+        return;
+      }
+
+      const id_nota = editIdNota.value;
+      
+      btnGuardarEdicionNota.disabled = true;
+      btnGuardarEdicionNota.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Guardando...
+      `;
+      console.log("DEBUG: Botón de guardar edición deshabilitado y spinner activado. Intentando enviar datos al backend...");
+
+      try {
+        const formData = {
+          id_periodo: editPeriodo.value,
+          id_curso: editCurso.value,
+          id_usuario: editEstudiante.value,
+          id_materia: editMateria.value,
+          valor_nota: parseFloat(editValorNota.value),
+          descripcion_nota: editDescripcionNota.value.trim(),
+          fecha_nota: editFechaNota.value,
+          observaciones: editObservaciones.value.trim()
+        };
+
+        console.log("DEBUG: Datos a enviar (frontend - edición de nota):", formData); 
+
+        const response = await fetch(`http://localhost:3001/api/notas/${id_nota}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        console.log("DEBUG: Solicitud de fetch (edición) completada. Procesando respuesta...");
+
+
+        const data = await response.json();
+        console.log("DEBUG: Datos recibidos del backend (edición):", data);
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al actualizar la nota académica');
+        }
+
+        console.log("DEBUG: Respuesta del backend (edición de nota):", data);
+        mostrarMensajeExito('Nota académica actualizada correctamente');
+        
+        setTimeout(() => {
+          modalEditarNota.hide();
+          console.log("DEBUG: Modal de edición de nota oculto.");
+          loadNotas(currentPage); // Recarga la tabla para reflejar los cambios
+          console.log("DEBUG: Tabla de notas recargada (después de edición).");
+        }, 1500);
+
+      } catch (error) {
+        console.error('❌ Error en la actualización de la nota académica (frontend):', error);
+        mostrarErrorAlUsuario(`Error al actualizar nota: ${error.message}`);
+      } finally {
+        btnGuardarEdicionNota.disabled = false;
+        btnGuardarEdicionNota.textContent = 'Guardar Cambios';
+        console.log("DEBUG: Proceso de edición de nota finalizado (finally block).");
+      }
+    });
+
+
+    // Función para inicializar los dropdowns de Bootstrap después de cargar la tabla
+    function initializeDropdowns() {
+      console.log('DEBUG: initializeDropdowns called.');
+      if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
+        const dropdownToggles = notasTableBody.querySelectorAll('.dropdown-toggle');
+        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Dropdowns...');
+        dropdownToggles.forEach(button => {
+          const existingDropdown = bootstrap.Dropdown.getInstance(button);
+          if (existingDropdown) {
+            existingDropdown.dispose();
+          }
+          new bootstrap.Dropdown(button, {
+            popperConfig: function (defaultBsPopperConfig) {
+              return {
+                ...defaultBsPopperConfig,
+                placement: 'bottom-end', 
+                strategy: 'fixed', 
+                modifiers: [
+                  ...(defaultBsPopperConfig.modifiers || []),
+                  {
+                    name: 'offset',
+                    options: {
+                      offset: [0, 8] 
+                    }
+                  },
+                ],
+              };
+            }
+          });
+        });
+        if (dropdownToggles.length === 0) {
+            console.log('DEBUG: No dropdown toggles found to initialize.');
+        } else {
+            console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Dropdowns.`);
+        }
+      } else {
+        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible. Esto es crucial para que los dropdowns funcionen. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
+      }
+    }
+
+    // Función principal para cargar notas en la tabla y actualizar contadores
+    async function loadNotas(page) {
+      console.log(`DEBUG: loadNotas called for page ${page}.`);
+      notasTableBody.innerHTML = `<tr><td colspan="9" class="text-center">Cargando notas...</td></tr>`;
+      paginationControls.innerHTML = ''; 
+      totalNotasCount.textContent = '...';
+      promedioGeneralNotas.textContent = '...';
+
+      try {
+        console.log(`DEBUG: Solicitando notas para la página ${page} a http://localhost:3001/api/notas...`);
+        const response = await fetch(`http://localhost:3001/api/notas?page=${page}&limit=${itemsPerPage}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            notasTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No se encontraron notas.</td></tr>`;
+            totalNotasCount.textContent = '0';
+            promedioGeneralNotas.textContent = 'N/A';
+            console.log("DEBUG: 404 - No se encontraron notas.");
+            return;
+          }
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const notas = data.notas;
+        const totalPages = data.totalPages;
+        currentPage = data.currentPage;
+
+        console.log("DEBUG: Datos de notas recibidos del backend:", data); 
+
+        // Actualizar contadores y promedios
+        totalNotasCount.textContent = data.totalCount;
+        promedioGeneralNotas.textContent = data.promedioGeneral ? parseFloat(data.promedioGeneral).toFixed(2) : 'N/A';
+
+        notasTableBody.innerHTML = ''; 
+
+        if (notas.length === 0) {
+          notasTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No se encontraron notas.</td></tr>`;
+          console.log("DEBUG: Array de notas vacío.");
+          return;
+        }
+
+        notas.forEach((nota, index) => {
+          const notaDataAttribute = JSON.stringify(nota);
+
+          const row = document.createElement('tr');
+          row.dataset.id = nota.id_nota;
+          row.dataset.notaData = notaDataAttribute; 
+
+          row.innerHTML = `
+            <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td>${nota.nombre_estudiante || 'N/A'} ${nota.apellido_estudiante || ''}</td> 
+            <td>${nota.nombre_materia || 'N/A'}</td>
+            <td>${nota.nombre_periodo || 'N/A'}</td>
+            <td>${nota.nombre_curso || 'N/A'}</td>
+            <td>${nota.valor_nota !== undefined ? nota.valor_nota.toFixed(2) : 'N/A'}</td>
+            <td>${nota.descripcion_nota || 'N/A'}</td>
+            <td>${nota.fecha_nota ? new Date(nota.fecha_nota).toLocaleDateString() : 'N/A'}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton${nota.id_nota}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${nota.id_nota}">
+                  <li><a class="dropdown-item" href="#" data-action="ver-mas" data-id="${nota.id_nota}"><i class='bx bx-info-circle me-2'></i>Ver más información</a></li>
+                  <li><a class="dropdown-item" href="#" data-action="editar" data-id="${nota.id_nota}"><i class='bx bxs-edit-alt me-2'></i>Editar</a></li>
+                  <li><a class="dropdown-item" href="#" data-action="eliminar" data-id="${nota.id_nota}"><i class='bx bx-trash me-2'></i>Eliminar Nota</a></li>
+                </ul>
+              </div>
+            </td>
+          `;
+          notasTableBody.appendChild(row);
+        });
+
+        initializeDropdowns(); // Asegura que los dropdowns se inicien
+        setupPagination(totalPages, currentPage);
+        setupActionListeners(notas);
+        console.log("DEBUG: Renderizado de notas completado.");
+      } catch (error) {
+        console.error('❌ Error al cargar notas:', error);
+        notasTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error al cargar notas. Intente nuevamente.</td></tr>`;
+        totalNotasCount.textContent = '0';
+        promedioGeneralNotas.textContent = 'N/A';
+      }
+    }
+
+    // Configurar listeners para los botones de acción en cada fila
+    function setupActionListeners(notasData) {
+        notasTableBody.querySelectorAll('.dropdown-item').forEach(item => {
+            item.removeEventListener('click', handleActionClick); 
+            item.addEventListener('click', handleActionClick);
+
+            function handleActionClick(e) {
+                e.preventDefault();
+                const action = e.currentTarget.dataset.action;
+                const notaId = e.currentTarget.dataset.id;
+                const nota = notasData.find(n => n.id_nota.toString() === notaId);
+
+                if (!nota) {
+                    console.error('Error: Nota no encontrada para ID:', notaId);
+                    return;
+                }
+
+                switch (action) {
+                    case 'ver-mas':
+                        mostrarDetallesNota(nota);
+                        break;
+                    case 'editar':
+                        editarNota(nota);
+                        break;
+                    case 'eliminar':
+                        eliminarNota(nota);
+                        break;
+                    default:
+                        console.warn('Acción desconocida:', action);
+                }
+            }
+        });
+    }
+
+    // Mostrar los detalles de la nota en el modal
+    async function mostrarDetallesNota(nota) {
+        console.log("DEBUG: Nota para ver detalles (mostrarDetallesNota):", nota);
+        try {
+            const response = await fetch(`http://localhost:3001/api/notas/${nota.id_nota}`);
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+            const detallesCompletos = await response.json();
+            console.log("DEBUG: Detalles completos de la nota del backend (mostrarDetallesNota):", detallesCompletos);
+
+            detalleNotaEstudiante.textContent = `${detallesCompletos.nombre_estudiante || 'N/A'} ${detallesCompletos.apellido_estudiante || ''}`;
+            detalleNotaMateria.textContent = detallesCompletos.nombre_materia || 'N/A';
+            detalleNotaPeriodo.textContent = detallesCompletos.nombre_periodo || 'N/A';
+            detalleNotaCurso.textContent = detallesCompletos.nombre_curso || 'N/A';
+            detalleNotaValor.textContent = detallesCompletos.valor_nota !== undefined ? detallesCompletos.valor_nota.toFixed(2) : 'N/A';
+            detalleNotaDescripcion.textContent = detallesCompletos.descripcion_nota || 'N/A';
+            detalleNotaFecha.textContent = detallesCompletos.fecha_nota ? new Date(detallesCompletos.fecha_nota).toLocaleDateString() : 'N/A';
+            detalleNotaObservaciones.textContent = detallesCompletos.observaciones || 'N/A';
+            detalleNotaCreadoEn.textContent = detallesCompletos.creado_en ? new Date(detallesCompletos.creado_en).toLocaleString() : 'N/A';
+            detalleNotaActualizadoEn.textContent = detallesCompletos.actualizado_en ? new Date(detallesCompletos.actualizado_en).toLocaleString() : 'N/A';
+
+            modalVerMasInformacionNota.show();
+
+        } catch (error) {
+            console.error('❌ Error al obtener detalles de la nota:', error);
+            mostrarErrorAlUsuario('Error al cargar la información detallada de la nota. Intente nuevamente.');
+        }
+    }
+
+
+    // Función para Editar Nota
+    async function editarNota(nota) {
+        console.log("DEBUG: Nota para editar (editarNota):", nota); 
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/notas/${nota.id_nota}`);
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+            const detallesCompletos = await response.json();
+            console.log("DEBUG: Detalles completos de la nota para edición (editarNota):", detallesCompletos);
+
+            editIdNota.value = detallesCompletos.id_nota;
+            editValorNota.value = detallesCompletos.valor_nota || '';
+            editFechaNota.value = detallesCompletos.fecha_nota ? new Date(detallesCompletos.fecha_nota).toISOString().split('T')[0] : '';
+            editDescripcionNota.value = detallesCompletos.descripcion_nota || '';
+            editObservaciones.value = detallesCompletos.observaciones || '';
+
+            // Cargar y seleccionar Periodo, Curso, Estudiante, Materia
+            await loadPeriodosDropdown(editPeriodo, detallesCompletos.id_periodo);
+            if (detallesCompletos.id_periodo) {
+                await loadCursosDropdown(editCurso, detallesCompletos.id_periodo, detallesCompletos.id_curso);
+            }
+            if (detallesCompletos.id_curso) {
+                await loadEstudiantesDropdown(editEstudiante, detallesCompletos.id_curso, detallesCompletos.id_usuario);
+                await loadMateriasDropdown(editMateria, detallesCompletos.id_curso, detallesCompletos.id_materia);
+            }
+
+            limpiarError(editPeriodo);
+            limpiarError(editCurso);
+            limpiarError(editEstudiante);
+            limpiarError(editMateria);
+            limpiarError(editValorNota);
+            limpiarError(editFechaNota);
+            validarFormularioEditarNota(); // Actualiza el estado del botón
+
+            modalEditarNota.show();
+
+        } catch (error) {
+            console.error('❌ Error al cargar detalles para edición de nota:', error);
+            mostrarErrorAlUsuario('Error al cargar la información de la nota para edición. Intente nuevamente.');
+        }
+    }
+
+    // Función para Eliminar Nota
+    async function eliminarNota(nota) {
+        const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de que quieres eliminar la nota de ${nota.nombre_estudiante} ${nota.apellido_estudiante} en ${nota.nombre_materia} con valor ${nota.valor_nota}? Esta acción es irreversible.`
+        );
+
+        if (!confirmResult) return;
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/notas/${nota.id_nota}`, {
+                method: 'DELETE',
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al eliminar la nota');
+            }
+
+            mostrarMensajeExito(`Nota eliminada exitosamente.`);
+            loadNotas(currentPage); 
+        } catch (error) {
+            console.error('Error al eliminar nota:', error);
+            mostrarErrorAlUsuario(`Error al eliminar la nota: ${error.message}`);
+        }
+    }
+
+
+    // Función de paginación (generalizada)
+    function setupPagination(totalPages, currentPage) {
+      console.log('DEBUG: setupPagination called.');
+      paginationControls.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      const ul = document.createElement('ul');
+      ul.className = 'pagination-list flex justify-center items-center gap-2';
+
+      const prevLi = document.createElement('li');
+      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+      const prevLink = document.createElement('a');
+      prevLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+      prevLink.href = '#';
+      prevLink.textContent = 'Anterior';
+      prevLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+          loadNotas(currentPage - 1);
+        }
+      });
+      prevLi.appendChild(prevLink);
+      ul.appendChild(prevLi);
+
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, currentPage + 2);
+
+      if (startPage > 1) {
+        const li = document.createElement('li');
+        li.className = 'page-item';
+        const link = document.createElement('a');
+        link.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+        link.href = '#';
+        link.textContent = '1';
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadNotas(1);
+        });
+        li.appendChild(link);
+        ul.appendChild(li);
+        if (startPage > 2) {
+          const ellipsis = document.createElement('li');
+          ellipsis.className = 'page-item disabled';
+          ellipsis.innerHTML = '<span class="page-link rounded-lg px-3 py-1 bg-gray-700 text-white">...</span>';
+          ul.appendChild(ellipsis);
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        const link = document.createElement('a');
+        link.className = `page-link rounded-lg px-3 py-1 ${i === currentPage ? 'bg-purple-800' : 'bg-gray-700'} text-white hover:bg-purple-600`;
+        link.href = '#';
+        link.textContent = i;
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadNotas(i);
+        });
+        li.appendChild(link);
+        ul.appendChild(li);
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          const ellipsis = document.createElement('li');
+          ellipsis.className = 'page-item disabled';
+          ellipsis.innerHTML = '<span class="page-link rounded-lg px-3 py-1 bg-gray-700 text-white">...</span>';
+          ul.appendChild(ellipsis);
+        }
+        const li = document.createElement('li');
+        li.className = 'page-item';
+        const link = document.createElement('a');
+        link.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+        link.href = '#';
+        link.textContent = totalPages;
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadNotas(totalPages);
+        });
+        li.appendChild(link);
+        ul.appendChild(li);
+      }
+
+      const nextLi = document.createElement('li');
+      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+      const nextLink = document.createElement('a');
+      nextLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+      nextLink.href = '#';
+      nextLink.textContent = 'Siguiente';
+      nextLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+          loadNotas(currentPage + 1);
+        }
+      });
+      nextLi.appendChild(nextLink);
+      ul.appendChild(nextLi);
+
+      paginationControls.appendChild(ul);
+    }
+
+    // Carga inicial al cargar la página
+    loadNotas(1);
+    loadPeriodosDropdown(anadirPeriodo); // Carga el dropdown de periodos al inicio para añadir nota
+
+    // Funciones auxiliares (reutilizables de per.txt)
+    function mostrarError(elemento, mensaje) {
+      elemento.classList.add('is-invalid');
+      const errorElement = elemento.nextElementSibling; 
+      if (errorElement && errorElement.classList.contains('invalid-feedback')) {
+        errorElement.textContent = mensaje;
+        errorElement.style.display = 'block';
+      } else {
+        const parentErrorElement = elemento.parentNode.querySelector('.invalid-feedback');
+        if (parentErrorElement) {
+          parentErrorElement.textContent = mensaje;
+          parentErrorElement.style.display = 'block';
+        }
+      }
+      console.log(`DEBUG: Error mostrado para ${elemento.id}: ${mensaje}`);
+    }
+
+    function limpiarError(elemento) {
+      elemento.classList.remove('is-invalid');
+      const errorElement = elemento.nextElementSibling; 
+      if (errorElement && errorElement.classList.contains('invalid-feedback')) {
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+      } else {
+        const parentErrorElement = elemento.parentNode.querySelector('.invalid-feedback');
+        if (parentErrorElement) {
+          parentErrorElement.textContent = '';
+          parentErrorElement.style.display = 'none';
+        }
+        // También limpia el error visual de los select, si es el caso
+        if (elemento.tagName === 'SELECT') {
+            elemento.classList.remove('is-invalid');
+        }
+      }
+      console.log(`DEBUG: Error limpiado para ${elemento.id}.`);
+    }
+
+    function mostrarMensajeExito(mensaje) {
+      const alerta = document.createElement('div');
+      alerta.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+      alerta.style.zIndex = '1100';
+      alerta.textContent = mensaje;
+      document.body.appendChild(alerta);
+      console.log(`DEBUG: Mensaje de éxito mostrado: ${mensaje}`);
+      
+      setTimeout(() => {
+        alerta.remove();
+        console.log("DEBUG: Mensaje de éxito removido.");
+      }, 3000);
+    }
+
+    function mostrarErrorAlUsuario(mensaje) {
+      const alerta = document.createElement('div');
+      alerta.className = 'alert alert-danger position-fixed top-0 end-0 m-3';
+      alerta.style.zIndex = '1100';
+      alerta.textContent = mensaje;
+      document.body.appendChild(alerta);
+      console.log(`DEBUG: Mensaje de error mostrado al usuario: ${mensaje}`);
+      
+      setTimeout(() => {
+        alerta.remove();
+        console.log("DEBUG: Mensaje de error removido.");
+      }, 5000);
+    }
+
+    // Función para mostrar un modal de confirmación personalizado
+    function mostrarConfirmacion(mensaje) {
+      console.log("DEBUG: [mostrarConfirmacion] Iniciando...");
+      return new Promise((resolve) => {
+        if (typeof window.bootstrap === 'undefined' || typeof window.bootstrap.Modal === 'undefined') {
+          console.error("ERROR: [mostrarConfirmacion] Bootstrap JS (o Modal) no está disponible. No se puede mostrar el modal de confirmación.");
+          mostrarErrorAlUsuario("Un error interno impide mostrar la confirmación. Por favor, recargue la página.");
+          resolve(false); 
+          return;
+        }
+
+        const confirmModalHtml = `
+          <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="customConfirmModalLabel">Confirmación</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                  ${mensaje}
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelActionBtnModal">Cancelar</button>
+                  <button type="button" class="btn btn-danger" id="confirmActionBtnModal">Confirmar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
+        const confirmModalElement = document.getElementById('customConfirmModal');
+        console.log("DEBUG: [mostrarConfirmacion] customConfirmModalElement (después de insertarlo):", confirmModalElement); 
+        
+        let customConfirmModal;
+        try {
+            customConfirmModal = new bootstrap.Modal(confirmModalElement);
+            console.log("DEBUG: [mostrarConfirmacion] customConfirmModal instancia creada:", customConfirmModal); 
+        } catch (e) {
+            console.error("ERROR: [mostrarConfirmacion] Fallo al crear instancia de Bootstrap Modal:", e);
+            mostrarErrorAlUsuario("Un error al inicializar el modal impide la confirmación. Contacte soporte.");
+            resolve(false);
+            return;
+        }
+
+        let isPromiseResolved = false; // Flag to prevent multiple resolutions
+
+        // Función para resolver la promesa y limpiar
+        const cleanupAndResolve = (result) => {
+            if (!isPromiseResolved) {
+                isPromiseResolved = true;
+                console.log(`DEBUG: [mostrarConfirmacion] Promesa resuelta con: ${result}`);
+                try {
+                    // Solo intentar ocultar el modal si la instancia existe y el modal está visible
+                    if (customConfirmModal && confirmModalElement.classList.contains('show')) {
+                        customConfirmModal.hide(); 
+                        console.log("DEBUG: [mostrarConfirmacion] customConfirmModal.hide() llamado.");
+                    }
+                } catch (e) {
+                    console.error("ERROR: [mostrarConfirmacion] Fallo al ocultar modal durante cleanup:", e);
+                }
+                // Asegura que el elemento del modal se elimina después de que esté completamente oculto
+                confirmModalElement.addEventListener('hidden.bs.modal', () => {
+                    console.log("DEBUG: [mostrarConfirmacion] Evento 'hidden.bs.modal' disparado. Removiendo elemento del DOM.");
+                    confirmModalElement.remove();
+                }, { once: true });
+                resolve(result);
+            }
+        };
+
+        const confirmActionBtn = document.getElementById('confirmActionBtnModal');
+        const cancelActionBtn = document.getElementById('cancelActionBtnModal');
+
+        if (confirmActionBtn) {
+            confirmActionBtn.addEventListener('click', () => {
+                console.log("DEBUG: [mostrarConfirmacion] Botón 'Confirmar' clickeado.");
+                cleanupAndResolve(true);
+            }, { once: true });
+            console.log("DEBUG: [mostrarConfirmacion] Listener para 'Confirmar' añadido.");
+        } else {
+            console.error("ERROR: [mostrarConfirmacion] Botón 'confirmActionBtnModal' no encontrado.");
+            cleanupAndResolve(false); // Resuelve a false si el botón de confirmación no se encuentra
+        }
+        
+        if (cancelActionBtn) {
+            cancelActionBtn.addEventListener('click', () => {
+                console.log("DEBUG: [mostrarConfirmacion] Botón 'Cancelar' clickeado.");
+                cleanupAndResolve(false);
+            }, { once: true });
+            console.log("DEBUG: [mostrarConfirmacion] Listener para 'Cancelar' añadido.");
+        } else {
+            console.error("ERROR: [mostrarConfirmacion] Botón 'cancelActionBtnModal' no encontrado.");
+        }
+
+        // Añadir listener para el cierre del modal (ej. tecla ESC, clic fuera)
+        // Este listener también resolverá la promesa si el modal se cierra por medios externos.
+        confirmModalElement.addEventListener('hidden.bs.modal', () => {
+            console.log("DEBUG: [mostrarConfirmacion] Evento 'hidden.bs.modal' disparado (posiblemente por ESC/clic fuera, o hide() programático).");
+            cleanupAndResolve(false); // Resuelve a false si se oculta sin una acción explícita de los botones
+        }, { once: true }); 
+
+        console.log("DEBUG: [mostrarConfirmacion] Llamando a customConfirmModal.show()...");
+        customConfirmModal.show();
+      });
+    }
+  });
+</script>

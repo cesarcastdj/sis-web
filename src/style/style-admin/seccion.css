@@ -1,0 +1,172 @@
+@import "../variables.css";
+@import "../global.css";
+
+body {
+    overflow: hidden;
+}
+
+.data-content-section {
+    background: var(--color-GRIS);
+    height: calc(100vh - 2rem);
+    margin-right: 24px;
+    border-top-right-radius: var(--border-radius-16);
+    border-top-left-radius: var(--border-radius-16);
+    overflow: hidden;
+    display: flex; /* Añadido para apilar la sección de búsqueda y las tarjetas */
+    flex-direction: column; /* Añadido para apilar la sección de búsqueda y las tarjetas */
+}
+
+.search-content-data {
+    background: var(--color-tertiary);
+    padding: var(--spacing-24) var(--spacing-60);
+    border-radius: var(--border-radius-16);
+    box-shadow: var(--box-shadow-button1);
+    margin-bottom: var(--spacing-24); /* Espacio entre la sección de búsqueda y las tarjetas */
+}
+
+.welcome-search-data h2,
+.welcome-search-data p,
+.section-filter-info {
+    text-align: center;
+}
+
+.welcome-search-data h2 {
+    font-family: var(--font-family-titlesub);
+    font-size: clamp(2.5rem, 5vmin, 5vmax); /* Ajuste de tamaño de fuente para mejor responsividad */
+    color: var(--color-quaternary);
+    font-weight: var(--font-weight-500);
+}
+
+.welcome-search-data p {
+    font-family: var(--font-family-Paragraph);
+    font-size: var(--font-size-medium);
+    color: var(--color-quaternary);
+    font-weight: var(--font-weight-300);
+    opacity: var(--ocpacity-50);
+    margin: 0;
+}
+
+/* --- Nuevos estilos para las tarjetas --- */
+.info-cards-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Grid responsivo, ajustado minmax */
+    gap: var(--spacing-24); /* Espaciado entre tarjetas */
+    padding: 0 var(--spacing-60) var(--spacing-24) var(--spacing-60); /* Ajuste de padding */
+    justify-content: center;
+    align-items: center;
+    overflow-y: auto; /* Permite desplazamiento si hay muchas tarjetas */
+    flex-grow: 1; /* Permite que ocupe el espacio restante */
+}
+
+.card-item {
+    background: none; /* Fondo transparente */
+    border: 1px solid var(--color-primary); /* Borde primario */
+    border-radius: var(--border-radius-16);
+    box-shadow: var(--box-shadow-button1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-32) var(--spacing-16); /* Padding interno de las tarjetas */
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    cursor: pointer;
+    min-height: 180px; /* Altura mínima para consistencia visual */
+    text-decoration: none; /* Eliminar subrayado del enlace */
+}
+
+.card-item:hover {
+    transform: translateY(-5px); /* Efecto de elevación al pasar el ratón */
+    box-shadow: var(--box-shadow-button2); /* Sombra más fuerte al pasar el ratón */
+    background: var(--color-secondary); /* Fondo al pasar el ratón */
+}
+
+.card-icon {
+    font-size: 4rem; /* Tamaño grande para los íconos */
+    color: var(--color-primary); /* Color principal para los íconos */
+    margin-bottom: var(--spacing-16);
+    transition: color 0.3s ease; /* Transición de color para el ícono */
+}
+
+.card-item:hover .card-icon {
+    color: var(--color-tertiary); /* Cambiar color del ícono al pasar el ratón */
+}
+
+.card-title {
+    font-family: var(--font-family-titlesub);
+    font-size: var(--font-size-large); /* Tamaño de fuente para el título */
+    color: var(--color-quaternary);
+    font-weight: var(--font-weight-500);
+    margin: 0;
+    transition: color 0.3s ease; /* Transición de color para el título */
+}
+
+.card-item:hover .card-title {
+    color: var(--color-tertiary); /* Cambiar color del título al pasar el ratón */
+}
+
+
+/* --- Eliminación de estilos de tablas y relacionados --- */
+/* Se han eliminado todas las reglas CSS que afectaban a las tablas y sus componentes,
+   como .content-info-data (que ahora se gestiona con flexbox en .data-content-section),
+   .display-table, .content-table1, .tabla-info-person, .menu-container, .submenu, etc.
+   Los estilos de búsqueda y filtrado rápido se mantienen comentados en el HTML,
+   por lo que sus estilos CSS se mantienen por si se activan en el futuro. */
+
+/* Secciones comentadas en el HTML */
+.search .search__input {
+    width: 100%;
+    padding: var(--spacing-8) var(--spacing-24);
+    border-radius: var(--border-radius-50);
+}
+
+.welcome-search-data .search__input--global {
+    background: none;
+}
+
+.search-content-data .search-results {
+    display: none;
+}
+
+.section-filter-info {
+    margin-top: 0.5rem;
+    font-family: var(--font-family-Paragraph);
+    text-align: center; /* Asegurar que el texto esté centrado si se descomenta */
+}
+
+.section-filter-info h4 {
+    font-size: var(--font-size-medium);
+    color: var(--color-quaternary);
+    font-weight: var(--font-weight-300);
+    margin-bottom: 1rem;
+    opacity: var(--ocpacity-75);
+    letter-spacing: 1px;
+}
+
+.section-filter-info .section-filter-info__content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-24);
+}
+
+.section-filter-info .section-filter-info__content .btn-filter {
+    background: var(--color-primary);
+    color: var(--color-tertiary);
+    padding: var(--spacing-8) var(--spacing-24);
+    border-radius: var(--border-radius-50);
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-family-Paragraph);
+    font-size: var(--font-size-medium);
+    font-weight: var(--font-weight-300);
+    box-shadow: var(--box-shadow-button2);
+    transition: 0.3s ease-out;
+}
+
+.section-filter-info .section-filter-info__content .btn-filter:hover {
+    background: var(--color-secondary);
+    color: var(--color-quaternary);
+    box-shadow: var(--box-shadow-button1);
+}

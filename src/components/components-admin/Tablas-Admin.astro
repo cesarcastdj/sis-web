@@ -1,18 +1,20 @@
 ---
-import "../../style/style-admin/data-table.css";
+import "../../style/style-admin/seccion.css";
 ---
 
 <section class="data-content-section">
-  <!-- Sección de búsqueda -->
+  <!-- Sección de búsqueda y bienvenida -->
   <section class="search-content-data">
     <div class="welcome-search-data">
-      <h2 class="welcome-search-data__title">Te damos la bienvenida a GLLR</h2>
+      <h2 id="name-user" class="welcome-search-data__title">Cargando...</h2>
+      <h5 id="ultima-conexion" class="welcome-search-data__text">Cargando...</h5>
       <!-- <p class="welcome-search-data__text">
         Aquí puedes gestionar los datos de tu aplicación de manera eficiente y
         rápida.
       </p> -->
     </div>
 
+    <!-- Secciones de búsqueda y filtrado rápido comentadas (se mantienen así para referencia) -->
     <!-- <div class="search">
       <input
         type="text"
@@ -55,7 +57,6 @@ import "../../style/style-admin/data-table.css";
       </button>
     </div> -->
 
-    <!-- Sección de filtrado rápido -->
     <!-- <div class="section-filter-info">
       <div class="section-filter-info__title">
         <h4>Filtrado rápido</h4>
@@ -69,292 +70,52 @@ import "../../style/style-admin/data-table.css";
     </div> -->
   </section>
 
-  <!-- Sección de tablas -->
-  <section class="content-info-data">
-    <!-- Primera tabla -->
-    <section class="display-table">
-      <div class="content-table1">
-        <div class="table-person">
-          <button
-            class="btn btn-primary d-flex align-items-center gap-2 toggle-icon"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#table1"
-            aria-expanded="false"
-            aria-controls="table1"
-          >
-            <i class="bx bx-chevron-down"></i>
-            <h4 class="m-0">Datos Personales</h4>
-          </button>
-        </div>
-        <div class="type-data">
-          <span>Matriculación Actual / <strong>5 - Alumnos</strong></span>
-        </div>
-      </div>
-
-      <div class="collapse" id="table1">
-        <div class="tabla-info-person">
-          <table class="blueTable">
-            <thead>
-              <tr>
-                <th scope="col">Nº</th>
-                <th scope="col">Nombre</th>
-                <th scope="col">Apellido</th>
-                <th scope="col">C.I.</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Periodo Académico</th>
-                <th scope="col">Conexiones</th>
-                <th scope="col">Última Conexión</th>
-                <th scope="col"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>1</td>
-                <td>Juan</td>
-                <td>Linares</td>
-                <td>123455678</td>
-                <td>Activo</td>
-                <td>2020 | 2025</td>
-                <td>15</td>
-                <td>15/04/2025</td>
-                <td class="menu-container">
-                  <i class="bx bx-dots-vertical-rounded"></i>
-                  <ul class="submenu">
-                    <li>
-                      <a href="#"><i class="bx bx-edit-alt"></i>Editar</a>
-                    </li>
-                    <li>
-                      <a href="#"><i class="bx bx-trash"></i>Eliminar</a>
-                    </li>
-                    <li>
-                      <a href="#"
-                        ><i class="bx bxs-user-detail"></i>Ver Detalles</a
-                      >
-                    </li>
-                  </ul>
-                </td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>María</td>
-                <td>Gómez</td>
-                <td>987654321</td>
-                <td>Inactivo</td>
-                <td>2019 | 2024</td>
-                <td>10</td>
-                <td>14/04/2025</td>
-                <td class="menu-container">
-                  <i class="bx bx-dots-vertical-rounded"></i>
-                  <ul class="submenu">
-                    <li>
-                      <a href="#"><i class="bx bx-edit-alt"></i>Editar</a>
-                    </li>
-                    <li>
-                      <a href="#"><i class="bx bx-trash"></i>Eliminar</a>
-                    </li>
-                    <li>
-                      <a href="#"
-                        ><i class="bx bxs-user-detail"></i>Ver Detalles</a
-                      >
-                    </li>
-                  </ul>
-                </td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td>María</td>
-                <td>Gómez</td>
-                <td>987654321</td>
-                <td>Inactivo</td>
-                <td>2019 | 2024</td>
-                <td>10</td>
-                <td>14/04/2025</td>
-                <td class="menu-container">
-                  <i class="bx bx-dots-vertical-rounded"></i>
-                  <ul class="submenu">
-                    <li>
-                      <a href="#"><i class="bx bx-edit-alt"></i>Editar</a>
-                    </li>
-                    <li>
-                      <a href="#"><i class="bx bx-trash"></i>Eliminar</a>
-                    </li>
-                    <li>
-                      <a href="#"
-                        ><i class="bx bxs-user-detail"></i>Ver Detalles</a
-                      >
-                    </li>
-                  </ul>
-                </td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>María</td>
-                <td>Gómez</td>
-                <td>987654321</td>
-                <td>Inactivo</td>
-                <td>2019 | 2024</td>
-                <td>10</td>
-                <td>14/04/2025</td>
-                <td class="menu-container">
-                  <i class="bx bx-dots-vertical-rounded"></i>
-                  <ul class="submenu">
-                    <li>
-                      <a href="#"><i class="bx bx-edit-alt"></i>Editar</a>
-                    </li>
-                    <li>
-                      <a href="#"><i class="bx bx-trash"></i>Eliminar</a>
-                    </li>
-                    <li>
-                      <a href="#"
-                        ><i class="bx bxs-user-detail"></i>Ver Detalles</a
-                      >
-                    </li>
-                  </ul>
-                </td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td>María</td>
-                <td>Gómez</td>
-                <td>987654321</td>
-                <td>Inactivo</td>
-                <td>2019 | 2024</td>
-                <td>10</td>
-                <td>14/04/2025</td>
-                <td class="menu-container">
-                  <i class="bx bx-dots-vertical-rounded"></i>
-                  <ul class="submenu">
-                    <li>
-                      <a href="#"><i class="bx bx-edit-alt"></i>Editar</a>
-                    </li>
-                    <li>
-                      <a href="#"><i class="bx bx-trash"></i>Eliminar</a>
-                    </li>
-                    <li>
-                      <a href="#"
-                        ><i class="bx bxs-user-detail"></i>Ver Detalles</a
-                      >
-                    </li>
-                  </ul>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- Segunda tabla -->
-    <section class="display-table">
-      <div class="content-table1">
-        <div class="table-person">
-          <button
-            class="btn btn-primary d-flex align-items-center gap-2 toggle-icon"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#table2"
-            aria-expanded="false"
-            aria-controls="table2"
-          >
-            <i class="bx bx-chevron-down"></i>
-            <h4 class="m-0">Evaluaciones</h4>
-          </button>
-        </div>
-        <div class="type-data">
-          <span>Actividades y Notas<strong></strong></span>
-        </div>
-      </div>
-
-      <div class="collapse" id="table2">
-        <div class="tabla-info-person">
-          <table class="blueTable">
-            <thead>
-              <tr>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col"></th>
-                <th scope="col">Clase 3 Decálogo personal</th>
-                <th scope="col">Clase 5 Hoja de QRyD</th>
-                <th scope="col">Clase 5 Ejercicio en clase /10</th>
-                <th scope="col">Clase 7 Storytelling en clase</th>
-                <th scope="col">Evaluación final</th>
-                <th scope="col"></th>
-              </tr>
-            </thead>
-            <thead>
-              <tr>
-                <th scope="col">Nº</th>
-                <th scope="col">Nombre</th>
-                <th scope="col">C.I</th>
-                <th scope="col">Evaluación 01</th>
-                <th scope="col">Evaluación 02</th>
-                <th scope="col">Evaluación 03</th>
-                <th scope="col">Evaluación 04</th>
-                <th scope="col">Evaluación 05</th>
-                <th scope="col">Total Puntos</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>1</td>
-                <td>Pedro</td>
-                <td>654987321</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20,00</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>Pedro</td>
-                <td>654987321</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20,00</td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td>Pedro</td>
-                <td>654987321</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20,00</td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>Pedro</td>
-                <td>654987321</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20,00</td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td>Pedro</td>
-                <td>654987321</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20</td>
-                <td>20,00</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+  <!-- Sección de tarjetas de información (nuevas) -->
+  <section class="info-cards-section">
+    <!-- Cada tarjeta es un enlace (botón de redirección) -->
+    <a href="/Admin-Control/Estudiantes" class="card-item">
+      <i class="bx bxs-user card-icon"></i>
+      <h3 class="card-title">Estudiantes</h3>
+    </a>
+    <a href="/Admin-Control/Profesores" class="card-item">
+      <i class="bx bxs-user card-icon"></i>
+      <h3 class="card-title">Profesores</h3>
+    </a>
+    <a href="/Admin-Control/Cursos" class="card-item">
+      <i class="bx bxs-book-content card-icon"></i>
+      <h3 class="card-title">Cursos</h3>
+    </a>
+    <a href="/Admin-Control/Notas" class="card-item">
+      <i class="bx bxs-notepad card-icon"></i>
+      <h3 class="card-title">Notas</h3>
+    </a>
   </section>
 </section>
+
+<script type="module">
+  document.addEventListener('DOMContentLoaded', () => {
+    cargarNombreUsuario();
+  });
+
+  async function cargarNombreUsuario() {
+    try {
+      const res = await fetch('http://localhost:3001/usuario', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      const data = await res.json();
+
+      console.log("Datos del usuario recibidos:", data); // 👀 Verificar qué llega desde la API
+
+      if (!res.ok || !data.id) {
+        console.warn('No se pudo obtener datos del usuario logueado o el usuario no está autenticado.');
+        return;
+      }
+
+      document.getElementById('name-user').textContent = `Bienvenido/a ${data.primer_nombre} ${data.primer_apellido}`;
+      document.getElementById('ultima-conexion').textContent = `Última conexión: ${data.ultima_conexion}`;
+    } catch (error) {
+      console.error('Error al cargar el usuario logueado:', error);
+    }
+  }
+</script>

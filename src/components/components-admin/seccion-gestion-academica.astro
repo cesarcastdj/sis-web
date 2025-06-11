@@ -1,0 +1,887 @@
+---
+import "../../style/style-admin/gestion-academica.css"; // Se mantiene este import
+---
+
+<section class="data-content-section">
+  <!-- Sección de búsqueda - Ajustada para fondo blanco y centrado -->
+  <section class="search-content-data header-section">
+    <div class="welcome-search-data">
+      <h2 class="welcome-search-data__title">Gestión Académica</h2>
+      <p class="welcome-search-data__text">
+        Aquí puedes gestionar los datos de los nuevos Ingresos
+      </p>
+    </div>
+  </section>
+
+  <!-- Informacion de la matriculacion - Estructura de Cuadrícula -->
+  <section class="content-info-data">
+    <!-- Tarjeta de Estudiantes -->
+    <section class="data-general-control grid-layout">
+      <div class="registro-control card-item">
+        <div class="card-icon-title">
+          <i class="bx bxs-user"></i> <!-- Icono de estudiante -->
+          <h5 class="card-title">Total estudiantes: 5</h5>
+        </div>
+        <p class="card-stat">Activos: 5</p>
+        <p class="card-stat">Inactivos: 5</p>
+        <div class="btn-accion-control">
+          <button type="button" class="btn btn-card">Ver estudiantes</button>
+          <!-- Botones de Agregar/Editar Estudiante eliminados -->
+        </div>
+      </div>
+
+      <!-- Tarjeta de Profesores -->
+      <div class="registro-control card-item">
+        <div class="card-icon-title">
+          <i class="bx bxs-graduation"></i> <!-- Icono de profesor/graduación -->
+          <h5 class="card-title">Total profesores: 5</h5>
+        </div>
+        <p class="card-stat">Activos: 5</p>
+        <p class="card-stat">Inactivos: 5</p>
+        <div class="btn-accion-control">
+          <button type="button" class="btn btn-card">Ver profesores</button>
+          <!-- Botones de Agregar/Editar Profesor eliminados -->
+        </div>
+      </div>
+
+      <!-- Tarjeta de Cursos -->
+      <div class="registro-control card-item">
+        <div class="card-icon-title">
+          <i class="bx bxs-book-reader"></i> <!-- Icono de libro/curso -->
+          <h5 class="card-title">Total cursos: 5</h5>
+        </div>
+        <p class="card-stat">Activos: 5</p>
+        <p class="card-stat">Inactivos: 5</p>
+        <div class="btn-accion-control">
+          <button type="button" class="btn btn-card" data-bs-toggle="modal" data-bs-target="#modalVerCursos">
+            <i class="bx bxs-book-open"></i> Ver cursos
+          </button>
+          <button type="button" class="btn btn-card" data-bs-toggle="modal" data-bs-target="#modalAgregarCurso">
+            <i class="bx bx-plus"></i> Agregar curso
+          </button>
+          <button type="button" class="btn btn-card">Editar curso</button>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Materias -->
+      <div class="registro-control card-item">
+        <div class="card-icon-title">
+          <i class="bx bxs-bookmarks"></i> <!-- Icono de materias/marcadores -->
+          <h5 class="card-title">Total Materias: 5</h5>
+        </div>
+        <p class="card-stat">Activos: 5</p>
+        <p class="card-stat">Inactivos: 5</p>
+        <div class="btn-accion-control">
+          <button type="button" class="btn btn-card">Ver materias</button>
+          <!-- Botón para abrir el modal de agregar materias -->
+          <button type="button" class="btn btn-card" data-bs-toggle="modal" data-bs-target="#modalAgregarMateria">
+            <i class="bx bx-plus"></i> Agregar materia
+          </button>
+          <button type="button" class="btn btn-card">Editar materia</button>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Secciones -->
+      <div class="registro-control card-item">
+        <div class="card-icon-title">
+          <i class="bx bxs-grid-alt"></i> <!-- Icono de secciones/cuadrícula -->
+          <h5 class="card-title">Total Secciones: 5</h5>
+        </div>
+        <p class="card-stat">Activos: 5</p>
+        <p class="card-stat">Inactivos: 5</p>
+        <div class="btn-accion-control">
+          <button type="button" class="btn btn-card">Ver secciones</button>
+          <button type="button" class="btn btn-card">Agregar sección</button>
+          <button type="button" class="btn btn-card">Editar sección</button>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Periodos - Mismo tamaño que las demás -->
+      <div class="registro-control card-item periodos-card">
+        <div class="card-icon-title">
+          <i class="bx bxs-calendar"></i> <!-- Icono de calendario para periodos -->
+          <h5 class="card-title">Periodos</h5>
+        </div>
+        <!-- Se añaden párrafos vacíos para igualar la altura si no hay estadísticas -->
+        <p class="card-stat empty-stat"></p>
+        <p class="card-stat empty-stat"></p>
+        <div class="btn-accion-control">
+          <button type="button" class="btn btn-card">Ver periodos</button>
+          <!-- Botón para abrir el modal de agregar periodos -->
+          <button type="button" class="btn btn-card" data-bs-toggle="modal" data-bs-target="#modalAgregarPeriodo">
+            <i class="bx bx-plus"></i> Agregar periodo
+          </button>
+          <button type="button" class="btn btn-card">Editar periodo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- La sección de la tabla de Datos Personales ha sido eliminada por completo -->
+
+  </section>
+</section>
+
+
+<!-- Modales de Agregar/Editar Estudiantes eliminados -->
+
+
+<!-- Modal para Agregar Cursos -->
+<div class="modal fade" id="modalAgregarCurso" tabindex="-1" aria-labelledby="modalAgregarCursoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width"> <!-- Clase personalizada para el ancho -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAgregarCursoLabel">Registro de Cursos</h5>
+        <!-- Botón de cerrar con ícono Boxicon -->
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formRegistroCurso">
+          <!-- 🔹 Información del Curso -->
+          <h6 class="section-title">Información del Curso</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="nombreCurso" class="form-label">Nombre del Curso <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="nombreCurso" placeholder="Ej: Introducción a la Programación" required />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="periodoCurso" class="form-label">Periodo <span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="periodoCurso" required>
+                <option value="" selected disabled>Seleccione un periodo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="seccionCurso" class="form-label">Sección <span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="seccionCurso" required>
+                <option value="" selected disabled>Seleccione una sección</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3 d-flex align-items-center">
+                <label class="form-label me-2 mb-0" for="agregarMateriaSwitch">¿Desea agregar una materia?</label>
+                <div class="custom-switch-container">
+                    <input type="checkbox" id="agregarMateriaSwitch" class="custom-switch-checkbox">
+                    <label for="agregarMateriaSwitch" class="custom-switch-label"></label>
+                </div>
+            </div>
+          </div>
+
+          <div class="row" id="materiaNombreField" style="display: none;">
+            <div class="col-md-6 mb-3">
+              <label for="nombreMateria" class="form-label">Nombre de la Materia <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="nombreMateria" placeholder="Ej: Matemáticas I" />
+            </div>
+          </div>
+
+          <!-- 🔹 Selección de Estudiantes eliminada -->
+
+          <!-- 🔹 Botones -->
+          <div class="d-flex justify-content-between mt-4">
+            <button type="reset" class="btn btn-secondary">Limpiar</button>
+            <button type="submit" class="btn btn-primary">Guardar Curso</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Agregar Materias (Nuevo) -->
+<div class="modal fade" id="modalAgregarMateria" tabindex="-1" aria-labelledby="modalAgregarMateriaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAgregarMateriaLabel">Registro de Materias</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formRegistroMateria">
+          <h6 class="section-title">Información de la Materia</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="cursoMateria" class="form-label">Cursos<span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="cursoMateria" required>
+                <option value="" selected disabled>Seleccione un curso</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="nombreMateriaNueva" class="form-label">Nombre Materia <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="nombreMateriaNueva" placeholder="Ej: Matemáticas Avanzadas" required />
+            </div>
+          </div>
+
+          <!-- 🔹 Asignar Estudiantes a la Materia eliminada -->
+
+          <div class="d-flex justify-content-between mt-4">
+            <button type="reset" class="btn btn-secondary">Limpiar</button>
+            <button type="submit" class="btn btn-primary">Guardar Materia</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Agregar Periodos (Nuevo) -->
+<div class="modal fade" id="modalAgregarPeriodo" tabindex="-1" aria-labelledby="modalAgregarPeriodoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAgregarPeriodoLabel">Registro de Periodos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formRegistroPeriodo">
+          <h6 class="section-title">Información del Periodo</h6>
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label for="nombrePeriodo" class="form-label">Nombre Periodo <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="nombrePeriodo" placeholder="Ej: 2024-2025" required />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="fechaInicio" class="form-label">Fecha Inicio <span class="campo-obligatorio">*</span></label>
+              <input type="date" class="form-control" id="fechaInicio" required />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="fechaFinal" class="form-label">Fecha Final <span class="campo-obligatorio">*</span></label>
+              <input type="date" class="form-control" id="fechaFinal" required />
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mt-4">
+            <button type="reset" class="btn btn-secondary">Limpiar</button>
+            <button type="submit" class="btn btn-primary">Guardar Periodo</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Ver Cursos (NUEVO) -->
+<div class="modal fade" id="modalVerCursos" tabindex="-1" aria-labelledby="modalVerCursosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width modal-lg"> <!-- Usamos modal-lg para mayor espacio -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalVerCursosLabel">Lista de Cursos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Barra de búsqueda eliminada según solicitud -->
+
+        <div class="table-responsive">
+          <table class="table table-dark table-hover table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Nombre del Curso</th>
+                <th scope="col">Período</th>
+                <th scope="col">Sección</th>
+                <th scope="col">Materias</th>
+                <th scope="col">Estudiantes</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cursosTableBody">
+              <!-- Los cursos se cargarán aquí dinámicamente -->
+              <tr>
+                <td colspan="7" class="text-center">Cargando cursos...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="cursosLoading" class="text-center text-muted mt-3" style="display: none;">Cargando cursos...</div>
+        <div id="cursosError" class="text-center text-danger mt-3" style="display: none;">Error al cargar cursos.</div>
+        <div id="noCursosFound" class="text-center text-muted mt-3" style="display: none;">No se encontraron cursos.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function() {
+  // Elementos del formulario de Curso
+  const formRegistroCurso = document.getElementById('formRegistroCurso');
+  const nombreCursoInput = document.getElementById('nombreCurso');
+  const periodoCursoSelect = document.getElementById('periodoCurso');
+  const seccionCursoSelect = document.getElementById('seccionCurso');
+  const agregarMateriaSwitch = document.getElementById('agregarMateriaSwitch');
+  const materiaNombreField = document.getElementById('materiaNombreField');
+  const nombreMateriaInput = document.getElementById('nombreMateria');
+  const btnLimpiarCurso = formRegistroCurso.querySelector('button[type="reset"]');
+  const btnGuardarCurso = formRegistroCurso.querySelector('button[type="submit"]');
+
+  // Elementos del formulario de Materia
+  const formRegistroMateria = document.getElementById('formRegistroMateria');
+  const cursoMateriaSelect = document.getElementById('cursoMateria');
+  const nombreMateriaNuevaInput = document.getElementById('nombreMateriaNueva');
+  const btnLimpiarMateria = formRegistroMateria.querySelector('button[type="reset"]');
+  const btnGuardarMateria = formRegistroMateria.querySelector('button[type="submit"]');
+
+  // Elementos del formulario de Periodo
+  const formRegistroPeriodo = document.getElementById('formRegistroPeriodo');
+  const nombrePeriodoInput = document.getElementById('nombrePeriodo');
+  const fechaInicioInput = document.getElementById('fechaInicio');
+  const fechaFinalInput = document.getElementById('fechaFinal');
+  const btnLimpiarPeriodo = formRegistroPeriodo.querySelector('button[type="reset"]');
+  const btnGuardarPeriodo = formRegistroPeriodo.querySelector('button[type="submit"]');
+
+  // Elementos del Modal Ver Cursos
+  const modalVerCursos = document.getElementById('modalVerCursos');
+  const cursosTableBody = document.getElementById('cursosTableBody');
+  // const searchCursoInput = document.getElementById('searchCursoInput'); // ELIMINADO
+  // const btnSearchCurso = document.getElementById('btnSearchCurso');       // ELIMINADO
+  const cursosLoading = document.getElementById('cursosLoading');
+  const cursosError = document.getElementById('cursosError');
+  const noCursosFound = document.getElementById('noCursosFound');
+
+
+  // Cargar datos al abrir el modal de Cursos
+  document.getElementById('modalAgregarCurso').addEventListener('shown.bs.modal', function() {
+    cargarPeriodos();
+    cargarSeccionesCurso();
+  });
+
+  // Cargar datos al abrir el modal de Materias (Nuevo)
+  document.getElementById('modalAgregarMateria').addEventListener('shown.bs.modal', function() {
+    console.log('Modal Registrar Materias abierto. Cargando cursos...');
+    cargarCursosParaMateria();
+  });
+
+  // Cargar datos al abrir el modal de Periodos (Nuevo)
+  document.getElementById('modalAgregarPeriodo').addEventListener('shown.bs.modal', function() {
+    // No hay cargas iniciales para periodos simples, pero se pueden añadir si fuera necesario (ej. validar fechas)
+  });
+
+  // Cargar datos al abrir el modal de Ver Cursos (NUEVO)
+  modalVerCursos.addEventListener('shown.bs.modal', function() {
+    cargarCursosEnTabla();
+  });
+
+  // Evento para buscar cursos al hacer clic en el botón de búsqueda (ELIMINADO)
+  // btnSearchCurso.addEventListener('click', function() {
+  //   cargarCursosEnTabla(searchCursoInput.value.trim());
+  // });
+
+  // Evento para buscar cursos al presionar Enter en el input de búsqueda (ELIMINADO)
+  // searchCursoInput.addEventListener('keypress', function(e) {
+  //   if (e.key === 'Enter') {
+  //     cargarCursosEnTabla(searchCursoInput.value.trim());
+  //   }
+  // });
+
+
+  // Función para cargar períodos
+  async function cargarPeriodos() {
+    periodoCursoSelect.disabled = true;
+    periodoCursoSelect.innerHTML = '<option value="" selected disabled>Cargando períodos...</option>';
+    try {
+      const response = await fetch('http://localhost:3001/api/periodos');
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      const periodos = await response.json();
+      periodoCursoSelect.innerHTML = '<option value="" selected disabled>Seleccione un período</option>';
+      periodos.forEach(periodo => {
+        const option = document.createElement('option');
+        option.value = periodo.id_periodo;
+        option.textContent = periodo.periodo;
+        periodoCursoSelect.appendChild(option);
+      });
+      periodoCursoSelect.disabled = false;
+    } catch (error) {
+      console.error('Error cargando períodos:', error);
+      periodoCursoSelect.innerHTML = '<option value="" selected disabled>Error al cargar períodos</option>';
+      mostrarErrorAlUsuario('Error al cargar períodos. Intente recargar la página.');
+    }
+  }
+
+  // Función para cargar secciones para cursos
+  async function cargarSeccionesCurso() {
+    seccionCursoSelect.innerHTML = '<option value="" selected disabled>Cargando secciones...</option>';
+    seccionCursoSelect.disabled = true;
+    try {
+      const response = await fetch('http://localhost:3001/api/secciones');
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      const secciones = await response.json();
+      seccionCursoSelect.innerHTML = '<option value="" selected disabled>Seleccione una sección</option>';
+      if (secciones.length === 0) {
+        seccionCursoSelect.innerHTML = '<option value="" disabled>No hay secciones disponibles</option>';
+      } else {
+        secciones.forEach(seccion => {
+          const option = document.createElement('option');
+          option.value = seccion.id_seccion;
+          option.textContent = seccion.seccion;
+          seccionCursoSelect.appendChild(option);
+        });
+        seccionCursoSelect.disabled = false;
+      }
+    } catch (error) {
+      console.error('Error cargando secciones de curso:', error);
+      seccionCursoSelect.innerHTML = '<option value="" selected disabled>Error al cargar secciones</option>';
+      mostrarErrorAlUsuario('Error al cargar secciones de curso. Intente nuevamente.');
+    }
+  }
+
+  // Función para cargar cursos para el modal de Materias
+  async function cargarCursosParaMateria() {
+    console.log('Iniciando carga de cursos para materias...');
+    cursoMateriaSelect.disabled = true;
+    cursoMateriaSelect.innerHTML = '<option value="" selected disabled>Cargando cursos...</option>';
+    try {
+      const response = await fetch('http://localhost:3001/api/cursos');
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      const cursos = await response.json();
+      cursoMateriaSelect.innerHTML = '<option value="" selected disabled>Seleccione un curso</option>';
+      cursos.forEach(curso => {
+        const option = document.createElement('option');
+        option.value = curso.id_curso;
+        option.textContent = curso.curso;
+        cursoMateriaSelect.appendChild(option);
+      });
+      cursoMateriaSelect.disabled = false;
+      console.log('Cursos para materias cargados exitosamente.');
+    } catch (error) {
+      console.error('Error cargando cursos para materias:', error);
+      cursoMateriaSelect.innerHTML = '<option value="" selected disabled>Error al cargar cursos</option>';
+      mostrarErrorAlUsuario('Error al cargar cursos para materias. Intente recargar la página.');
+    }
+  }
+
+  // Función para cargar cursos en la tabla del modal "Ver Cursos" (NUEVO)
+  async function cargarCursosEnTabla(searchTerm = '') {
+    cursosLoading.style.display = 'block';
+    cursosError.style.display = 'none';
+    noCursosFound.style.display = 'none';
+    cursosTableBody.innerHTML = ''; // Limpiar tabla
+
+    try {
+        const response = await fetch('http://localhost:3001/api/cursos-detallado'); // Esta API es conceptual y debería construirse en el backend.
+        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+        let cursos = await response.json();
+
+        // Filtrar cursos si hay un término de búsqueda (AHORA ESTA LOGICA NO SE EJECUTARA SI NO HAY INPUT DE BUSQUEDA)
+        if (searchTerm) {
+          const lowerCaseSearchTerm = searchTerm.toLowerCase();
+          cursos = cursos.filter(curso =>
+            curso.nombre_curso.toLowerCase().includes(lowerCaseSearchTerm) ||
+            (curso.periodo && curso.periodo.toLowerCase().includes(lowerCaseSearchTerm)) || // Check for null/undefined
+            (curso.seccion && curso.seccion.toLowerCase().includes(lowerCaseSearchTerm)) // Check for null/undefined
+          );
+        }
+
+        if (cursos.length === 0) {
+          noCursosFound.style.display = 'block';
+          cursosLoading.style.display = 'none';
+          return;
+        }
+
+        cursos.forEach(curso => {
+          const row = cursosTableBody.insertRow();
+          row.dataset.id = curso.id_curso; // Guarda el ID del curso en la fila
+
+          row.innerHTML = `
+            <td>${curso.nombre_curso || 'N/A'}</td>
+            <td>${curso.periodo || 'N/A'}</td>
+            <td>${curso.seccion || 'N/A'}</td>
+            <td>${curso.total_materias || 0}</td>
+            <td>${curso.total_estudiantes || 0}</td>
+            <td>${curso.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton${curso.id_curso}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${curso.id_curso}">
+                  <li><a class="dropdown-item" href="#" data-action="editar" data-id="${curso.id_curso}"><i class='bx bxs-edit-alt me-2'></i>Editar</a></li>
+                  <li><a class="dropdown-item" href="#" data-action="eliminar" data-id="${curso.id_curso}"><i class='bx bx-trash me-2'></i>Eliminar</a></li>
+                </ul>
+              </div>
+            </td>
+          `;
+        });
+
+        // Añadir listeners a los botones de acción dinámicamente
+        cursosTableBody.querySelectorAll('.dropdown-item[data-action="editar"]').forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const cursoId = this.dataset.id;
+            editarCurso(cursoId);
+          });
+        });
+
+        cursosTableBody.querySelectorAll('.dropdown-item[data-action="eliminar"]').forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const cursoId = this.dataset.id;
+            eliminarCurso(cursoId);
+          });
+        });
+
+    } catch (error) {
+      console.error('Error cargando cursos en tabla:', error);
+      cursosError.style.display = 'block';
+    } finally {
+      cursosLoading.style.display = 'none';
+    }
+  }
+
+
+  // Funciones placeholder para Editar y Eliminar Curso
+  function editarCurso(id) {
+    console.log('Editar curso con ID:', id);
+    // Aquí iría la lógica para abrir un modal de edición pre-llenado con los datos del curso
+    mostrarMensajeExito(`Funcionalidad de edición para el curso ID: ${id} (no implementada aún)`);
+  }
+
+  function eliminarCurso(id) {
+    console.log('Eliminar curso con ID:', id);
+    // Aquí iría la lógica para confirmar la eliminación o desactivación del curso
+    // Se podría usar un modal de confirmación personalizado en lugar de alert
+    const confirmDelete = true; // Replace with a custom confirmation modal
+    if (confirmDelete) {
+        // Lógica de eliminación o desactivación de la API
+        mostrarMensajeExito(`Funcionalidad de eliminación para el curso ID: ${id} (no implementada aún)`);
+    }
+  }
+
+
+  // Lógica para mostrar/ocultar el campo de "Nombre de la Materia" en modalAgregarCurso
+  agregarMateriaSwitch.addEventListener('change', function() {
+    if (this.checked) {
+      materiaNombreField.style.display = 'block';
+      nombreMateriaInput.setAttribute('required', 'true');
+    } else {
+      materiaNombreField.style.display = 'none';
+      nombreMateriaInput.removeAttribute('required');
+      nombreMateriaInput.value = ''; // Limpiar el valor si se oculta
+      limpiarError(nombreMateriaInput);
+    }
+  });
+
+
+  // Manejar botón Limpiar Curso
+  btnLimpiarCurso.addEventListener('click', function() {
+    formRegistroCurso.reset();
+    agregarMateriaSwitch.checked = false; // Desactivar el switch
+    materiaNombreField.style.display = 'none'; // Ocultar campo de materia
+    nombreMateriaInput.removeAttribute('required'); // Eliminar atributo required
+    nombreMateriaInput.value = ''; // Limpiar el valor
+    periodoCursoSelect.selectedIndex = 0;
+    seccionCursoSelect.selectedIndex = 0;
+    document.querySelectorAll('#formRegistroCurso .is-invalid').forEach(el => {
+      el.classList.remove('is-invalid');
+    });
+    document.querySelectorAll('#formRegistroCurso .invalid-feedback').forEach(el => {
+      el.style.display = 'none';
+    });
+  });
+
+  // Manejar botón Limpiar Materia (Nuevo)
+  btnLimpiarMateria.addEventListener('click', function() {
+    formRegistroMateria.reset();
+    cursoMateriaSelect.selectedIndex = 0;
+    document.querySelectorAll('#formRegistroMateria .is-invalid').forEach(el => {
+      el.classList.remove('is-invalid');
+    });
+    document.querySelectorAll('#formRegistroMateria .invalid-feedback').forEach(el => {
+      el.style.display = 'none';
+    });
+  });
+
+  // Manejar botón Limpiar Periodo (Nuevo)
+  btnLimpiarPeriodo.addEventListener('click', function() {
+    formRegistroPeriodo.reset();
+    document.querySelectorAll('#formRegistroPeriodo .is-invalid').forEach(el => {
+      el.classList.remove('is-invalid');
+    });
+    document.querySelectorAll('#formRegistroPeriodo .invalid-feedback').forEach(el => {
+      el.style.display = 'none';
+    });
+  });
+
+
+  // Manejar envío del formulario de Curso
+  formRegistroCurso.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const camposRequeridos = [
+      { input: nombreCursoInput, nombre: 'Nombre del Curso' },
+      { input: periodoCursoSelect, nombre: 'Periodo' },
+      { input: seccionCursoSelect, nombre: 'Sección' }
+    ];
+
+    let formularioValido = true;
+    camposRequeridos.forEach(campo => {
+      if (!campo.input.value) {
+        mostrarError(campo.input, `El campo ${campo.nombre} es obligatorio`);
+        formularioValido = false;
+      } else {
+        limpiarError(campo.input);
+      }
+    });
+
+    // Validar campo de materia si el switch está activado
+    if (agregarMateriaSwitch.checked) {
+      if (!nombreMateriaInput.value.trim()) {
+        mostrarError(nombreMateriaInput, 'El nombre de la materia es obligatorio');
+        formularioValido = false;
+      } else {
+        limpiarError(nombreMateriaInput);
+      }
+    }
+
+    if (!formularioValido) return;
+
+    btnGuardarCurso.disabled = true;
+    btnGuardarCurso.innerHTML = `
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      Guardando...
+    `;
+
+    try {
+      const formData = {
+        nombreCurso: nombreCursoInput.value.trim(),
+        id_periodo: periodoCursoSelect.value,
+        id_seccion: seccionCursoSelect.value,
+        agregarMateria: agregarMateriaSwitch.checked,
+        nombreMateria: agregarMateriaSwitch.checked ? nombreMateriaInput.value.trim() : null,
+      };
+
+      const response = await fetch('http://localhost:3001/api/register-curso', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al registrar el curso');
+      }
+
+      mostrarMensajeExito('Curso registrado exitosamente');
+      setTimeout(() => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarCurso'));
+        modal.hide();
+        location.reload();
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error en el registro de curso:', error);
+      mostrarError(btnGuardarCurso, error.message);
+    } finally {
+      btnGuardarCurso.disabled = false;
+      btnGuardarCurso.textContent = 'Guardar Curso';
+    }
+  });
+
+  // Manejar envío del formulario de Materia (NUEVO)
+  formRegistroMateria.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const camposRequeridos = [
+      { input: cursoMateriaSelect, nombre: 'Curso' },
+      { input: nombreMateriaNuevaInput, nombre: 'Nombre de la Materia' }
+    ];
+
+    let formularioValido = true;
+    camposRequeridos.forEach(campo => {
+      if (!campo.input.value) {
+        mostrarError(campo.input, `El campo ${campo.nombre} es obligatorio`);
+        formularioValido = false;
+      } else {
+        limpiarError(campo.input);
+      }
+    });
+
+    if (!formularioValido) return;
+
+    btnGuardarMateria.disabled = true;
+    btnGuardarMateria.innerHTML = `
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      Guardando...
+    `;
+
+    try {
+      const formData = {
+        id_curso: cursoMateriaSelect.value,
+        nombreMateria: nombreMateriaNuevaInput.value.trim(),
+      };
+
+      const response = await fetch('http://localhost:3001/api/register-materia', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al registrar la materia');
+      }
+
+      mostrarMensajeExito('Materia registrada exitosamente');
+      setTimeout(() => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarMateria'));
+        modal.hide();
+        location.reload();
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error en el registro de materia:', error);
+      mostrarError(btnGuardarMateria, error.message);
+    } finally {
+      btnGuardarMateria.disabled = false;
+      btnGuardarMateria.textContent = 'Guardar Materia';
+    }
+  });
+
+  // Manejar envío del formulario de Periodo (NUEVO)
+  formRegistroPeriodo.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const camposRequeridos = [
+      { input: nombrePeriodoInput, nombre: 'Nombre del Periodo' },
+      { input: fechaInicioInput, nombre: 'Fecha de Inicio' },
+      { input: fechaFinalInput, nombre: 'Fecha Final' }
+    ];
+
+    let formularioValido = true;
+    camposRequeridos.forEach(campo => {
+      if (!campo.input.value) {
+        mostrarError(campo.input, `El campo ${campo.nombre} es obligatorio`);
+        formularioValido = false;
+      } else {
+        limpiarError(campo.input);
+      }
+    });
+
+    // Validación de fechas
+    if (fechaInicioInput.value && fechaFinalInput.value) {
+      const fechaInicio = new Date(fechaInicioInput.value);
+      const fechaFinal = new Date(fechaFinalInput.value);
+      if (fechaInicio >= fechaFinal) {
+        mostrarError(fechaFinalInput, 'La fecha final debe ser posterior a la fecha de inicio');
+        formularioValido = false;
+      } else {
+        limpiarError(fechaFinalInput);
+      }
+    }
+
+    if (!formularioValido) return;
+
+    btnGuardarPeriodo.disabled = true;
+    btnGuardarPeriodo.innerHTML = `
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      Guardando...
+    `;
+
+    try {
+      const formData = {
+        nombrePeriodo: nombrePeriodoInput.value.trim(),
+        fechaInicio: fechaInicioInput.value,
+        fechaFinal: fechaFinalInput.value
+      };
+
+      const response = await fetch('http://localhost:3001/api/register-periodo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al registrar el periodo');
+      }
+
+      mostrarMensajeExito('Periodo registrado exitosamente');
+      setTimeout(() => {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('modalAgregarPeriodo'));
+        modal.hide();
+        location.reload();
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error en el registro de periodo:', error);
+      mostrarError(btnGuardarPeriodo, error.message);
+    } finally {
+      btnGuardarPeriodo.disabled = false;
+      btnGuardarPeriodo.textContent = 'Guardar Periodo';
+    }
+  });
+
+
+  // Funciones auxiliares (se mantienen)
+  function mostrarError(elemento, mensaje) {
+    const targetElement = elemento.classList.contains('custom-select-list') ? elemento : elemento;
+
+    targetElement.classList.add('is-invalid');
+    const feedbackElement = document.getElementById(targetElement.id + 'Feedback');
+
+    if (feedbackElement) {
+        feedbackElement.textContent = mensaje;
+        feedbackElement.style.display = 'block';
+    } else {
+        const defaultErrorElement = elemento.nextElementSibling || elemento.parentNode.querySelector('.invalid-feedback');
+        if (defaultErrorElement) {
+            defaultErrorElement.textContent = mensaje;
+            defaultErrorElement.style.display = 'block';
+        }
+    }
+}
+
+function limpiarError(elemento) {
+    const targetElement = elemento.classList.contains('custom-select-list') ? elemento : elemento;
+
+    targetElement.classList.remove('is-invalid');
+    const feedbackElement = document.getElementById(targetElement.id + 'Feedback');
+
+    if (feedbackElement) {
+        feedbackElement.style.display = 'none';
+    } else {
+        const defaultErrorElement = elemento.nextElementSibling || elemento.parentNode.querySelector('.invalid-feedback');
+        if (defaultErrorElement) {
+            defaultErrorElement.style.display = 'none';
+        }
+    }
+}
+
+
+  function mostrarMensajeExito(mensaje) {
+    const alerta = document.createElement('div');
+    alerta.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+    alerta.style.zIndex = '1100';
+    alerta.textContent = mensaje;
+    document.body.appendChild(alerta);
+    
+    setTimeout(() => {
+      alerta.remove();
+    }, 3000);
+  }
+
+  function mostrarErrorAlUsuario(mensaje) {
+    const alerta = document.createElement('div');
+    alerta.className = 'alert alert-danger position-fixed top-0 end-0 m-3';
+    alerta.style.zIndex = '1100';
+    alerta.textContent = mensaje;
+    document.body.appendChild(alerta);
+    
+    setTimeout(() => {
+      alerta.remove();
+    }, 5000);
+  }
+
+});
+</script>

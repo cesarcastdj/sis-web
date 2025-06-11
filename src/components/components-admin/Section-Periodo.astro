@@ -1,0 +1,950 @@
+---
+import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la página de periodos */
+---
+
+<!-- Nueva sección del Título "Periodos Académicos" - FUERA de data-content-section -->
+<section class="periodos-header-card">
+  <div class="welcome-search-data">
+    <h2 class="welcome-search-data__title">Periodos Académicos</h2>
+  </div>
+</section>
+
+<section class="data-content-section">
+  <!-- Sección de Tarjeta Consolidada de Resumen de Periodos -->
+  <section class="content-info-data">
+    <section class="data-general-control grid-layout"> <!-- Añadida clase grid-layout para posible futura expansión -->
+      <div class="registro-control consolidated-periodos-card">
+        <div class="card-icon-title">
+          <i class='bx bxs-calendar-plus'></i> <!-- Icono actualizado para el periodo -->
+          <h5 class="card-title">Resumen de Periodos Académicos</h5>
+        </div>
+        <div class="periodos-summary-grid">
+          <div class="summary-item">
+            <span class="summary-count" id="totalPeriodosCount">0</span>
+            <span class="summary-label">Total</span>
+          </div>
+        </div>
+        <!-- Botón para añadir periodo, ahora dentro de la tarjeta de resumen -->
+        <div class="mt-3 text-center"> <!-- Ajustado margen superior y centrado para el botón -->
+          <button class="btn btn-primary" id="btnAnadirPeriodo" data-bs-toggle="modal" data-bs-target="#modalAnadirPeriodo">
+            <i class='bx bx-plus me-2'></i>Añadir Periodo
+          </button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- La tabla de Periodos Académicos -->
+  <div class="display-table mt-4" id="table2"> <!-- Añadido mt-4 para margen superior -->
+    <div class="tabla-info-person">
+      <table class="table table-dark table-hover table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Periodo Académico</th>
+            <th scope="col">Fecha de Inicio</th>
+            <th scope="col">Fecha de Fin</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="periodosTableBody">
+          <tr>
+            <td colspan="5" class="text-center">Cargando periodos académicos...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="paginationControls" class="pagination text-center mt-3"></div>
+  </div>
+</section>
+
+<!-- Modal para Añadir Nuevo Periodo Académico -->
+<div class="modal fade" id="modalAnadirPeriodo" tabindex="-1" aria-labelledby="modalAnadirPeriodoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAnadirPeriodoLabel">Añadir Nuevo Periodo Académico</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formAnadirPeriodo">
+          <h6 class="section-title">Información del Nuevo Periodo</h6>
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label for="anadirNombrePeriodo" class="form-label">Nombre del Periodo</label>
+              <input type="text" class="form-control" id="anadirNombrePeriodo" placeholder="Ej. 2024-2025" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="anadirFechaInicio" class="form-label">Fecha de Inicio</label>
+              <input type="date" class="form-control" id="anadirFechaInicio" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="anadirFechaFin" class="form-label">Fecha de Fin</label>
+              <input type="date" class="form-control" id="anadirFechaFin" required />
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardarPeriodo">Guardar Periodo</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Ver Más Información del Periodo Académico -->
+<div class="modal fade" id="modalVerMasInformacionPeriodo" tabindex="-1" aria-labelledby="modalVerMasInformacionPeriodoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalVerMasInformacionPeriodoLabel">Detalles del Periodo Académico</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h6 class="section-title">Información del Periodo</h6>
+        <p><strong>Periodo Académico:</strong> <span id="detallePeriodoAcademico"></span></p>
+        <p><strong>Fecha de Inicio:</strong> <span id="detalleFechaInicio"></span></p>
+        <p><strong>Fecha de Fin:</strong> <span id="detalleFechaFin"></span></p>
+        <hr/>
+        <h6 class="section-title">Estadísticas Asociadas</h6>
+        <p><strong>Cursos Asignados:</strong> <span id="detalleCursos"></span></p>
+        <p><strong>Materias Asignadas:</strong> <span id="detalleMaterias"></span></p>
+        <p><strong>Total Estudiantes:</strong> <span id="detalleEstudiantes"></span></p>
+        <p><strong>Total Profesores:</strong> <span id="detalleProfesores"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Editar Periodos Académicos -->
+<div class="modal fade" id="modalEditarPeriodo" tabindex="-1" aria-labelledby="modalEditarPeriodoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarPeriodoLabel">Editar Periodo Académico</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarPeriodo">
+          <input type="hidden" id="editIdPeriodo" />
+          <h6 class="section-title">Información del Periodo Académico</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="editNombrePeriodo" class="form-label">Periodo Académico</label>
+              <input type="text" class="form-control" id="editNombrePeriodo" placeholder="Ingrese el periodo académico" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="editFechaInicio" class="form-label">Fecha de Inicio</label>
+              <input type="date" class="form-control" id="editFechaInicio" required />
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="editFechaFin" class="form-label">Fecha de Fin</label>
+              <input type="date" class="form-control" id="editFechaFin" required />
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardarEdicion">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log("DEBUG: DOMContentLoaded - Script principal cargado.");
+
+    let currentPage = 1;
+    const itemsPerPage = 5; 
+    const periodosTableBody = document.getElementById('periodosTableBody');
+    const paginationControls = document.getElementById('paginationControls');
+
+    // Contadores de periodos
+    const totalPeriodosCount = document.getElementById('totalPeriodosCount');
+
+    // Elementos del modal "Ver Más Información"
+    const modalVerMasInformacionPeriodo = new bootstrap.Modal(document.getElementById('modalVerMasInformacionPeriodo'));
+    const detallePeriodoAcademico = document.getElementById('detallePeriodoAcademico');
+    const detalleFechaInicio = document.getElementById('detalleFechaInicio');
+    const detalleFechaFin = document.getElementById('detalleFechaFin');
+    const detalleCursos = document.getElementById('detalleCursos');
+    const detalleMaterias = document.getElementById('detalleMaterias');
+    const detalleProfesores = document.getElementById('detalleProfesores');
+    const detalleEstudiantes = document.getElementById('detalleEstudiantes');
+
+    // Elementos del Modal Editar Periodos Académicos
+    const modalEditarPeriodo = new bootstrap.Modal(document.getElementById('modalEditarPeriodo'));
+    const formEditarPeriodo = document.getElementById('formEditarPeriodo');
+    const editIdPeriodo = document.getElementById('editIdPeriodo');
+    const editNombrePeriodo = document.getElementById('editNombrePeriodo');
+    const editFechaInicio = document.getElementById('editFechaInicio');
+    const editFechaFin = document.getElementById('editFechaFin');
+    const btnGuardarEdicion = document.getElementById('btnGuardarEdicion');
+
+
+    // Elementos del nuevo Modal Añadir Periodo Académico
+    const modalAnadirPeriodo = new bootstrap.Modal(document.getElementById('modalAnadirPeriodo'));
+    const formAnadirPeriodo = document.getElementById('formAnadirPeriodo');
+    const anadirNombrePeriodo = document.getElementById('anadirNombrePeriodo');
+    const anadirFechaInicio = document.getElementById('anadirFechaInicio');
+    const anadirFechaFin = document.getElementById('anadirFechaFin');
+    const btnGuardarPeriodo = document.getElementById('btnGuardarPeriodo');
+
+
+    // Event listener para el botón "Añadir Periodo"
+    document.getElementById('btnAnadirPeriodo').addEventListener('click', function() {
+        console.log("DEBUG: Botón 'Añadir Periodo' clickeado. Limpiando formulario.");
+        formAnadirPeriodo.reset(); // Limpia el formulario cada vez que se abre
+        // Limpia cualquier mensaje de validación previo
+        anadirNombrePeriodo.classList.remove('is-invalid');
+        if (anadirNombrePeriodo.nextElementSibling) anadirNombrePeriodo.nextElementSibling.textContent = '';
+        anadirFechaInicio.classList.remove('is-invalid');
+        if (anadirFechaInicio.nextElementSibling) anadirFechaInicio.nextElementSibling.textContent = '';
+        anadirFechaFin.classList.remove('is-invalid');
+        if (anadirFechaFin.nextElementSibling) anadirFechaFin.nextElementSibling.textContent = '';
+    });
+
+
+    // Manejar envío del formulario de Añadir Periodo
+    formAnadirPeriodo.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      console.log("DEBUG: Formulario de añadir periodo enviado. Iniciando validación...");
+
+      // Validación simple del lado del cliente
+      let valid = true;
+      if (anadirNombrePeriodo.value.trim() === '') {
+        mostrarError(anadirNombrePeriodo, 'El nombre del periodo es obligatorio.');
+        valid = false;
+      } else {
+        limpiarError(anadirNombrePeriodo);
+      }
+
+      if (anadirFechaInicio.value === '') {
+        mostrarError(anadirFechaInicio, 'La fecha de inicio es obligatoria.');
+        valid = false;
+      } else {
+        limpiarError(anadirFechaInicio);
+      }
+
+      if (anadirFechaFin.value === '') {
+        mostrarError(anadirFechaFin, 'La fecha de fin es obligatoria.');
+        valid = false;
+      } else {
+        limpiarError(anadirFechaFin);
+      }
+
+      if (!valid) {
+        console.log("DEBUG: Validación de formulario fallida. Deteniendo envío.");
+        return;
+      }
+
+      console.log("DEBUG: Validación de formulario exitosa. Mostrando confirmación...");
+      const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de que quieres añadir el periodo académico "${anadirNombrePeriodo.value}"?`
+        );
+      
+      console.log("DEBUG: Resultado de la confirmación:", confirmResult);
+
+      if (!confirmResult) {
+        console.log("DEBUG: Adición de periodo cancelada por el usuario.");
+        return;
+      }
+      
+      btnGuardarPeriodo.disabled = true;
+      btnGuardarPeriodo.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Guardando...
+      `;
+      console.log("DEBUG: Botón de guardar deshabilitado y spinner activado. Intentando enviar datos al backend...");
+
+      try {
+        const formData = {
+          nombrePeriodo: anadirNombrePeriodo.value.trim(),
+          fechaInicio: anadirFechaInicio.value, // Las fechas ya están en formato ISO-MM-DD
+          fechaFin: anadirFechaFin.value
+        };
+
+        console.log("DEBUG: Datos a enviar (frontend - añadir periodo):", formData); 
+
+        // Asegúrate de que esta URL sea correcta. Si tu backend está en un puerto diferente, cámbialo.
+        const response = await fetch('http://localhost:3001/api/periodos-academicos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        console.log("DEBUG: Solicitud de fetch completada. Procesando respuesta...");
+
+
+        const data = await response.json();
+        console.log("DEBUG: Datos recibidos del backend:", data);
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al añadir el periodo académico');
+        }
+
+        console.log("DEBUG: Respuesta del backend (añadir periodo):", data);
+        mostrarMensajeExito('Periodo académico añadido exitosamente');
+        
+        // Un pequeño retraso para que el usuario vea el mensaje de éxito
+        setTimeout(() => {
+          modalAnadirPeriodo.hide();
+          console.log("DEBUG: Modal de añadir periodo oculto.");
+          loadPeriodos(currentPage); // Recarga la tabla para reflejar los cambios
+          console.log("DEBUG: Tabla de periodos recargada.");
+        }, 1500);
+
+      } catch (error) {
+        console.error('❌ Error en la adición del periodo académico (frontend):', error); 
+        mostrarErrorAlUsuario(`Error al añadir periodo: ${error.message}`);
+      } finally {
+        btnGuardarPeriodo.disabled = false;
+        btnGuardarPeriodo.textContent = 'Guardar Periodo';
+        console.log("DEBUG: Proceso de añadir periodo finalizado (finally block).");
+      }
+    });
+
+    // Manejar envío del formulario de Edición de Periodo
+    formEditarPeriodo.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      console.log("DEBUG: Formulario de edición de periodo enviado. Iniciando validación...");
+
+
+      let valid = true;
+      if (editNombrePeriodo.value.trim() === '') {
+        mostrarError(editNombrePeriodo, 'El nombre del periodo es obligatorio.');
+        valid = false;
+      } else {
+        limpiarError(editNombrePeriodo);
+      }
+
+      if (editFechaInicio.value === '') {
+        mostrarError(editFechaInicio, 'La fecha de inicio es obligatoria.');
+        valid = false;
+      } else {
+        limpiarError(editFechaInicio);
+      }
+
+      if (editFechaFin.value === '') {
+        mostrarError(editFechaFin, 'La fecha de fin es obligatoria.');
+        valid = false;
+      } else {
+        limpiarError(editFechaFin);
+      }
+
+      if (!valid) {
+        console.log("DEBUG: Validación de formulario de edición fallida. Deteniendo envío.");
+        return;
+      }
+
+      console.log("DEBUG: Validación de formulario de edición exitosa. Mostrando confirmación...");
+      const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de guardar los cambios para el periodo "${editNombrePeriodo.value}"?`
+        );
+      if (!confirmResult) {
+        console.log("DEBUG: Edición de periodo cancelada por el usuario.");
+        return;
+      }
+
+      const id_periodo = editIdPeriodo.value;
+      
+      btnGuardarEdicion.disabled = true;
+      btnGuardarEdicion.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Guardando...
+      `;
+      console.log("DEBUG: Botón de guardar edición deshabilitado y spinner activado. Intentando enviar datos al backend...");
+
+      try {
+        const formData = {
+          nombrePeriodo: editNombrePeriodo.value.trim(),
+          fechaInicio: editFechaInicio.value, 
+          fechaFin: editFechaFin.value,
+        };
+
+        console.log("DEBUG: Datos a enviar (frontend - edición de periodo):", formData); 
+
+        const response = await fetch(`http://localhost:3001/api/periodos-academicos/${id_periodo}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        console.log("DEBUG: Solicitud de fetch (edición) completada. Procesando respuesta...");
+
+
+        const data = await response.json();
+        console.log("DEBUG: Datos recibidos del backend (edición):", data);
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al actualizar el periodo académico');
+        }
+
+        console.log("DEBUG: Respuesta del backend (edición de periodo):", data);
+        mostrarMensajeExito('Periodo académico actualizado correctamente');
+        
+        setTimeout(() => {
+          modalEditarPeriodo.hide();
+          console.log("DEBUG: Modal de edición de periodo oculto.");
+          loadPeriodos(currentPage); // Recarga la tabla para reflejar los cambios
+          console.log("DEBUG: Tabla de periodos recargada (después de edición).");
+        }, 1500);
+
+      } catch (error) {
+        console.error('❌ Error en la actualización del periodo académico (frontend):', error);
+        mostrarErrorAlUsuario(`Error al actualizar periodo: ${error.message}`);
+      } finally {
+        btnGuardarEdicion.disabled = false;
+        btnGuardarEdicion.textContent = 'Guardar Cambios';
+        console.log("DEBUG: Proceso de edición de periodo finalizado (finally block).");
+      }
+    });
+
+
+    // Función para inicializar los dropdowns de Bootstrap después de cargar la tabla
+    function initializeDropdowns() {
+      console.log('DEBUG: initializeDropdowns called.');
+      if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
+        const dropdownToggles = periodosTableBody.querySelectorAll('.dropdown-toggle');
+        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Dropdowns...');
+        dropdownToggles.forEach(button => {
+          // Destruir instancias existentes para evitar duplicados si la tabla se recarga
+          const existingDropdown = bootstrap.Dropdown.getInstance(button);
+          if (existingDropdown) {
+            existingDropdown.dispose();
+            // console.log(`Disposed existing dropdown for #${button.id}`); // Puede ser ruidoso
+          }
+          // Crear nueva instancia de Dropdown con popperConfig para evitar ser cortado
+          new bootstrap.Dropdown(button, {
+            popperConfig: function (defaultBsPopperConfig) {
+              return {
+                ...defaultBsPopperConfig,
+                placement: 'bottom-end', 
+                strategy: 'fixed', 
+                modifiers: [
+                  ...(defaultBsPopperConfig.modifiers || []),
+                  {
+                    name: 'offset',
+                    options: {
+                      offset: [0, 8] 
+                    }
+                  },
+                ],
+              };
+            }
+          });
+          // console.log(`Initialized new dropdown for #${button.id}`); // Puede ser ruidoso
+        });
+        if (dropdownToggles.length === 0) {
+            console.log('DEBUG: No dropdown toggles found to initialize.');
+        } else {
+            console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Dropdowns.`);
+        }
+      } else {
+        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible. Esto es crucial para que los dropdowns funcionen. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
+      }
+    }
+
+    // Función principal para cargar periodos en la tabla y actualizar contadores
+    async function loadPeriodos(page) {
+      console.log(`DEBUG: loadPeriodos called for page ${page}.`);
+      periodosTableBody.innerHTML = `<tr><td colspan="5" class="text-center">Cargando periodos...</td></tr>`;
+      paginationControls.innerHTML = ''; 
+      totalPeriodosCount.textContent = '...';
+
+      try {
+        console.log(`DEBUG: Solicitando periodos para la página ${page} a http://localhost:3001/api/periodos-academicos...`);
+        const response = await fetch(`http://localhost:3001/api/periodos-academicos?page=${page}&limit=${itemsPerPage}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            periodosTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron periodos.</td></tr>`;
+            totalPeriodosCount.textContent = '0';
+            console.log("DEBUG: 404 - No se encontraron periodos.");
+            return;
+          }
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const periodos = data.periodos;
+        const totalPages = data.totalPages;
+        currentPage = data.currentPage;
+
+        console.log("DEBUG: Datos de periodos recibidos del backend:", data); 
+
+        // Actualizar el contador total
+        totalPeriodosCount.textContent = data.totalCount;
+
+        periodosTableBody.innerHTML = ''; 
+
+        if (periodos.length === 0) {
+          periodosTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron periodos.</td></tr>`;
+          console.log("DEBUG: Array de periodos vacío.");
+          return;
+        }
+
+        periodos.forEach((periodo, index) => {
+          // console.log(`DEBUG: Procesando periodo ${index + 1}:`, periodo); // Desactivado para reducir ruido en la consola si hay muchos periodos
+          const periodoDataAttribute = JSON.stringify(periodo);
+
+          const row = document.createElement('tr');
+          row.dataset.id = periodo.id_periodo;
+          row.dataset.periodoData = periodoDataAttribute; 
+
+          row.innerHTML = `
+            <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td>${periodo.nombre_periodo || 'N/A'}</td> 
+            <td>${periodo.fechaInicio ? new Date(periodo.fechaInicio).toLocaleDateString() : 'N/A'}</td>
+            <td>${periodo.fechaFinal ? new Date(periodo.fechaFinal).toLocaleDateString() : 'N/A'}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton${periodo.id_periodo}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${periodo.id_periodo}">
+                  <li><a class="dropdown-item" href="#" data-action="ver-mas" data-id="${periodo.id_periodo}"><i class='bx bx-info-circle me-2'></i>Ver más información</a></li>
+                  <li><a class="dropdown-item" href="#" data-action="editar" data-id="${periodo.id_periodo}"><i class='bx bxs-edit-alt me-2'></i>Editar</a></li>
+                  <li><a class="dropdown-item" href="#" data-action="desactivar" data-id="${periodo.id_periodo}"><i class='bx bx-trash me-2'></i>Desactivar Periodo</a></li>
+                </ul>
+              </div>
+            </td>
+          `;
+          periodosTableBody.appendChild(row);
+        });
+
+        initializeDropdowns(); // Asegura que los dropdowns se inicien
+        setupPagination(totalPages, currentPage);
+        setupActionListeners(periodos);
+        console.log("DEBUG: Renderizado de periodos completado.");
+      } catch (error) {
+        console.error('❌ Error al cargar periodos:', error);
+        periodosTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error al cargar periodos. Intente nuevamente.</td></tr>`;
+        totalPeriodosCount.textContent = '0';
+      }
+    }
+
+    // Configurar listeners para los botones de acción en cada fila
+    function setupActionListeners(periodosData) {
+        periodosTableBody.querySelectorAll('.dropdown-item').forEach(item => {
+            item.removeEventListener('click', handleActionClick); 
+            item.addEventListener('click', handleActionClick);
+
+            function handleActionClick(e) {
+                e.preventDefault();
+                const action = e.currentTarget.dataset.action;
+                const periodoId = e.currentTarget.dataset.id;
+                const periodo = periodosData.find(p => p.id_periodo.toString() === periodoId);
+
+                if (!periodo) {
+                    console.error('Error: Periodo no encontrado para ID:', periodoId);
+                    return;
+                }
+
+                switch (action) {
+                    case 'ver-mas':
+                        mostrarDetallesPeriodo(periodo);
+                        break;
+                    case 'editar':
+                        editarPeriodo(periodo);
+                        break;
+                    case 'desactivar':
+                        console.warn("WARN: La acción 'desactivar' para periodos ha sido comentada en el backend porque la tabla 'periodo' no tiene el campo 'estado'.");
+                        mostrarErrorAlUsuario("La función 'Desactivar Periodo' no está disponible actualmente ya que el campo 'estado' no existe en la tabla de periodos.");
+                        // Si se quisiera una "desactivación" (eliminación lógica), se necesitaría añadir el campo `estado` a la tabla `periodo` en la base de datos.
+                        // O, si "desactivar" significa "eliminar", se debería cambiar el endpoint y el método HTTP a DELETE.
+                        break;
+                    default:
+                        console.warn('Acción desconocida:', action);
+                }
+            }
+        });
+    }
+
+    // Mostrar los detalles del periodo en el modal
+    async function mostrarDetallesPeriodo(periodo) {
+        console.log("DEBUG: Periodo para ver detalles (mostrarDetallesPeriodo):", periodo);
+        try {
+            const response = await fetch(`http://localhost:3001/api/periodos-academicos/${periodo.id_periodo}`);
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+            const detallesCompletos = await response.json();
+            console.log("DEBUG: Detalles completos del periodo del backend (mostrarDetallesPeriodo):", detallesCompletos);
+
+            detallePeriodoAcademico.textContent = detallesCompletos.periodo || 'N/A';
+            detalleFechaInicio.textContent = detallesCompletos.fechaInicio ? new Date(detallesCompletos.fechaInicio).toLocaleDateString() : 'N/A';
+            detalleFechaFin.textContent = detallesCompletos.fechaFinal ? new Date(detallesCompletos.fechaFinal).toLocaleDateString() : 'N/A';
+            
+            // Eliminado estado del detalle ya que no está en la tabla periodo
+            // detalleEstadoPeriodo.textContent = 'No aplica (sin campo estado en tabla periodo)'; // Esto no es necesario si quitamos el elemento HTML
+            
+            detalleCursos.textContent = detallesCompletos.cursos_info && detallesCompletos.cursos_info.length > 0
+                ? detallesCompletos.cursos_info.map(c => c.nombre_curso).join(', ')
+                : 'Ninguno';
+            detalleMaterias.textContent = detallesCompletos.materias_info && detallesCompletos.materias_info.length > 0
+                ? detallesCompletos.materias_info.map(m => m.nombre_materia).join(', ')
+                : 'Ninguna';
+            
+            detalleEstudiantes.textContent = detallesCompletos.totalEstudiantes !== undefined ? detallesCompletos.totalEstudiantes : 'N/A';
+            detalleProfesores.textContent = detallesCompletos.totalProfesores !== undefined ? detallesCompletos.totalProfesores : 'N/A';
+
+            modalVerMasInformacionPeriodo.show();
+
+        } catch (error) {
+            console.error('❌ Error al obtener detalles del periodo:', error);
+            mostrarErrorAlUsuario('Error al cargar la información detallada del periodo. Intente nuevamente.');
+        }
+    }
+
+
+    // Función para Editar Periodo
+    async function editarPeriodo(periodo) {
+        console.log("DEBUG: Periodo para editar (editarPeriodo):", periodo); 
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/periodos-academicos/${periodo.id_periodo}`);
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+            const detallesCompletos = await response.json();
+            console.log("DEBUG: Detalles completos del periodo para edición (editarPeriodo):", detallesCompletos);
+
+            editIdPeriodo.value = detallesCompletos.id_periodo;
+            editNombrePeriodo.value = detallesCompletos.periodo || ''; // Coincide con el backend
+            editFechaInicio.value = detallesCompletos.fechaInicio ? new Date(detallesCompletos.fechaInicio).toISOString().split('T')[0] : '';
+            editFechaFin.value = detallesCompletos.fechaFinal ? new Date(detallesCompletos.fechaFinal).toISOString().split('T')[0] : '';
+
+            limpiarError(editNombrePeriodo);
+            limpiarError(editFechaInicio);
+            limpiarError(editFechaFin);
+
+            modalEditarPeriodo.show();
+
+        } catch (error) {
+            console.error('❌ Error al cargar detalles para edición:', error);
+            mostrarErrorAlUsuario('Error al cargar la información del periodo para edición. Intente nuevamente.');
+        }
+    }
+
+    // Función para Desactivar Periodo (Eliminación Lógica) - COMENTADA PORQUE 'estado' NO ESTÁ EN LA TABLA 'periodo'
+    /*
+    async function desactivarPeriodo(periodo) {
+        const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de que quieres desactivar el periodo "${periodo.nombre_periodo}"? Esto cambiará su estado a "Inactivo".`
+        );
+
+        if (!confirmResult) return;
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/periodos-academicos/${periodo.id_periodo}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: 0 }) 
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al desactivar el periodo');
+            }
+
+            mostrarMensajeExito(`Periodo "${periodo.nombre_periodo}" ha sido desactivado exitosamente.`);
+            loadPeriodos(currentPage); 
+        } catch (error) {
+            console.error('Error al desactivar periodo:', error);
+            mostrarErrorAlUsuario(`Error al desactivar el periodo: ${error.message}`);
+        }
+    }
+    */
+
+
+    // Función de paginación (generalizada)
+    function setupPagination(totalPages, currentPage) {
+      console.log('DEBUG: setupPagination called.');
+      paginationControls.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      const ul = document.createElement('ul');
+      ul.className = 'pagination-list flex justify-center items-center gap-2';
+
+      const prevLi = document.createElement('li');
+      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+      const prevLink = document.createElement('a');
+      prevLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+      prevLink.href = '#';
+      prevLink.textContent = 'Anterior';
+      prevLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+          loadPeriodos(currentPage - 1);
+        }
+      });
+      prevLi.appendChild(prevLink);
+      ul.appendChild(prevLi);
+
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, currentPage + 2);
+
+      if (startPage > 1) {
+        const li = document.createElement('li');
+        li.className = 'page-item';
+        const link = document.createElement('a');
+        link.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+        link.href = '#';
+        link.textContent = '1';
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadPeriodos(1);
+        });
+        li.appendChild(link);
+        ul.appendChild(li);
+        if (startPage > 2) {
+          const ellipsis = document.createElement('li');
+          ellipsis.className = 'page-item disabled';
+          ellipsis.innerHTML = '<span class="page-link rounded-lg px-3 py-1 bg-gray-700 text-white">...</span>';
+          ul.appendChild(ellipsis);
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        const link = document.createElement('a');
+        link.className = `page-link rounded-lg px-3 py-1 ${i === currentPage ? 'bg-purple-800' : 'bg-gray-700'} text-white hover:bg-purple-600`;
+        link.href = '#';
+        link.textContent = i;
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadPeriodos(i);
+        });
+        li.appendChild(link);
+        ul.appendChild(li);
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          const ellipsis = document.createElement('li');
+          ellipsis.className = 'page-item disabled';
+          ellipsis.innerHTML = '<span class="page-link rounded-lg px-3 py-1 bg-gray-700 text-white">...</span>';
+          ul.appendChild(ellipsis);
+        }
+        const li = document.createElement('li');
+        li.className = 'page-item';
+        const link = document.createElement('a');
+        link.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+        link.href = '#';
+        link.textContent = totalPages;
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadPeriodos(totalPages);
+        });
+        li.appendChild(link);
+        ul.appendChild(li);
+      }
+
+      const nextLi = document.createElement('li');
+      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+      const nextLink = document.createElement('a');
+      nextLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+      nextLink.href = '#';
+      nextLink.textContent = 'Siguiente';
+      nextLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+          loadPeriodos(currentPage + 1);
+        }
+      });
+      nextLi.appendChild(nextLink);
+      ul.appendChild(nextLi);
+
+      paginationControls.appendChild(ul);
+    }
+
+    loadPeriodos(1); 
+
+    // Funciones auxiliares
+    function mostrarError(elemento, mensaje) {
+      elemento.classList.add('is-invalid');
+      const errorElement = elemento.nextElementSibling; 
+      if (errorElement && errorElement.classList.contains('invalid-feedback')) {
+        errorElement.textContent = mensaje;
+        errorElement.style.display = 'block';
+      } else {
+        const parentErrorElement = elemento.parentNode.querySelector('.invalid-feedback');
+        if (parentErrorElement) {
+          parentErrorElement.textContent = mensaje;
+          parentErrorElement.style.display = 'block';
+        }
+      }
+      console.log(`DEBUG: Error mostrado para ${elemento.id}: ${mensaje}`);
+    }
+
+    function limpiarError(elemento) {
+      elemento.classList.remove('is-invalid');
+      const errorElement = elemento.nextElementSibling; 
+      if (errorElement && errorElement.classList.contains('invalid-feedback')) {
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+      } else {
+        const parentErrorElement = elemento.parentNode.querySelector('.invalid-feedback');
+        if (parentErrorElement) {
+          parentErrorElement.textContent = '';
+          parentErrorElement.style.display = 'none';
+        }
+      }
+      console.log(`DEBUG: Error limpiado para ${elemento.id}.`);
+    }
+
+    function mostrarMensajeExito(mensaje) {
+      const alerta = document.createElement('div');
+      alerta.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+      alerta.style.zIndex = '1100';
+      alerta.textContent = mensaje;
+      document.body.appendChild(alerta);
+      console.log(`DEBUG: Mensaje de éxito mostrado: ${mensaje}`);
+      
+      setTimeout(() => {
+        alerta.remove();
+        console.log("DEBUG: Mensaje de éxito removido.");
+      }, 3000);
+    }
+
+    function mostrarErrorAlUsuario(mensaje) {
+      const alerta = document.createElement('div');
+      alerta.className = 'alert alert-danger position-fixed top-0 end-0 m-3';
+      alerta.style.zIndex = '1100';
+      alerta.textContent = mensaje;
+      document.body.appendChild(alerta);
+      console.log(`DEBUG: Mensaje de error mostrado al usuario: ${mensaje}`);
+      
+      setTimeout(() => {
+        alerta.remove();
+        console.log("DEBUG: Mensaje de error removido.");
+      }, 5000);
+    }
+
+    // Función para mostrar un modal de confirmación personalizado
+    function mostrarConfirmacion(mensaje) {
+      console.log("DEBUG: [mostrarConfirmacion] Iniciando...");
+      return new Promise((resolve) => {
+        // Verificar si Bootstrap está cargado antes de intentar crear un modal
+        if (typeof window.bootstrap === 'undefined' || typeof window.bootstrap.Modal === 'undefined') {
+          console.error("ERROR: [mostrarConfirmacion] Bootstrap JS (o Modal) no está disponible. No se puede mostrar el modal de confirmación.");
+          mostrarErrorAlUsuario("Un error interno impide mostrar la confirmación. Por favor, recargue la página.");
+          resolve(false); 
+          return;
+        }
+
+        const confirmModalHtml = `
+          <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="customConfirmModalLabel">Confirmación</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                  ${mensaje}
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelActionBtnModal">Cancelar</button>
+                  <button type="button" class="btn btn-danger" id="confirmActionBtnModal">Confirmar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
+        const confirmModalElement = document.getElementById('customConfirmModal');
+        console.log("DEBUG: [mostrarConfirmacion] customConfirmModalElement (después de insertarlo):", confirmModalElement); 
+        
+        let customConfirmModal;
+        try {
+            customConfirmModal = new bootstrap.Modal(confirmModalElement);
+            console.log("DEBUG: [mostrarConfirmacion] customConfirmModal instancia creada:", customConfirmModal); 
+        } catch (e) {
+            console.error("ERROR: [mostrarConfirmacion] Fallo al crear instancia de Bootstrap Modal:", e);
+            mostrarErrorAlUsuario("Un error al inicializar el modal impide la confirmación. Contacte soporte.");
+            resolve(false);
+            return;
+        }
+
+        let isPromiseResolved = false; // Flag to prevent multiple resolutions
+
+        // Función para resolver la promesa y limpiar
+        const cleanupAndResolve = (result) => {
+            if (!isPromiseResolved) {
+                isPromiseResolved = true;
+                console.log(`DEBUG: [mostrarConfirmacion] Promesa resuelta con: ${result}`);
+                try {
+                    // Solo intentar ocultar el modal si la instancia existe y el modal está visible
+                    if (customConfirmModal && confirmModalElement.classList.contains('show')) {
+                        customConfirmModal.hide(); 
+                        console.log("DEBUG: [mostrarConfirmacion] customConfirmModal.hide() llamado.");
+                    }
+                } catch (e) {
+                    console.error("ERROR: [mostrarConfirmacion] Fallo al ocultar modal durante cleanup:", e);
+                }
+                // Asegura que el elemento del modal se elimina después de que esté completamente oculto
+                confirmModalElement.addEventListener('hidden.bs.modal', () => {
+                    console.log("DEBUG: [mostrarConfirmacion] Evento 'hidden.bs.modal' disparado. Removiendo elemento del DOM.");
+                    confirmModalElement.remove();
+                }, { once: true });
+                resolve(result);
+            }
+        };
+
+        const confirmActionBtn = document.getElementById('confirmActionBtnModal');
+        const cancelActionBtn = document.getElementById('cancelActionBtnModal');
+
+        if (confirmActionBtn) {
+            confirmActionBtn.addEventListener('click', () => {
+                console.log("DEBUG: [mostrarConfirmacion] Botón 'Confirmar' clickeado.");
+                cleanupAndResolve(true);
+            }, { once: true });
+            console.log("DEBUG: [mostrarConfirmacion] Listener para 'Confirmar' añadido.");
+        } else {
+            console.error("ERROR: [mostrarConfirmacion] Botón 'confirmActionBtnModal' no encontrado.");
+            cleanupAndResolve(false); // Resuelve a false si el botón de confirmación no se encuentra
+        }
+        
+        if (cancelActionBtn) {
+            cancelActionBtn.addEventListener('click', () => {
+                console.log("DEBUG: [mostrarConfirmacion] Botón 'Cancelar' clickeado.");
+                cleanupAndResolve(false);
+            }, { once: true });
+            console.log("DEBUG: [mostrarConfirmacion] Listener para 'Cancelar' añadido.");
+        } else {
+            console.error("ERROR: [mostrarConfirmacion] Botón 'cancelActionBtnModal' no encontrado.");
+        }
+
+        // Añadir listener para el cierre del modal (ej. tecla ESC, clic fuera)
+        // Este listener también resolverá la promesa si el modal se cierra por medios externos.
+        confirmModalElement.addEventListener('hidden.bs.modal', () => {
+            console.log("DEBUG: [mostrarConfirmacion] Evento 'hidden.bs.modal' disparado (posiblemente por ESC/clic fuera, o hide() programático).");
+            cleanupAndResolve(false); // Resuelve a false si se oculta sin una acción explícita de los botones
+        }, { once: true }); 
+
+        console.log("DEBUG: [mostrarConfirmacion] Llamando a customConfirmModal.show()...");
+        customConfirmModal.show();
+      });
+    }
+  });
+</script>

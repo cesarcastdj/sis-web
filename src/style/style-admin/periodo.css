@@ -1,0 +1,640 @@
+@import "../variables.css";
+@import "../global.css";
+
+body {
+    overflow-y: auto; /* Permite el desplazamiento vertical para toda la página */
+}
+
+/* Sección principal de contenido para la página de periodos - Contiene la tarjeta de resumen y la tabla */
+.data-content-section {
+    background-color: var(--color-GRIS); /* Fondo gris para esta sección */
+    height: auto;
+    min-height: calc(100vh - 2rem);
+    margin-right: 24px;
+    /* Redondeo solo en la parte inferior si la sección del título tiene redondeo superior */
+    border-top-right-radius: 0; 
+    border-top-left-radius: 0;
+    border-bottom-right-radius: var(--border-radius-16);
+    border-bottom-left-radius: var(--border-radius-16);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 0; /* Padding interno manejado por las secciones hijas */
+    margin-top: 0; /* Asegura que se pegue al header-card */
+}
+
+/* Estilos para el título "Periodos Académicos" como una tarjeta de encabezado */
+.periodos-header-card {
+    background-color: var(--color-tertiary); /* Fondo blanco, similar a estudiantes-header-card */
+    padding: var(--spacing-24) var(--spacing-60);
+    border-radius: var(--border-radius-16); /* Bordes redondeados */
+    box-shadow: var(--box-shadow-button1); /* Sombra sutil */
+    margin-bottom: 0; /* Para que se junte con data-content-section */
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Borde sutil */
+    position: relative;
+    overflow: hidden;
+    width: 100%; 
+    border-top-left-radius: var(--border-radius-16);
+    border-top-right-radius: var(--border-radius-16);
+    border-bottom-left-radius: 0; /* Eliminar redondeo inferior para unirse al contenido */
+    border-bottom-right-radius: 0;
+    padding-bottom: var(--spacing-24); /* Asegurar padding inferior adecuado */
+    margin-right: 24px; /* Mantener el margen derecho del contenedor principal */
+}
+
+/* Añadir un efecto de "glow" o borde inferior estilizado al encabezado */
+.periodos-header-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 5px; /* Altura del "glow" */
+    background: linear-gradient(to right, var(--color-primary), var(--color-pink-hover)); /* Gradiente de glow */
+    box-shadow: 0 0 15px var(--color-primary), 0 0 15px var(--color-pink-hover); /* Sombra de glow */
+    border-bottom-left-radius: var(--border-radius-16); /* Mantener el redondeo del glow */
+    border-bottom-right-radius: var(--border-radius-16);
+    z-index: 1; /* Asegura que esté por encima de la tarjeta */
+}
+
+.periodos-header-card .welcome-search-data {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.periodos-header-card .welcome-search-data__title {
+    font-size: 2.5rem; 
+    color: var(--color-quaternary);
+    margin-bottom: 0; 
+    font-family: var(--font-family-titleSub);
+    text-shadow: 0 0 5px rgba(0,0,0,0.1); 
+}
+
+/* Estilos para la sección de la tarjeta consolidada de resumen */
+.data-content-section .content-info-data {
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    padding: 1rem 24px;
+    margin-top: 1.5rem; /* Margen superior para separar del título si es necesario, ajusta este valor */
+    display: flex; 
+    justify-content: center; 
+    width: 100%; 
+}
+
+.data-content-section .data-general-control {
+    display: flex; 
+    justify-content: center;
+    width: 100%; 
+}
+
+/* Estilos para la tarjeta consolidada de periodos - Basado en consolidated-students-card */
+.registro-control.consolidated-periodos-card {
+    background: linear-gradient(to bottom, var(--color-secondary) 5%, transparent 95%);
+    padding: 1.5rem 2rem;
+    border-radius: var(--border-radius-12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-height: auto; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--color-primary);
+    width: 50%;
+    max-width: 350px;
+    margin-bottom: 1.5rem;
+}
+
+.consolidated-periodos-card .card-icon-title {
+    flex-direction: column;
+    margin-bottom: 1.5rem;
+}
+
+.consolidated-periodos-card .card-icon-title i {
+    font-size: 3.5rem;
+    color: var(--color-pink-hover);
+    background: var(--color-tertiary);
+    padding: 0.7rem;
+    box-shadow: 0 0 10px rgba(255, 105, 180, 0.7);
+    border-radius: 50%;
+}
+
+.consolidated-periodos-card .card-title {
+    font-size: 1.5rem; 
+    color: var(--color-quaternary);
+    margin-top: 0.8rem;
+    font-weight: var(--font-weight-700);
+}
+
+.periodos-summary-grid {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    gap: 1rem; 
+    flex-wrap: wrap; 
+}
+
+.periodos-summary-grid .summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem;
+    border-right: none; 
+    border-bottom: none;
+}
+
+.summary-count {
+    font-size: 2.2rem; 
+    font-weight: var(--font-weight-700);
+    color: var(--color-pink-hover); 
+    margin-bottom: 0.3rem;
+}
+
+.summary-label {
+    font-size: 0.9rem;
+    color: var(--color-black); 
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+/* Estilos de botones dentro de la tarjeta de resumen */
+.consolidated-periodos-card .btn-primary {
+    background: var(--color-primary); 
+    color: var(--color-quaternary); 
+    box-shadow: var(--box-shadow-button-gradient);
+    border: none;
+    font-size: 1rem;
+    padding: 0.7rem 1.5rem;
+    transition: all 0.3s ease;
+    width: 80%; 
+    max-width: 250px;
+    margin: 0 auto; 
+}
+.consolidated-periodos-card .btn-primary:hover {
+    background: var(--color-pink-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 0 10px var(--color-pink-hover);
+}
+
+
+/* Estilos de la tabla */
+.display-table {
+    padding: 0 24px; 
+    margin-top: 4rem; /* Margen superior para la tabla */
+    margin-bottom: 24px; 
+    max-height: calc(100vh - 400px); 
+    overflow-y: auto; 
+    border-radius: var(--border-radius-16);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tabla-info-person {
+    width: 100%;
+    overflow-x: auto; 
+}
+
+.table-dark {
+    --bs-table-bg: #191919; 
+    --bs-table-color: var(--color-tertiary); 
+    --bs-table-border-color: var(--color-secondary); 
+    --bs-table-striped-bg: #2a2a2a; 
+    --bs-table-hover-bg: #3a3a3a; 
+}
+
+.table-dark thead th {
+    background: var(--color-primary); 
+    color: var(--color-quaternary); 
+    border-bottom: 2px solid var(--color-pink-hover); 
+    font-weight: var(--font-weight-700);
+    padding: var(--spacing-12);
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+}
+
+.table-dark th,
+.table-dark td {
+    padding: var(--spacing-12);
+    text-align: left;
+    font-size: var(--font-size-medium);
+    color: var(--color-tertiary); 
+    border-bottom: 1px solid var(--color-secondary); 
+}
+
+.table-dark tr:hover {
+    background: var(--color-secondary); 
+    color: var(--color-quaternary); 
+    transition: background 0.3s ease;
+}
+
+/* Estilos para el Dropdown de Acciones (3 puntos) en la tabla */
+.dropdown-toggle::after {
+    display: none;
+}
+
+.dropdown-menu {
+    background-color: #191919;
+    border: 1px solid var(--color-primary);
+    box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+    border-radius: var(--border-radius-8);
+}
+
+.dropdown-item {
+    color: var(--color-tertiary);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: var(--color-dark-purple);
+    color: var(--color-pink-hover);
+}
+
+/* Estilos de paginación */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem 0;
+    font-family: var(--font-family-Paragraph);
+}
+
+.pagination-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem;
+}
+
+.page-item .page-link {
+    display: block;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-8);
+    text-decoration: none;
+    color: var(--color-tertiary);
+    background-color: var(--color-secondary);
+    transition: all 0.3s ease;
+}
+
+.page-item .page-link:hover {
+    background-color: var(--color-primary);
+    color: var(--color-quaternary);
+}
+
+.page-item.active .page-link {
+    background-color: var(--color-primary);
+    font-weight: bold;
+    box-shadow: var(--box-shadow-button1);
+}
+
+.page-item.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Estilos de modal (reutilizando los de gestion-academica.css) */
+.modal-dialog-custom-width {
+    max-width: 750px;
+}
+.modal-dialog.modal-lg {
+    max-width: 80% !important;
+}
+.modal-content {
+    border-radius: var(--border-radius-24);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+    background: #191919 !important;
+    border: 1px solid var(--color-primary);
+    color: var(--color-tertiary);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    background-color: #191919;
+    color: var(--color-tertiary);
+    border-bottom: 1px solid var(--color-primary);
+    border-radius: var(--border-radius-24) var(--border-radius-24) 0 0;
+    padding: 1.5rem 2.5rem;
+}
+
+.modal-header .btn-close {
+    position: absolute;
+    top: 1.8rem;
+    right: 1.8rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--color-pink-hover) !important;
+    border: 1px solid var(--color-pink-hover);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.9);
+    opacity: 1;
+}
+
+.modal-header .btn-close i {
+    color: var(--color-tertiary) !important;
+    font-size: 1.5rem;
+    text-shadow: none;
+}
+
+.modal-header .btn-close:hover {
+    background: var(--color-pink-hover) !important;
+    box-shadow: 0 0 20px rgba(255, 105, 180, 1);
+    border-color: var(--color-primary) !important;
+    transform: scale(1.1);
+}
+
+.modal-title {
+    font-weight: var(--font-weight-700);
+    font-size: 2.5rem;
+    color: var(--color-tertiary) !important;
+    text-align: center;
+    margin-bottom: 0.8rem;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    font-family: var(--font-family-titleSub);
+}
+
+.modal-body {
+    padding: 2.5rem;
+    font-family: var(--font-family-Paragraph);
+    color: var(--color-tertiary) !important;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+.modal-body form {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-body label {
+    font-size: var(--font-size-medium-12);
+    font-weight: var(--font-weight-500);
+    font-family: var(--font-family-Paragraph);
+    color: var(--color-tertiary) !important;
+    margin-bottom: 0.5rem;
+}
+
+.modal-body .section-title {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-700);
+    color: var(--color-tertiary) !important;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 0.5rem;
+}
+
+.modal-body input:not(.form-check-input),
+.modal-body textarea,
+.modal-body select {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border-radius: var(--border-radius-12);
+    border: 1px solid var(--color-primary);
+    color: var(--color-tertiary) !important;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-300);
+    font-family: var(--font-family-Paragraph);
+    background: rgba(255, 255, 255, 0.05);
+    transition: 0.3s linear;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Estilo para las opciones del select (dropdown) */
+.modal-body select option {
+    background: #191919;
+    color: var(--color-tertiary);
+}
+
+/* Asegurar que el texto visible en el select sea blanco cuando no está abierto */
+.modal-body select {
+    color: var(--color-tertiary);
+}
+/* Asegurar que el color del texto del placeholder en el select sea consistente */
+.modal-body select:invalid {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+
+/* Estilo para el select multiple de Materias en el modal de edición */
+/* No aplicable directamente a periodos, pero se mantiene para coherencia si se reutiliza */
+/* NOTA: En este contexto, este estilo no se usa ya que periodos no tiene materias asignadas directamente */
+#modalEditarEstudiante #editMaterias,
+#modalAgregar #materias { 
+    min-height: 120px; 
+    overflow-y: auto; 
+    height: auto; 
+    display: block; 
+    -webkit-appearance: none; 
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none; 
+}
+
+
+.modal-body input:hover,
+.modal-body input:focus,
+.modal-body textarea:hover,
+.modal-body textarea:focus,
+.modal-body select:hover,
+.modal-body select:focus {
+    outline: none;
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.8);
+    border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.modal-body input::placeholder,
+.modal-body textarea::placeholder {
+    color: var(--color-tertiary) !important;
+    opacity: 0.8;
+    font-size: var(--font-size-medium-12);
+    font-weight: var(--font-weight-400);
+}
+
+.modal-body .invalid-feedback {
+    color: var(--color-pink-hover) !important;
+    font-weight: bold !important;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+    display: none;
+}
+
+.modal-body input.is-invalid,
+.modal-body select.is-invalid,
+.modal-body textarea.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.25rem rgba(220,53,69,.25) !important;
+}
+
+
+.modal-body form button {
+    width: 45%;
+    flex-wrap: wrap;
+    margin: 0 auto;
+    padding: 1rem 2.5rem;
+    font-size: 1.2rem;
+    font-weight: var(--font-weight-700);
+    border-radius: var(--border-radius-12);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal-body form button[type="submit"] {
+    background-color: #ee85fcc0;
+    color: var(--color-tertiary);
+    border: none;
+    box-shadow: var(--box-shadow-button-gradient);
+}
+
+.modal-body form button[type="submit"]:hover {
+    background-color: var(--color-primary);
+    box-shadow: var(--box-shadow-button-pink-hover);
+    transform: translateY(-3px) scale(1.02);
+}
+
+.modal-body form button[type="reset"] {
+    background-color: #ee85fcc0;
+    color: var(--color-tertiary);
+    border: 2px solid var(--color-pink-hover);
+    box-shadow: var(--box-shadow-button-pink-hover);
+}
+
+.modal-body form button[type="reset"]:hover {
+    background-color: var(--color-primary);
+    color: var(--color-tertiary);
+    border: 2px solid var(--color-primary);
+    box-shadow: var(--box-shadow-button-gradient);
+    transform: translateY(-3px) scale(1.02);
+}
+
+.form-check-input:checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(var(--color-primary-rgb), .25);
+}
+
+.campo-obligatorio {
+    color: var(--color-pink-hover);
+    font-size: 1rem;
+}
+
+.separador-telefono {
+    color: var(--color-tertiary);
+    font-size: var(--font-size-base);
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    .modal-dialog-custom-width {
+        max-width: 95%; 
+    }
+    .modal-dialog.modal-lg {
+        max-width: 95% !important; 
+    }
+}
+
+@media (max-width: 767.98px) {
+    .data-content-section {
+        margin-right: 0;
+        border-radius: 0;
+        padding: 1rem;
+    }
+    .periodos-header-card {
+        /* Ajustes para que cubra todo el ancho en pantallas pequeñas */
+        width: calc(100% + (1rem * 2)); /* Ajusta para padding de 1rem en el padre */
+        margin-left: -1rem;
+        margin-right: -1rem;
+        padding: var(--spacing-16) var(--spacing-24);
+        margin-bottom: var(--spacing-16);
+    }
+    .periodos-header-card .welcome-search-data__title {
+        font-size: 2rem;
+    }
+    .consolidated-periodos-card { /* Adaptado de students-card */
+        padding: 1rem 1.5rem;
+        width: 100%; /* Ocupa todo el ancho en móviles */
+    }
+    .periodos-summary-grid { /* Apilar los ítems en pantallas muy pequeñas */
+        flex-direction: column; 
+        gap: 0.5rem;
+    }
+    .periodos-summary-grid .summary-item {
+        min-width: auto;
+        border-right: none; 
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+        padding-bottom: 0.5rem;
+    }
+    .periodos-summary-grid .summary-item:last-child {
+        border-bottom: none;
+    }
+    .summary-count {
+        font-size: 1.8rem;
+    }
+    .summary-label {
+        color: var(--color-black); 
+        font-size: 0.8rem;
+    }
+    .table-dark thead th, .table-dark tbody td {
+        font-size: 0.75rem;
+        padding: 0.6rem;
+    }
+    .dropdown-item {
+        font-size: 0.8rem;
+    }
+    .data-content-section .data-general-control.grid-layout {
+        grid-template-columns: 1fr;
+    }
+    .data-content-section .registro-control {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .modal-dialog .btn-close {
+        top: 1rem;
+        right: 1rem;
+        font-size: 0.9rem;
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+    .modal-body form button {
+        width: 100%;
+        margin-bottom: 0.8rem;
+    }
+    .d-flex.justify-content-between.mt-4 {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media (max-width: 400px) {
+    .modal-header .modal-title {
+        font-size: 1.5rem;
+    }
+    .modal-body .section-title {
+        font-size: 1.2rem;
+    }
+}

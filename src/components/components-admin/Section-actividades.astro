@@ -1,0 +1,696 @@
+---
+// src/pages/admin/actividades.astro
+import "../../style/style-admin/actividades.css";
+
+// Obtener el ID de la materia de los parámetros de la URL
+// En Astro, para acceder a los query parameters en el script de frontmatter,
+// puedes usar `Astro.url.searchParams`. Para el lado del cliente (is:inline),
+// se usa `window.location.searchParams`.
+const materiaId = Astro.url.searchParams.get('materiaId');
+
+// Necesitamos un script para cargar el nombre de la materia en el cliente
+// y usarlo en el título.
+---
+
+
+<section class="data-content-section">
+  <!-- Nueva sección del Título "Actividades Académicas" -->
+  <section class="actividades-header-card">
+    <div class="welcome-search-data">
+      <h2 class="welcome-search-data__title">Actividades de <span id="nombreMateriaHeader">Cargando...</span></h2>
+    </div>
+  </section>
+
+  <!-- Sección de Tarjeta Consolidada de Resumen de Actividades -->
+  <section class="content-info-data">
+    <section class="data-general-control">
+      <!-- Tarjeta Consolidada de Actividades -->
+      <div class="registro-control consolidated-actividades-card">
+        <div class="card-icon-title">
+          <i class='bx bx-task'></i> <!-- Icono para actividades -->
+          <h5 class="card-title">Resumen de Actividades</h5>
+        </div>
+        <div class="actividades-summary-grid">
+          <div class="summary-item">
+            <span class="summary-count" id="totalActividadesCount">0</span>
+            <span class="summary-label">Total</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="actividadesPendientesCount">0</span>
+            <span class="summary-label">Pendientes</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="promedioGeneralMateria">0.00</span>
+            <span class="summary-label">Promedio Materia</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="estudiantesEnMateriaCount">0</span>
+            <span class="summary-label">Estudiantes</span>
+          </div>
+        </div>
+        <!-- Botón para añadir actividad, dentro de la tarjeta de resumen -->
+        <div class="mt-3 text-center">
+          <div class="btn-accion-control">
+            <button class="btn btn-card" id="btnAnadirActividad" data-bs-toggle="modal" data-bs-target="#modalAnadirActividad">
+              <i class='bx bx-plus me-2'></i>Añadir Actividad
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- La tabla de Actividades -->
+  <div class="display-table" id="tableActividades">
+    <div class="d-flex justify-content-end mb-3">
+      <input type="text" id="searchInput" class="form-control w-25" placeholder="Buscar actividad...">
+    </div>
+    <div class="tabla-info-person">
+      <table class="table table-dark table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Nombre de la Actividad</th>
+            <th scope="col">Descripción</th>
+            <th scope="col">Fecha de Entrega</th>
+            <th scope="col">Valor Máximo</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="actividadesTableBody">
+          <!-- Contenido de la tabla de actividades se carga aquí dinámicamente -->
+          <tr>
+            <td colspan="7" class="text-center">Cargando actividades...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <nav aria-label="Page navigation" class="pagination-container">
+      <ul class="pagination-list" id="paginationActividades">
+        <!-- Los botones de paginación se insertarán aquí -->
+      </ul>
+    </nav>
+  </div>
+</section>
+
+<!-- Modales -->
+
+<!-- Modal para Añadir Actividad -->
+<div class="modal fade" id="modalAnadirActividad" tabindex="-1" aria-labelledby="modalAnadirActividadLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAnadirActividadLabel">Añadir Nueva Actividad</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formAnadirActividad">
+          <div class="mb-3">
+            <label for="nombreActividad" class="form-label">Nombre de la Actividad <span class="campo-obligatorio">*</span></label>
+            <input type="text" class="form-control" id="nombreActividad" required>
+            <div class="invalid-feedback">Por favor, ingresa el nombre de la actividad.</div>
+          </div>
+          <div class="mb-3">
+            <label for="descripcionActividad" class="form-label">Descripción (Opcional)</label>
+            <textarea class="form-control" id="descripcionActividad" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="fechaEntrega" class="form-label">Fecha de Entrega <span class="campo-obligatorio">*</span></label>
+            <input type="date" class="form-control" id="fechaEntrega" required>
+            <div class="invalid-feedback">Por favor, ingresa la fecha de entrega.</div>
+          </div>
+          <div class="mb-3">
+            <label for="valorMaximo" class="form-label">Valor Máximo (Puntos) <span class="campo-obligatorio">*</span></label>
+            <input type="number" class="form-control" id="valorMaximo" min="1" required>
+            <div class="invalid-feedback">Por favor, ingresa el valor máximo de la actividad.</div>
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <button type="reset" class="btn btn-secondary">Limpiar</button>
+            <button type="submit" class="btn btn-primary">Añadir Actividad</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Editar Actividad -->
+<div class="modal fade" id="modalEditarActividad" tabindex="-1" aria-labelledby="modalEditarActividadLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarActividadLabel">Editar Actividad</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarActividad">
+          <input type="hidden" id="editActividadId">
+          <div class="mb-3">
+            <label for="editNombreActividad" class="form-label">Nombre de la Actividad <span class="campo-obligatorio">*</span></label>
+            <input type="text" class="form-control" id="editNombreActividad" required>
+            <div class="invalid-feedback">Por favor, ingresa el nombre de la actividad.</div>
+          </div>
+          <div class="mb-3">
+            <label for="editDescripcionActividad" class="form-label">Descripción (Opcional)</label>
+            <textarea class="form-control" id="editDescripcionActividad" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="editFechaEntrega" class="form-label">Fecha de Entrega <span class="campo-obligatorio">*</span></label>
+            <input type="date" class="form-control" id="editFechaEntrega" required>
+            <div class="invalid-feedback">Por favor, ingresa la fecha de entrega.</div>
+          </div>
+          <div class="mb-3">
+            <label for="editValorMaximo" class="form-label">Valor Máximo (Puntos) <span class="campo-obligatorio">*</span></label>
+            <input type="number" class="form-control" id="editValorMaximo" min="1" required>
+            <div class="invalid-feedback">Por favor, ingresa el valor máximo de la actividad.</div>
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts de Bootstrap y JavaScript personalizado -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<script is:inline>
+  const API_BASE_URL = 'http://localhost:3001/api'; // Ajusta esto a la URL de tu backend
+  const materiaId = new URLSearchParams(window.location.search).get('materiaId');
+  let currentMateriaNombre = '';
+
+  // ==========================================================
+  // FUNCIONES DE UTILIDAD PARA MODALES DE CONFIRMACIÓN Y ALERTA
+  // Reutilizadas de tus implementaciones anteriores
+  // ==========================================================
+
+  /**
+   * Muestra un modal de confirmación personalizado.
+   * @param {string} mensaje El mensaje a mostrar en el modal.
+   * @param {string} titulo El título del modal.
+   * @returns {Promise<boolean>} Resuelve a true si se confirma, false si se cancela o se cierra.
+   */
+  async function mostrarConfirmacion(mensaje, titulo = "Confirmación") {
+    return new Promise((resolve) => {
+      const modalId = 'customConfirmModal';
+      let confirmModalElement = document.getElementById(modalId);
+
+      // Si el modal ya existe, lo eliminamos para evitar duplicados de listeners
+      if (confirmModalElement) {
+        confirmModalElement.remove();
+      }
+
+      const confirmModalHtml = `
+        <div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="customConfirmModalLabel">${titulo}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
+                  <i class='bx bx-x'></i>
+                </button>
+              </div>
+              <div class="modal-body">
+                ${mensaje}
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtnModal">Confirmar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
+
+      confirmModalElement = document.getElementById(modalId);
+      const customConfirmModal = new bootstrap.Modal(confirmModalElement);
+
+      const confirmActionBtn = document.getElementById('confirmActionBtnModal');
+      const cleanupAndResolve = (result) => {
+        customConfirmModal.hide(); // Oculta el modal
+        // Espera a que el modal esté completamente oculto antes de removerlo
+        confirmModalElement.addEventListener('hidden.bs.modal', () => {
+          confirmModalElement.remove(); // Elimina el elemento del DOM
+          resolve(result);
+        }, { once: true });
+      };
+
+      if (confirmActionBtn) {
+        confirmActionBtn.addEventListener('click', () => {
+          cleanupAndResolve(true);
+        }, { once: true });
+      } else {
+        console.error("ERROR: [mostrarConfirmacion] Botón 'confirmActionBtnModal' no encontrado.");
+        cleanupAndResolve(false);
+      }
+
+      // Añadir listener para el cierre del modal (ej. tecla ESC, clic fuera)
+      confirmModalElement.addEventListener('hidden.bs.modal', () => {
+        // Si ya se resolvió por un clic en los botones, no hacemos nada.
+        // Si se cierra por otras vías, resolvemos a false.
+        // Esto se maneja mejor con la bandera `once: true` y `cleanupAndResolve`
+        // asegurando que solo se resuelva una vez.
+      }, { once: true }); // Usar `once: true` para que el listener se remueva solo
+
+      customConfirmModal.show();
+    });
+  }
+
+  /**
+   * Muestra un mensaje de alerta temporal en la parte superior de la pantalla.
+   * @param {string} mensaje El mensaje a mostrar.
+   * @param {string} tipo El tipo de alerta ('success' o 'danger').
+   * @param {number} duracion La duración en milisegundos (por defecto 5000).
+   */
+  function mostrarAlerta(mensaje, tipo, duracion = 5000) {
+    const alertContainer = document.getElementById('alertContainer') || (() => {
+      const div = document.createElement('div');
+      div.id = 'alertContainer';
+      div.style.position = 'fixed';
+      div.style.top = '20px';
+      div.style.left = '50%';
+      div.style.transform = 'translateX(-50%)';
+      div.style.zIndex = '9999';
+      div.style.width = 'auto';
+      div.style.maxWidth = '90%';
+      document.body.appendChild(div);
+      return div;
+    })();
+
+    const alertElement = document.createElement('div');
+    alertElement.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertElement.role = 'alert';
+    alertElement.textContent = mensaje;
+
+    alertContainer.appendChild(alertElement);
+
+    setTimeout(() => {
+      // Usa Bootstrap's native dismiss method
+      const bsAlert = new bootstrap.Alert(alertElement);
+      bsAlert.dispose(); // Cierra el alerta y lo remueve del DOM
+    }, duracion);
+  }
+
+  // ==========================================================
+  // LÓGICA DE CARGA DE DATOS Y MANEJO DE LA TABLA
+  // ==========================================================
+
+  let currentPage = 1;
+  const itemsPerPage = 10; // Ajusta según tu preferencia
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (!materiaId) {
+      mostrarAlerta('Error: ID de materia no especificado en la URL.', 'danger');
+      return;
+    }
+    await fetchMateriaDetails(materiaId);
+    await fetchActividadesSummary(materiaId);
+    await fetchActividades(materiaId, currentPage);
+
+    // Event listener para el formulario de añadir actividad
+    const formAnadirActividad = document.getElementById('formAnadirActividad');
+    if (formAnadirActividad) {
+      formAnadirActividad.addEventListener('submit', anadirActividad);
+    }
+
+    // Event listener para el formulario de editar actividad
+    const formEditarActividad = document.getElementById('formEditarActividad');
+    if (formEditarActividad) {
+      formEditarActividad.addEventListener('submit', editarActividad);
+    }
+  });
+
+  async function fetchMateriaDetails(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${id}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      currentMateriaNombre = data.nombre_materia;
+      document.getElementById('nombreMateriaHeader').textContent = data.nombre_materia;
+      document.getElementById('estudiantesEnMateriaCount').textContent = data.total_estudiantes_materia; // Asumiendo que la API de materia devuelve este dato
+    } catch (error) {
+      console.error('Error al obtener detalles de la materia:', error);
+      document.getElementById('nombreMateriaHeader').textContent = 'Error';
+      mostrarAlerta('No se pudo cargar los detalles de la materia.', 'danger');
+    }
+  }
+
+  async function fetchActividadesSummary(idMateria) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/actividades/resumen`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      document.getElementById('totalActividadesCount').textContent = data.totalActividades;
+      document.getElementById('actividadesPendientesCount').textContent = data.actividadesPendientes;
+      document.getElementById('promedioGeneralMateria').textContent = data.promedioGeneralMateria ? data.promedioGeneralMateria.toFixed(2) : 'N/A';
+    } catch (error) {
+      console.error('Error al obtener resumen de actividades:', error);
+      mostrarAlerta('No se pudo cargar el resumen de actividades.', 'danger');
+    }
+  }
+
+  async function fetchActividades(idMateria, page) {
+    const tableBody = document.getElementById('actividadesTableBody');
+    const paginationActividades = document.getElementById('paginationActividades');
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Cargando actividades...</td></tr>';
+    paginationActividades.innerHTML = '';
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/actividades?page=${page}&limit=${itemsPerPage}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      tableBody.innerHTML = ''; // Limpiar el mensaje de carga
+
+      if (data.actividades.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No se encontraron actividades para esta materia.</td></tr>';
+        return;
+      }
+
+      data.actividades.forEach((actividad, index) => {
+        const row = tableBody.insertRow();
+        const fechaEntrega = actividad.fecha_entrega ? new Date(actividad.fecha_entrega).toLocaleDateString() : 'N/A';
+        row.innerHTML = `
+          <td>${((page - 1) * itemsPerPage) + index + 1}</td>
+          <td>${actividad.nombre_actividad}</td>
+          <td title="${actividad.descripcion}">${actividad.descripcion ? (actividad.descripcion.length > 50 ? actividad.descripcion.substring(0, 50) + '...' : actividad.descripcion) : 'Sin descripción'}</td>
+          <td>${fechaEntrega}</td>
+          <td>${actividad.valor_maximo}</td>
+          <td>
+            <span class="badge ${actividad.estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-success'}">
+              ${actividad.estado}
+            </span>
+          </td>
+          <td>
+            <div class="dropdown">
+              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton${actividad.id_actividad}" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class='bx bx-dots-vertical-rounded'></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${actividad.id_actividad}">
+                <li><a class="dropdown-item edit-actividad-btn" href="#" data-id="${actividad.id_actividad}"><i class='bx bx-edit-alt'></i> Editar</a></li>
+                <li><a class="dropdown-item estado-actividad-btn" href="#" data-id="${actividad.id_actividad}" data-estado="${actividad.estado}">
+                  <i class='bx bx-${actividad.estado === 'calificada' ? 'low-vision' : 'check'}'></i> ${actividad.estado === 'calificada' ? 'Marcar Pendiente' : 'Marcar Calificada'}
+                </a></li>
+                <li><a class="dropdown-item delete-actividad-btn" href="#" data-id="${actividad.id_actividad}"><i class='bx bx-trash'></i> Eliminar</a></li>
+                <li><a class="dropdown-item gestionar-calificaciones-btn" href="/admin/calificaciones?materiaId=${materiaId}&actividadId=${actividad.id_actividad}"><i class='bx bx-spreadsheet'></i> Gestionar Calificaciones</a></li>
+              </ul>
+            </div>
+          </td>
+        `;
+      });
+
+      setupPagination(data.totalPages, page);
+      attachTableEventListeners(); // Attach event listeners after content is loaded
+
+    } catch (error) {
+      console.error('Error al cargar las actividades:', error);
+      tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar las actividades.</td></tr>';
+      mostrarAlerta('Error al cargar las actividades.', 'danger');
+    }
+  }
+
+  function setupPagination(totalPages, currentPage) {
+    const paginationContainer = document.getElementById('paginationActividades');
+    paginationContainer.innerHTML = ''; // Limpiar paginación existente
+
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (currentPage <= 3) {
+        endPage = Math.min(totalPages, 5);
+    } else if (currentPage >= totalPages - 2) {
+        startPage = Math.max(1, totalPages - 4);
+    }
+
+    if (startPage > 1) {
+        paginationContainer.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+        if (startPage > 2) {
+            paginationContainer.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      paginationContainer.innerHTML += `
+        <li class="page-item ${i === currentPage ? 'active' : ''}">
+          <a class="page-link" href="#" data-page="${i}">${i}</a>
+        </li>
+      `;
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationContainer.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+        paginationContainer.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+    }
+
+    // Attach event listeners to new pagination links
+    paginationContainer.querySelectorAll('.page-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const page = parseInt(e.target.dataset.page);
+        if (page && page !== currentPage) {
+          currentPage = page;
+          fetchActividades(materiaId, currentPage);
+        }
+      });
+    });
+  }
+
+  function attachTableEventListeners() {
+    // Event listeners para botones de editar
+    document.querySelectorAll('.edit-actividad-btn').forEach(button => {
+      button.removeEventListener('click', handleEditActividad); // Evitar duplicados
+      button.addEventListener('click', handleEditActividad);
+    });
+
+    // Event listeners para botones de cambiar estado
+    document.querySelectorAll('.estado-actividad-btn').forEach(button => {
+      button.removeEventListener('click', handleChangeActividadEstado); // Evitar duplicados
+      button.addEventListener('click', handleChangeActividadEstado);
+    });
+
+    // Event listeners para botones de eliminar
+    document.querySelectorAll('.delete-actividad-btn').forEach(button => {
+      button.removeEventListener('click', handleDeleteActividad); // Evitar duplicados
+      button.addEventListener('click', handleDeleteActividad);
+    });
+  }
+
+  // ==========================================================
+  // MANEJO DE FORMULARIOS Y ACCIONES
+  // ==========================================================
+
+  async function anadirActividad(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const nombreActividad = form.elements['nombreActividad'].value.trim();
+    const descripcionActividad = form.elements['descripcionActividad'].value.trim();
+    const fechaEntrega = form.elements['fechaEntrega'].value;
+    const valorMaximo = form.elements['valorMaximo'].value;
+
+    // Validación básica
+    if (!nombreActividad || !fechaEntrega || !valorMaximo) {
+      form.classList.add('was-validated'); // Muestra feedback de Bootstrap
+      mostrarAlerta('Por favor, completa todos los campos obligatorios.', 'danger');
+      return;
+    }
+
+    const data = {
+      id_materia: parseInt(materiaId),
+      nombre_actividad: nombreActividad,
+      descripcion: descripcionActividad,
+      fecha_entrega: fechaEntrega,
+      valor_maximo: parseFloat(valorMaximo)
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/actividades`, { // Ruta para añadir actividad
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al añadir la actividad.');
+      }
+
+      const result = await response.json();
+      mostrarAlerta(result.message, 'success');
+      
+      const modalElement = document.getElementById('modalAnadirActividad');
+      const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+      if (bootstrapModal) bootstrapModal.hide();
+
+      form.reset(); // Limpiar el formulario
+      form.classList.remove('was-validated'); // Quitar la validación visual
+
+      await fetchActividadesSummary(materiaId);
+      await fetchActividades(materiaId, currentPage); // Recargar la tabla
+    } catch (error) {
+      console.error('Error al añadir actividad:', error);
+      mostrarAlerta(error.message || 'Ocurrió un error al añadir la actividad.', 'danger');
+    }
+  }
+
+  async function handleEditActividad(event) {
+    const actividadId = event.currentTarget.dataset.id;
+    try {
+      const response = await fetch(`${API_BASE_URL}/actividades/${actividadId}`); // Obtener detalles de la actividad
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const actividad = await response.json();
+
+      // Llenar el modal de edición con los datos de la actividad
+      document.getElementById('editActividadId').value = actividad.id_actividad;
+      document.getElementById('editNombreActividad').value = actividad.nombre_actividad;
+      document.getElementById('editDescripcionActividad').value = actividad.descripcion || '';
+      document.getElementById('editFechaEntrega').value = actividad.fecha_entrega ? new Date(actividad.fecha_entrega).toISOString().split('T')[0] : '';
+      document.getElementById('editValorMaximo').value = actividad.valor_maximo;
+
+      const modalElement = document.getElementById('modalEditarActividad');
+      const bootstrapModal = new bootstrap.Modal(modalElement);
+      bootstrapModal.show();
+
+    } catch (error) {
+      console.error('Error al cargar datos para editar actividad:', error);
+      mostrarAlerta('Error al cargar los datos de la actividad para edición.', 'danger');
+    }
+  }
+
+  async function editarActividad(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const actividadId = form.elements['editActividadId'].value;
+    const nombreActividad = form.elements['editNombreActividad'].value.trim();
+    const descripcionActividad = form.elements['editDescripcionActividad'].value.trim();
+    const fechaEntrega = form.elements['editFechaEntrega'].value;
+    const valorMaximo = form.elements['editValorMaximo'].value;
+
+    if (!nombreActividad || !fechaEntrega || !valorMaximo) {
+      form.classList.add('was-validated');
+      mostrarAlerta('Por favor, completa todos los campos obligatorios.', 'danger');
+      return;
+    }
+
+    const data = {
+      nombre_actividad: nombreActividad,
+      descripcion: descripcionActividad,
+      fecha_entrega: fechaEntrega,
+      valor_maximo: parseFloat(valorMaximo)
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/actividades/${actividadId}`, { // Ruta PUT para actualizar
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al actualizar la actividad.');
+      }
+
+      const result = await response.json();
+      mostrarAlerta(result.message, 'success');
+
+      const modalElement = document.getElementById('modalEditarActividad');
+      const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+      if (bootstrapModal) bootstrapModal.hide();
+
+      form.classList.remove('was-validated');
+      await fetchActividadesSummary(materiaId);
+      await fetchActividades(materiaId, currentPage); // Recargar la tabla
+    } catch (error) {
+      console.error('Error al actualizar actividad:', error);
+      mostrarAlerta(error.message || 'Ocurrió un error al actualizar la actividad.', 'danger');
+    }
+  }
+
+  async function handleChangeActividadEstado(event) {
+    const actividadId = event.currentTarget.dataset.id;
+    const estadoActual = event.currentTarget.dataset.estado;
+    // Toggle entre 'pendiente' y 'calificada'
+    const nuevoEstado = estadoActual === 'pendiente' ? 'calificada' : 'pendiente';
+
+    const confirmacion = await mostrarConfirmacion(
+      `¿Estás seguro de que quieres marcar esta actividad como ${nuevoEstado}?`,
+      `Cambiar Estado de Actividad`
+    );
+
+    if (confirmacion) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/actividades/${actividadId}/estado`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: nuevoEstado })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al cambiar el estado de la actividad.');
+        }
+
+        const result = await response.json();
+        mostrarAlerta(result.message, 'success');
+        await fetchActividadesSummary(materiaId);
+        await fetchActividades(materiaId, currentPage); // Recargar la tabla
+      } catch (error) {
+        console.error('Error al cambiar estado de actividad:', error);
+        mostrarAlerta(error.message || 'Ocurrió un error al cambiar el estado de la actividad.', 'danger');
+      }
+    }
+  }
+
+  async function handleDeleteActividad(event) {
+    const actividadId = event.currentTarget.dataset.id;
+
+    const confirmacion = await mostrarConfirmacion(
+      `¿Estás seguro de que quieres eliminar esta actividad? Esto también eliminará todas las calificaciones asociadas. Esta acción es irreversible.`,
+      `Eliminar Actividad`
+    );
+
+    if (confirmacion) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/actividades/${actividadId}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al eliminar la actividad.');
+        }
+
+        const result = await response.json();
+        mostrarAlerta(result.message, 'success');
+        await fetchActividadesSummary(materiaId);
+        await fetchActividades(materiaId, currentPage); // Recargar la tabla
+      } catch (error) {
+        console.error('Error al eliminar actividad:', error);
+        mostrarAlerta(error.message || 'Ocurrió un error al eliminar la actividad.', 'danger');
+      }
+    }
+  }
+</script>

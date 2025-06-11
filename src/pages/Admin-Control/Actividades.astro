@@ -1,0 +1,32 @@
+---
+import AdminDashboard from "../../layouts/Admin/AdminDashboard.astro";
+import Sidebar from "../../components/Sidebar.astro";
+import NavigationBar from "../../components/NavigationBar.astro";
+import SectionActividades from "../../components/components-admin/Section-actividades.astro";
+---
+
+<AdminDashboard title="Actividades">
+  <NavigationBar />
+  <!-- Crear dos comnunas para ambos -->
+  <div class="Layout-grid-area">
+    <div class="Layout-grid-area--sidebar">
+      <Sidebar />
+    </div>
+    <div class="Layout-grid-area--content">
+      <SectionActividades />
+    </div>
+  </div>
+
+  <style>
+    .Layout-grid-area {
+      display: grid;
+      grid-template-columns: 1fr 3fr;
+      margin: 0 auto;
+    }
+
+    .Layout-grid-area > :first-child,
+    .Layout-grid-area > :last-child {
+      width: 100%;
+    }
+  </style>
+</AdminDashboard>

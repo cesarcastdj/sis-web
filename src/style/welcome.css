@@ -64,7 +64,7 @@ body {
     background-image: url('/public/img/images.jpg'); /* Asegúrate de que esta ruta sea correcta */
     background-size: cover;
     background-position: center;
-    filter: blur(8px) brightness(0.4); /* Ajustado a 0.9 para que sea menos oscuro */
+    filter: blur(6px) brightness(0.4); /* Ajustado a 0.9 para que sea menos oscuro */
     z-index: -2; /* Detrás del contenido pero delante de las elipses */
     pointer-events: none; /* Permite interacciones a través de él */
 }
@@ -585,6 +585,9 @@ body {
 .footer-gllr .footer-logo img {
     max-height: 50px;
     margin-bottom: 1rem;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .footer-gllr .footer-social-icons a {
@@ -617,6 +620,7 @@ body {
 }
 
 .custom-alert-modal .modal-body p {
+    color: var(--color-tertiary);
     font-size: 1.2rem; /* Texto de alerta más grande */
     font-weight: var(--font-weight-500);
 }

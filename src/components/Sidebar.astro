@@ -20,23 +20,6 @@ const sidebarMenu: MenuItem[] = [
     href: "/Admin-Control/Admin-home",
   },
   {
-    label: "Matrícula",
-    icon: "bx bx-pie-chart-alt-2",
-    href: "#",
-    subitems: [
-      {
-        label: "Registro",
-        icon: "bx bxs-folder",
-        href: "/Admin-Control/Matricula",
-      },
-      {
-        label: "Descargar Matrícula",
-        icon: "bx bxs-folder",
-        href: "#",
-      },
-    ],
-  },
-  {
     label: "Estudiantes",
     icon: "bx bx-user",
     href: "/Admin-Control/Estudiantes",
@@ -52,33 +35,36 @@ const sidebarMenu: MenuItem[] = [
     href: "#",
     subitems: [
       {
+        label: "Cursos",
+        icon: "bx bxs-folder",
+        href: "/Admin-Control/Cursos",
+      },
+      {
         label: "Materias",
         icon: "bx bxs-folder",
-        href: "/materias/actividad",
+        href: "/Admin-Control/Materias",
       },
       {
         label: "Actividades",
         icon: "bx bxs-folder",
-        href: "/materias/actividad",
+        href: "/Admin-Control/Actividades",
       },
     ],
   },
   {
     label: "Notas",
     icon: "bx bxs-calculator",
-    href: "#", //  no tiene URL válida
-    subitems: [
-      {
-        label: "Ponderación",
-        icon: "bx bxs-folder",
-        href: "/ponderacion/notas",
-      },
-      {
-        label: "Descargar Notas",
-        icon: "bx bxs-folder",
-        href: "/ponderacion/notas",
-      },
-    ],
+    href: "/Admin-Control/Notas",
+  },
+  {
+    label: "Periodo",
+    icon: "bx bx-calendar",
+    href: "/Admin-Control/Periodo",
+  },
+  {
+    label: "Seccion",
+    icon: "bx bx-calendar",
+    href: "/Admin-Control/Seccion",
   },
   {
     label: "Papelera",
