@@ -465,7 +465,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           secciones: editSeccion.value && editSeccion.value !== '' ? [editSeccion.value] : [], 
         };
 
-        console.log("DEBUG: Datos a enviar (frontend - edición):", formData); 
 
         const response = await fetch(`http://localhost:3001/api/estudiantes/${id_usuario}`, {
           method: 'PUT',
@@ -479,13 +478,11 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           throw new Error(data.error || 'Error al actualizar el estudiante');
         }
 
-        console.log("DEBUG: Respuesta del backend (edición):", data);
         mostrarMensajeExito('Estudiante actualizado exitosamente');
         
         // Retraso para asegurar que el modal se oculte antes de recargar, y que el usuario vea el mensaje.
         setTimeout(() => {
           modalEditarEstudiante.hide();
-          console.log("DEBUG: Modal ocultado. Recargando estudiantes en la tabla...");
           loadStudents(currentPage); // Recarga la tabla para reflejar los cambios
         }, 1500);
 
@@ -501,7 +498,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 
     // Función para inicializar los dropdowns de Bootstrap después de cargar la tabla
     function initializeDropdowns() {
-      console.log('Debugging Bootstrap (inside initializeDropdowns):');
       console.log('window.bootstrap:', typeof window.bootstrap, window.bootstrap);
       if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
         const dropdownToggles = studentsTableBody.querySelectorAll('.dropdown-toggle');
@@ -553,7 +549,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       inactiveStudentsCount.textContent = '...';
 
       try {
-        console.log(`DEBUG: Solicitando estudiantes para la página ${page}...`);
         const response = await fetch(`http://localhost:3001/api/estudiantes?page=${page}&limit=${itemsPerPage}`);
         if (!response.ok) {
           if (response.status === 404) {
@@ -571,7 +566,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         const totalPages = data.totalPages;
         currentPage = data.currentPage;
 
-        console.log("DEBUG: Datos de estudiantes recibidos del backend:", data);
 
         // Actualizar contadores
         totalStudentsCount.textContent = data.totalCount || '0';
@@ -603,7 +597,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           direccion: estudiante.direccion || 'N/A' 
         }));
 
-        console.log("DEBUG: Datos de estudiantes procesados para renderizar (frontend):", processedEstudiantes);
 
         processedEstudiantes.forEach((estudiante, index) => {
           const studentDataAttribute = JSON.stringify(estudiante);
@@ -615,10 +608,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           row.dataset.id = estudiante.id_usuario;
           row.dataset.studentData = studentDataAttribute; 
 
-          // ************************************************************
-          // DEBUGGING: Log the periodoAcademicoNames at render time
-          console.log(`DEBUG: Estudiante ${estudiante.cedula}: Periodo Académico para renderizar en tabla:`, estudiante.periodoAcademicoNames.join(', '));
-          // ************************************************************
 
           row.innerHTML = `
             <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
@@ -644,7 +633,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           studentsTableBody.appendChild(row);
         });
 
-        console.log('Debugging Bootstrap (after rows appended, before initializeDropdowns):');
         console.log('window.bootstrap:', typeof window.bootstrap, window.bootstrap);
         if (typeof window.bootstrap !== 'undefined') {
           console.log('window.bootstrap.Dropdown:', typeof window.bootstrap.Dropdown, window.bootstrap.Dropdown);
@@ -701,7 +689,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 
     // Mostrar los detalles del estudiante en el modal
     async function mostrarDetallesEstudiante(estudiante) {
-        console.log("DEBUG: Datos del estudiante para 'Ver más información':", estudiante); 
 
         const studentStatusModal = estudiante.estado === 1 ? 'Activo' : (estudiante.estado === 0 ? 'Inactivo' : 'N/A');
 
@@ -723,7 +710,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 
     // Función para Editar Estudiante
     async function editarEstudiante(estudiante) {
-        console.log("DEBUG: Estudiante para editar:", estudiante); 
 
         editIdUsuario.value = estudiante.id_usuario;
         editCedula.value = estudiante.cedula || '';

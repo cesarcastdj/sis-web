@@ -1,0 +1,193 @@
+---
+import "../../style/style-students/notas.css";
+---
+
+<section class="notas-header-card">
+  <div class="welcome-search-data">
+    <h2 class="welcome-search-data__title">Mis Notas</h2>
+  </div>
+</section>
+
+<section class="data-content-section">
+  <section class="content-info-data">
+    <section class="data-general-control grid-layout">
+      <div class="registro-control consolidated-notas-card">
+        <div class="card-icon-title">
+          <i class='bx bxs-graduation'></i>
+          <h5 class="card-title">Resumen Académico</h5>
+        </div>
+        <div class="notas-summary-grid">
+          <div class="summary-item">
+            <span class="summary-count" id="promedio-general">0.00</span>
+            <span class="summary-label">PROMEDIO GENERAL</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="materias-aprobadas">0</span>
+            <span class="summary-label">MATERIAS APROBADAS</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="materias-pendientes">0</span>
+            <span class="summary-label">MATERIAS PENDIENTES</span>
+          </div>
+        </div>
+        <div class="mt-3 text-center">
+          <button class="btn btn-primary" id="descargar-notas">
+            <i class='bx bx-download me-2'></i>Descargar Notas
+          </button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <div class="display-table mt-4" id="tableNotas">
+    <div class="tabla-info-person">
+      <table class="table table-dark table-hover table-striped">
+        <thead>
+          <tr>
+            <th scope="col">N°</th>
+            <th scope="col">PERIODO</th>
+            <th scope="col">MATERIA</th>
+            <th scope="col">ACTIVIDAD</th>
+            <th scope="col">NOTA</th>
+            <th scope="col">FECHA</th>
+          </tr>
+        </thead>
+        <tbody id="notas-table-body">
+          <tr>
+            <td colspan="6" class="text-center">Cargando notas...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async function() {
+    // Obtener referencias a los elementos DOM
+    const promedioGeneralElement = document.getElementById('promedio-general');
+    const materiasAprobadasElement = document.getElementById('materias-aprobadas');
+    const materiasPendientesElement = document.getElementById('materias-pendientes');
+    const notasTableBody = document.getElementById('notas-table-body');
+    const descargarNotasBtn = document.getElementById('descargar-notas');
+
+    // Verificar que todos los elementos existen
+    if (!promedioGeneralElement || !materiasAprobadasElement || !materiasPendientesElement || !notasTableBody || !descargarNotasBtn) {
+      console.error('No se encontraron todos los elementos necesarios en el DOM');
+      return;
+    }
+
+    async function cargarNotas() {
+      try {
+        const response = await fetch('http://localhost:3001/api/estudiante/notas', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.status === 401) {
+          throw new Error('No autorizado. Por favor, inicie sesión.');
+        }
+
+        if (!response.ok) {
+          throw new Error(`Error del servidor: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Datos recibidos:', data);
+
+        // Actualizar estadísticas
+        if (promedioGeneralElement && materiasAprobadasElement && materiasPendientesElement) {
+          promedioGeneralElement.textContent = data.estadisticas.promedio_general || '0.00';
+          materiasAprobadasElement.textContent = data.estadisticas.materias_aprobadas || '0';
+          materiasPendientesElement.textContent = data.estadisticas.materias_pendientes || '0';
+        }
+
+        // Limpiar tabla
+        if (notasTableBody) {
+          notasTableBody.innerHTML = '';
+
+          // Si no hay notas
+          if (!data.notas || Object.keys(data.notas).length === 0) {
+            notasTableBody.innerHTML = `
+              <tr>
+                <td colspan="6" class="text-center">No hay notas registradas</td>
+              </tr>
+            `;
+            return;
+          }
+
+          // Procesar y mostrar notas
+          let rowNumber = 1;
+          for (const periodo in data.notas) {
+            const materiasEnPeriodo = data.notas[periodo];
+            for (const materia in materiasEnPeriodo) {
+              const notasMateria = materiasEnPeriodo[materia];
+              
+              if (!notasMateria || notasMateria.length === 0) {
+                // Si la materia no tiene notas
+                notasTableBody.innerHTML += `
+                  <tr>
+                    <td>${rowNumber}</td>
+                    <td>${periodo}</td>
+                    <td>${materia}</td>
+                    <td>Sin actividades</td>
+                    <td>Sin notas</td>
+                    <td>-</td>
+                  </tr>
+                `;
+                rowNumber++;
+              } else {
+                // Si hay notas, mostrar cada una (evitando duplicados)
+                const notasProcesadas = new Set(); // Para evitar duplicados
+                notasMateria.forEach(nota => {
+                  // Crear una clave única para cada nota
+                  const notaClave = `${nota.id_nota}-${nota.nota}-${nota.fecha_registro}-${nota.nombre_actividad}`;
+                  
+                  // Solo mostrar si no se ha procesado antes
+                  if (!notasProcesadas.has(notaClave)) {
+                    notasProcesadas.add(notaClave);
+                    notasTableBody.innerHTML += `
+                      <tr>
+                        <td>${rowNumber}</td>
+                        <td>${periodo}</td>
+                        <td>${materia}</td>
+                        <td>${nota.nombre_actividad || 'Sin actividad'}</td>
+                        <td class="font-weight-bold">${nota.nota || 'Sin nota'}</td>
+                        <td>${nota.fecha_registro || '-'}</td>
+                      </tr>
+                    `;
+                    rowNumber++;
+                  }
+                });
+              }
+            }
+          }
+        }
+
+      } catch (error) {
+        if (notasTableBody) {
+          notasTableBody.innerHTML = `
+            <tr>
+              <td colspan="6" class="text-center text-danger">
+                ${error.message || 'Error al cargar las notas. Por favor, intente más tarde.'}
+              </td>
+            </tr>
+          `;
+        }
+      }
+    }
+
+    // Cargar notas inicialmente
+    await cargarNotas();
+
+    // Función para descargar notas
+    descargarNotasBtn.addEventListener('click', () => {
+      alert('Función de descarga en desarrollo');
+    });
+  });
+</script>
+
+

@@ -6,30 +6,24 @@ import { syncRelationships, syncSingleRelationship } from '../f(x)/relaciones.js
 
 const router = express.Router();
 
-// 🔹 RUTA PARA OBTENER TODOS LOS PROFESORES 🔹
-// Eliminado el '/api' ya que el router se monta con '/api' en server.js
-router.get('/profesores', /*isAuthenticated,*/ async (req, res) => { // isAuthenticated comentado
+router.get('/profesores', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const offset = (page - 1) * limit;
 
     try {
-      // 1️⃣ Consulta para el total de profesores
-      const [totalStudentsResult] = await db.promise().query('SELECT COUNT(*) AS total FROM usuarios WHERE rol = "profesor";');
-      const totalCount = totalStudentsResult[0].total;
+      const [TotalProfesores] = await db.promise().query('SELECT COUNT(*) AS total FROM usuarios WHERE rol = "profesor";');
+      const totalCount = TotalProfesores[0].total;
 
-      // 2️⃣ Consulta para el total de profesores activos
-      const [activeStudentsResult] = await db.promise().query('SELECT COUNT(*) AS active FROM usuarios WHERE rol = "profesor" AND estado = 1;');
-      const activeCount = activeStudentsResult[0].active;
+      const [ProfesoresActivos] = await db.promise().query('SELECT COUNT(*) AS active FROM usuarios WHERE rol = "profesor" AND estado = 1;');
+      const activeCount = ProfesoresActivos[0].active;
 
-      // 3️⃣ Consulta para el total de profesores inactivos
-      const [inactiveStudentsResult] = await db.promise().query('SELECT COUNT(*) AS inactive FROM usuarios WHERE rol = "profesor" AND estado = 0;');
-      const inactiveCount = inactiveStudentsResult[0].inactive;
+      const [ProfesoresInactivos] = await db.promise().query('SELECT COUNT(*) AS inactive FROM usuarios WHERE rol = "profesor" AND estado = 0;');
+      const inactiveCount = ProfesoresInactivos[0].inactive;
 
       const totalPages = Math.ceil(totalCount / limit);
 
-      // 4️⃣ Consulta optimizada para obtener los profesores con todos los detalles
-      const studentsQuery = `
+      const profesoresQuery = `
         SELECT
             u.id_usuario,
             u.cedula,
@@ -81,7 +75,7 @@ router.get('/profesores', /*isAuthenticated,*/ async (req, res) => { // isAuthen
       `;
 
       // 🏆 Ejecutar la consulta y procesar los datos
-      const [profesores] = await db.promise().query(studentsQuery, [limit, offset]);
+      const [profesores] = await db.promise().query(profesoresQuery, [limit, offset]);
 
 
       res.json({
@@ -96,6 +90,24 @@ router.get('/profesores', /*isAuthenticated,*/ async (req, res) => { // isAuthen
     } catch (error) {
       console.error("❌ Error al obtener profesores:", error);
       res.status(500).json({ error: "Error al cargar profesores", detalle: error.message });
+    }
+});
+
+router.put('/profesores/:id/estado', async (req, res) => { // Eliminado el '/api'
+    const { id } = req.params;
+    const { estado } = req.body; 
+
+    try {
+      const updateEstadoQuery = `
+        UPDATE usuarios
+        SET estado = ?
+        WHERE id_usuario = ?;
+      `;
+      await db.promise().query(updateEstadoQuery, [estado, id]);
+      res.json({ message: `Estado del profesor ${id} actualizado a ${estado}.` });
+    } catch (error) {
+      console.error("❌ Error al actualizar estado del profesor:", error);
+      res.status(500).json({ error: "Error al actualizar estado del profesor", detalle: error.message });
     }
 });
 

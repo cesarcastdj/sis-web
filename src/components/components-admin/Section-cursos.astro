@@ -23,7 +23,7 @@ import "../../style/style-admin/cursos.css";
         <div class="cursos-summary-grid">
           <div class="summary-item">
             <span class="summary-count" id="totalCursosCount">0</span>
-            <span class="summary-label">Total</span>
+            <span class="summary-label">Cursos Totales</span>
           </div>
           <div class="summary-item">
             <span class="summary-count" id="activeCursosCount">0</span>
@@ -60,8 +60,8 @@ import "../../style/style-admin/cursos.css";
         <thead>
           <tr>
             <th scope="col">Nº</th>
-            <th scope="col">Nombre del Curso</th>
-            <th scope="col">Período</th>
+            <th scope="col">Periodo</th>
+            <th scope="col">Curso</th>
             <th scope="col">Sección</th>
             <th scope="col">Total Materias</th>
             <th scope="col">Estudiantes Asignados</th>
@@ -330,7 +330,7 @@ import "../../style/style-admin/cursos.css";
   // ==========================================================
 
   let currentPage = 1;
-  const itemsPerPage = 10; // Ajusta según tu preferencia
+  const itemsPerPage = 5; // Ajusta según tu preferencia
 
   document.addEventListener('DOMContentLoaded', async () => {
     await fetchCursosSummary();
@@ -364,7 +364,7 @@ import "../../style/style-admin/cursos.css";
 
   async function fetchCursosSummary() {
     try {
-      const response = await fetch(`${API_BASE_URL}/cursos/resumen`);
+      const response = await fetch(`${API_BASE_URL}/cursos-academicos/resumen`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -403,15 +403,15 @@ import "../../style/style-admin/cursos.css";
         const row = tableBody.insertRow();
         row.innerHTML = `
           <td>${((page - 1) * itemsPerPage) + index + 1}</td>
-          <td>${curso.nombre_curso}</td>
           <td>${curso.nombre_periodo}</td>
+          <td>${curso.nombre_curso}</td>
           <td>${curso.nombre_seccion}</td>
-          <td>${curso.total_materias}</td>
+          <td>${curso.total_materias_curso}</td>
           <td>${curso.total_estudiantes_curso}</td>
           <td>${curso.total_profesores_curso}</td>
           <td>
-            <span class="badge ${curso.estado === 'activo' ? 'bg-success' : 'bg-danger'}">
-              ${curso.estado}
+            <span ${curso.estado === 1 ? 'bg-success' : (curso.estado === 0 ? 'bg-danger' : 'bg-warning')}">
+              ${curso.estado === 1 ? 'Activo' : (curso.estado === 0 ? 'Inactivo' : 'Desconocido')}
             </span>
           </td>
           <td>

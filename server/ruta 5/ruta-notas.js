@@ -4,16 +4,42 @@ import { isAuthenticated } from '../middleware/protegerRutas.js'; // Ajusta esta
 
 const router = express.Router();
 
+// Middleware de autenticación
+const verificarAutenticacion = (req, res, next) => {
+    if (!req.session || !req.session.usuario) {
+        return res.status(401).json({
+            error: "No autorizado",
+            mensaje: "Debe iniciar sesión para acceder a esta información"
+        });
+    }
+    next();
+};
 
+// Aplicar middleware de autenticación a todas las rutas
+router.use(verificarAutenticacion);
+
+// ==========================================================
+// 🚀 RUTAS PARA GESTIÓN DE NOTAS 🚀
+// ==========================================================
+
+/**
+ * @route GET /api/notas/usuario/:id_usuario
+ * @description Obtiene todas las notas de un estudiante específico, incluyendo detalles de materia, actividad, curso, periodo y sección.
+ * @param {number} req.params.id_usuario - ID del estudiante.
+ * @param {number} [req.query.page=1] - Número de página para la paginación.
+ * @param {number} [req.query.limit=10] - Límite de resultados por página.
+ * @returns {json} Lista de notas paginadas.
+ */
 router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) => {
     const { id_usuario } = req.params;
-    const { page = 1, limit = 10 } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const page = parseInt(req.query.page || '1');
+    const limit = parseInt(req.query.limit || '10');
+    const offset = (page - 1) * limit;
 
     try {
         // Consulta para el conteo total de notas del usuario
         const [totalNotasResult] = await db.promise().query(
-            'SELECT COUNT(*) AS total FROM notas WHERE id_usuario = ?',
+            'SELECT COUNT(*) AS total FROM notas WHERE id_estudiante = ?', // id_estudiante en tabla notas
             [id_usuario]
         );
         const totalCount = totalNotasResult[0].total;
@@ -25,27 +51,32 @@ router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) =
                 n.id_nota,
                 n.nota,
                 n.fecha_registro,
-                n.comentarios,
                 u.primer_nombre AS nombre_estudiante,
                 u.primer_apellido AS apellido_estudiante,
                 m.materia AS nombre_materia,
+                c.curso AS nombre_curso,
+                IFNULL(GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC), 'N/A') AS nombre_periodo,
                 a.nombre_actividad,
                 a.descripcion AS descripcion_actividad
             FROM notas n
-            JOIN usuarios u ON n.id_usuario = u.id_usuario
-            JOIN materias m ON n.id_materia = m.id_materia
-            LEFT JOIN actividades a ON n.id_actividad = a.id_actividad
-            WHERE n.id_usuario = ?
+            JOIN usuarios u ON n.id_estudiante = u.id_usuario             -- id_estudiante en tabla notas
+            JOIN actividades a ON n.id_actividad = a.id_actividad         -- Unir notas con actividades
+            JOIN materias m ON m.id_materia = m.id_materia                -- Unir actividades con materias
+            LEFT JOIN cursos_materias cm ON m.id_materia = cm.id_materia  -- Unir materias con cursos_materias
+            LEFT JOIN cursos c ON cm.id_curso = c.id_curso                -- Obtener curso desde cursos_materias
+            LEFT JOIN periodo p ON cm.id_periodo = p.id_periodo           -- Obtener periodo desde cursos_materias           -- Obtener seccion desde cursos_materias
+            WHERE n.id_estudiante = ?                                     -- id_estudiante en tabla notas
+            GROUP BY n.id_nota, n.nota, n.fecha_registro, u.primer_nombre, u.primer_apellido, m.materia, c.curso, a.nombre_actividad, a.descripcion
             ORDER BY n.fecha_registro DESC
             LIMIT ?, ?;
         `;
-        const [notas] = await db.promise().query(notasQuery, [id_usuario, offset, parseInt(limit)]);
+        const [notas] = await db.promise().query(notasQuery, [id_usuario, offset, limit]);
 
         res.json({
             notas,
             totalCount,
             totalPages,
-            currentPage: parseInt(page)
+            currentPage: page
         });
 
     } catch (error) {
@@ -54,7 +85,13 @@ router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) =
     }
 });
 
-
+/**
+ * @route GET /api/notas/materia/:id_materia/usuario/:id_usuario
+ * @description Obtiene las notas de un estudiante para una materia específica, incluyendo detalles de curso, periodo y sección.
+ * @param {number} req.params.id_materia - ID de la materia.
+ * @param {number} req.params.id_usuario - ID del estudiante.
+ * @returns {json} Lista de notas.
+ */
 router.get('/notas/materia/:id_materia/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) => {
     const { id_materia, id_usuario } = req.params;
 
@@ -64,17 +101,23 @@ router.get('/notas/materia/:id_materia/usuario/:id_usuario', /*isAuthenticated,*
                 n.id_nota,
                 n.nota,
                 n.fecha_registro,
-                n.comentarios,
+            
                 u.primer_nombre AS nombre_estudiante,
                 u.primer_apellido AS apellido_estudiante,
                 m.materia AS nombre_materia,
+                c.curso AS nombre_curso,
+                IFNULL(GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC), 'N/A') AS nombre_periodo,
                 a.nombre_actividad,
                 a.descripcion AS descripcion_actividad
             FROM notas n
-            JOIN usuarios u ON n.id_usuario = u.id_usuario
-            JOIN materias m ON n.id_materia = m.id_materia
-            LEFT JOIN actividades a ON n.id_actividad = a.id_actividad
-            WHERE n.id_materia = ? AND n.id_usuario = ?
+            JOIN usuarios u ON n.id_estudiante = u.id_usuario             -- id_estudiante en tabla notas
+            JOIN actividades a ON n.id_actividad = a.id_actividad         -- Unir notas con actividades
+            JOIN materias m ON m.id_materia = m.id_materia                -- Unir actividades con materias
+            LEFT JOIN cursos_materias cm ON m.id_materia = cm.id_materia  -- Unir materias con cursos_materias
+            LEFT JOIN cursos c ON cm.id_curso = c.id_curso                -- Obtener curso desde cursos_materias
+            LEFT JOIN periodo p ON cm.id_periodo = p.id_periodo           -- Obtener periodo desde cursos_materias
+            WHERE m.id_materia = ? AND n.id_estudiante = ?                -- Filtrar por id_materia de actividad y id_estudiante de nota
+            GROUP BY n.id_nota, n.nota, n.fecha_registro, u.primer_nombre, u.primer_apellido, m.materia, c.curso, a.nombre_actividad, a.descripcion
             ORDER BY n.fecha_registro DESC;
         `;
         const [notas] = await db.promise().query(notasQuery, [id_materia, id_usuario]);
@@ -89,11 +132,11 @@ router.get('/notas/materia/:id_materia/usuario/:id_usuario', /*isAuthenticated,*
 
 /**
  * @route GET /api/notas/:id_nota
- * @description Obtiene los detalles de una nota específica por su ID.
+ * @description Obtiene los detalles de una nota específica por su ID, incluyendo detalles de curso, periodo y sección.
  * @param {number} req.params.id_nota - ID de la nota.
  * @returns {json} Detalles de la nota.
  */
-router.get('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
+router.get('/notas', /*isAuthenticated,*/ async (req, res) => {
     const { id_nota } = req.params;
 
     try {
@@ -102,20 +145,27 @@ router.get('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
                 n.id_nota,
                 n.nota,
                 n.fecha_registro,
-                n.comentarios,
                 u.id_usuario,
                 u.primer_nombre AS nombre_estudiante,
                 u.primer_apellido AS apellido_estudiante,
                 m.id_materia,
                 m.materia AS nombre_materia,
+                c.id_curso,
+                c.curso AS nombre_curso,
+                IFNULL(GROUP_CONCAT(DISTINCT p.id_periodo ORDER BY p.id_periodo ASC), '') AS id_periodo,
+                IFNULL(GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC), 'N/A') AS nombre_periodo,
                 a.id_actividad,
                 a.nombre_actividad,
                 a.descripcion AS descripcion_actividad
             FROM notas n
-            JOIN usuarios u ON n.id_usuario = u.id_usuario
-            JOIN materias m ON n.id_materia = m.id_materia
-            LEFT JOIN actividades a ON n.id_actividad = a.id_actividad
-            WHERE n.id_nota = ?;
+            JOIN usuarios u ON n.id_estudiante = u.id_usuario             -- id_estudiante en tabla notas
+            JOIN actividades a ON n.id_actividad = a.id_actividad         -- Unir notas con actividades
+            JOIN materias m ON m.id_materia = m.id_materia                -- Unir actividades con materias
+            LEFT JOIN cursos_materias cm ON m.id_materia = cm.id_materia  -- Unir materias con cursos_materias
+            LEFT JOIN cursos c ON cm.id_curso = c.id_curso                -- Obtener curso desde cursos_materias
+            LEFT JOIN periodo p ON cm.id_periodo = p.id_periodo           -- Obtener periodo desde cursos_materias          -- Obtener seccion desde cursos_materias
+            WHERE n.id_nota = ?
+            GROUP BY n.id_nota, n.nota, n.fecha_registro, u.id_usuario, u.primer_nombre, u.primer_apellido, m.id_materia, m.materia, c.id_curso, c.curso, a.id_actividad, a.nombre_actividad, a.descripcion;
         `;
         const [notaRows] = await db.promise().query(notaQuery, [id_nota]);
 
@@ -131,24 +181,35 @@ router.get('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
     }
 });
 
-
+/**
+ * @route POST /api/notas
+ * @description Registra una nueva nota.
+ * @param {number} req.body.id_estudiante - ID del estudiante (en la tabla notas).
+ * @param {number} req.body.id_actividad - ID de la actividad (en la tabla notas).
+ * @param {number} req.body.nota - Valor de la nota.
+ * @param {string} req.body.fecha_registro - Fecha de registro (YYYY-MM-DD).
+ * @param {string} [req.body.comentarios] - Comentarios (opcional).
+ * @returns {json} Mensaje de éxito e ID de la nueva nota.
+ */
 router.post('/notas', /*isAuthenticated,*/ async (req, res) => {
-    const { id_usuario, id_materia, id_actividad = null, nota, fecha_registro, comentarios = null } = req.body;
+    // Ya no se recibe id_materia directamente para la tabla notas, ya que no existe esa columna.
+    // La materia se infiere a través de id_actividad.
+    const { id_estudiante, id_actividad, nota, fecha_registro, comentarios = null } = req.body; 
 
     try {
-        if (!id_usuario || !id_materia || !nota || !fecha_registro) {
-            return res.status(400).json({ error: 'ID de usuario, materia, nota y fecha de registro son obligatorios.' });
+        if (!id_estudiante || !id_actividad || !nota || !fecha_registro) {
+            return res.status(400).json({ error: 'ID de estudiante, actividad, nota y fecha de registro son obligatorios.' });
         }
 
         const formattedFechaRegistro = new Date(fecha_registro).toISOString().slice(0, 10);
 
         const insertNotaQuery = `
-            INSERT INTO notas (id_usuario, id_materia, id_actividad, nota, fecha_registro, comentarios)
-            VALUES (?, ?, ?, ?, ?, ?);
+            INSERT INTO notas (id_estudiante, id_actividad, nota, fecha_registro, comentarios)
+            VALUES (?, ?, ?, ?, ?);
         `;
         const [result] = await db.promise().query(
             insertNotaQuery,
-            [id_usuario, id_materia, id_actividad, nota, formattedFechaRegistro, comentarios]
+            [id_estudiante, id_actividad, nota, formattedFechaRegistro, comentarios]
         );
         const nuevaNotaId = result.insertId;
 
@@ -169,12 +230,13 @@ router.post('/notas', /*isAuthenticated,*/ async (req, res) => {
  */
 router.put('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
     const { id_nota } = req.params;
-    const { nota, id_actividad = null, comentarios = null, fecha_registro } = req.body; // id_usuario y id_materia no deberían cambiar
+    const { nota, id_actividad = undefined, comentarios = undefined, fecha_registro = undefined } = req.body; 
 
     try {
         let updateFields = {};
         if (nota !== undefined) updateFields.nota = nota;
-        if (id_actividad !== undefined) updateFields.id_actividad = id_actividad;
+        // Solo actualizar id_actividad si se proporciona y es diferente (opcional)
+        if (id_actividad !== undefined) updateFields.id_actividad = id_actividad; 
         if (comentarios !== undefined) updateFields.comentarios = comentarios;
         if (fecha_registro !== undefined) updateFields.fecha_registro = new Date(fecha_registro).toISOString().slice(0, 10);
 
@@ -193,7 +255,12 @@ router.put('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
     }
 });
 
-
+/**
+ * @route DELETE /api/notas/:id_nota
+ * @description Elimina una nota por su ID.
+ * @param {number} req.params.id_nota - ID de la nota a eliminar.
+ * @returns {json} Mensaje de éxito.
+ */
 router.delete('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
     const { id_nota } = req.params;
 
@@ -214,7 +281,16 @@ router.delete('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
 });
 
 
+// ==========================================================
+// 🚀 RUTAS PARA GESTIÓN DE ACTIVIDADES 🚀
+// ==========================================================
 
+/**
+ * @route GET /api/actividades/materia/:id_materia
+ * @description Obtiene todas las actividades de una materia específica.
+ * @param {number} req.params.id_materia - ID de la materia.
+ * @returns {json} Lista de actividades.
+ */
 router.get('/actividades/materia/:id_materia', /*isAuthenticated,*/ async (req, res) => {
     const { id_materia } = req.params;
 
@@ -240,7 +316,12 @@ router.get('/actividades/materia/:id_materia', /*isAuthenticated,*/ async (req, 
     }
 });
 
-
+/**
+ * @route GET /api/actividades/:id_actividad
+ * @description Obtiene los detalles de una actividad específica.
+ * @param {number} req.params.id_actividad - ID de la actividad.
+ * @returns {json} Detalles de la actividad.
+ */
 router.get('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) => {
     const { id_actividad } = req.params;
 
@@ -269,7 +350,15 @@ router.get('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) =
     }
 });
 
-
+/**
+ * @route POST /api/actividades
+ * @description Crea una nueva actividad.
+ * @param {string} req.body.nombre_actividad - Nombre de la actividad.
+ * @param {string} [req.body.descripcion] - Descripción de la actividad (opcional).
+ * @param {string} req.body.fecha_creacion - Fecha de creación (YYYY-MM-DD).
+ * @param {number} req.body.id_materia - ID de la materia a la que pertenece la actividad.
+ * @returns {json} Mensaje de éxito e ID de la nueva actividad.
+ */
 router.post('/actividades', /*isAuthenticated,*/ async (req, res) => {
     const { nombre_actividad, descripcion = null, fecha_creacion, id_materia } = req.body;
 
@@ -298,7 +387,13 @@ router.post('/actividades', /*isAuthenticated,*/ async (req, res) => {
     }
 });
 
-
+/**
+ * @route PUT /api/actividades/:id_actividad
+ * @description Actualiza una actividad existente.
+ * @param {number} req.params.id_actividad - ID de la actividad a actualizar.
+ * @param {object} req.body - Objeto con los campos a actualizar (nombre_actividad, descripcion, fecha_creacion, id_materia).
+ * @returns {json} Mensaje de éxito.
+ */
 router.put('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) => {
     const { id_actividad } = req.params;
     const { nombre_actividad, descripcion = null, fecha_creacion, id_materia } = req.body;
@@ -325,14 +420,18 @@ router.put('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) =
     }
 });
 
-
+/**
+ * @route DELETE /api/actividades/:id_actividad
+ * @description Elimina una actividad por su ID.
+ * @param {number} req.params.id_actividad - ID de la actividad a eliminar.
+ * @returns {json} Mensaje de éxito.
+ */
 router.delete('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) => {
     const { id_actividad } = req.params;
 
     try {
 
         await db.promise().query('UPDATE notas SET id_actividad = NULL WHERE id_actividad = ?', [id_actividad]);
-        console.log(`DEBUG: Notas asociadas a actividad ${id_actividad} desvinculadas.`);
 
         const deleteQuery = 'DELETE FROM actividades WHERE id_actividad = ?';
         const [result] = await db.promise().query(deleteQuery, [id_actividad]);
@@ -349,5 +448,163 @@ router.delete('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res
     }
 });
 
+/**
+ * @route GET /api/estudiante/notas
+ * @description Obtiene todas las notas del estudiante actual con estadísticas
+ */
+router.get('/estudiante/notas', async (req, res) => {
+    try {
+        console.log('Sesión actual:', req.session);
+        console.log('Usuario en sesión:', req.session.usuario);
+        
+        // Obtener el ID del usuario de la sesión (ahora usando 'id' en lugar de 'id_usuario')
+        const id_usuario = req.session.usuario.id;
+
+        console.log('ID de usuario extraído:', id_usuario);
+
+        if (!id_usuario) {
+            return res.status(400).json({
+                error: "Usuario no identificado",
+                mensaje: "No se pudo identificar al usuario"
+            });
+        }
+
+        // Verificamos si el usuario existe y es un estudiante
+        const verificarEstudianteQuery = `
+            SELECT 
+                e.id_estudiante,
+                u.primer_nombre,
+                u.primer_apellido,
+                u.rol
+            FROM usuarios u
+            LEFT JOIN estudiantes e ON u.id_usuario = e.id_usuario
+            WHERE u.id_usuario = ? AND u.rol = 'estudiante';
+        `;
+
+        const [estudiante] = await db.promise().query(verificarEstudianteQuery, [id_usuario]);
+
+        if (estudiante.length === 0) {
+            return res.status(404).json({
+                error: "Estudiante no encontrado",
+                mensaje: "El usuario no es un estudiante o no existe",
+                estadisticas: {
+                    promedio_general: "0.00",
+                    materias_aprobadas: "0",
+                    materias_pendientes: "0"
+                },
+                notas: {}
+            });
+        }
+
+        const id_estudiante = estudiante[0].id_estudiante;
+
+        // 2. Obtenemos las materias matriculadas del estudiante
+        const materiasQuery = `
+            SELECT DISTINCT
+                m.id_materia,
+                m.materia AS nombre_materia,
+                p.periodo AS nombre_periodo
+            FROM estudiantes e
+            JOIN cursos_materias cm ON e.id_estudiante = cm.id_estudiante
+            JOIN materias m ON cm.id_materia = m.id_materia
+            JOIN periodo p ON cm.id_periodo = p.id_periodo
+            WHERE e.id_estudiante = ?
+            ORDER BY p.periodo DESC, m.materia ASC;
+        `;
+
+        const [materias] = await db.promise().query(materiasQuery, [id_estudiante]);
+
+        if (materias.length === 0) {
+            return res.json({
+                mensaje: "El estudiante no está matriculado en ninguna materia",
+                estadisticas: {
+                    promedio_general: "0.00",
+                    materias_aprobadas: "0",
+                    materias_pendientes: "0"
+                },
+                notas: {}
+            });
+        }
+
+        // 3. Obtenemos las notas (si existen)
+        const notasQuery = `
+            SELECT 
+                n.id_nota,
+                n.nota,
+                DATE_FORMAT(n.fecha_registro, '%d/%m/%Y') as fecha_registro,
+                m.materia AS nombre_materia,
+                a.nombre_actividad,
+                p.periodo AS nombre_periodo
+            FROM materias m
+            JOIN cursos_materias cm ON m.id_materia = cm.id_materia
+            JOIN periodo p ON cm.id_periodo = p.id_periodo
+            LEFT JOIN notas n ON (cm.id_estudiante = n.id_estudiante AND cm.id_materia = m.id_materia)
+            LEFT JOIN actividades a ON n.id_actividad = a.id_actividad
+            WHERE cm.id_estudiante = ?
+            ORDER BY p.periodo DESC, m.materia ASC, n.fecha_registro DESC;
+        `;
+
+        const [notas] = await db.promise().query(notasQuery, [id_estudiante]);
+
+        // 4. Organizamos las notas por periodo y materia
+        const notasPorPeriodo = {};
+        materias.forEach(materia => {
+            if (!notasPorPeriodo[materia.nombre_periodo]) {
+                notasPorPeriodo[materia.nombre_periodo] = {};
+            }
+            notasPorPeriodo[materia.nombre_periodo][materia.nombre_materia] = [];
+        });
+
+        // Agregamos las notas existentes
+        notas.forEach(nota => {
+            if (!notasPorPeriodo[nota.nombre_periodo]) {
+                notasPorPeriodo[nota.nombre_periodo] = {};
+            }
+            if (!notasPorPeriodo[nota.nombre_periodo][nota.nombre_materia]) {
+                notasPorPeriodo[nota.nombre_periodo][nota.nombre_materia] = [];
+            }
+            if (nota.id_nota) {
+                notasPorPeriodo[nota.nombre_periodo][nota.nombre_materia].push({
+                    id_nota: nota.id_nota,
+                    nota: nota.nota,
+                    fecha_registro: nota.fecha_registro,
+                    nombre_actividad: nota.nombre_actividad || 'Sin actividad'
+                });
+            }
+        });
+
+        // 5. Calculamos estadísticas
+        const statsQuery = `
+            SELECT 
+                COALESCE(ROUND(AVG(NULLIF(n.nota, 0)), 2), 0.00) as promedio_general,
+                COUNT(DISTINCT CASE WHEN n.nota >= 10 THEN m.id_materia END) as materias_aprobadas,
+                COUNT(DISTINCT CASE WHEN n.nota < 10 OR n.nota IS NULL THEN m.id_materia END) as materias_pendientes
+            FROM estudiantes e
+            JOIN cursos_materias cm ON e.id_estudiante = cm.id_estudiante
+            JOIN materias m ON cm.id_materia = m.id_materia
+            LEFT JOIN notas n ON (cm.id_estudiante = n.id_estudiante AND cm.id_materia = m.id_materia)
+            WHERE e.id_estudiante = ?;
+        `;
+
+        const [stats] = await db.promise().query(statsQuery, [id_estudiante]);
+
+        res.json({
+            estadisticas: {
+                promedio_general: stats[0].promedio_general.toString(),
+                materias_aprobadas: stats[0].materias_aprobadas.toString(),
+                materias_pendientes: stats[0].materias_pendientes.toString()
+            },
+            notas: notasPorPeriodo
+        });
+
+    } catch (error) {
+        console.error("❌ Error al obtener notas del estudiante:", error);
+        console.error("Detalles de la sesión en error:", req.session);
+        res.status(500).json({ 
+            error: "Error al obtener notas del estudiante", 
+            detalle: error.message 
+        });
+    }
+});
 
 export default router;

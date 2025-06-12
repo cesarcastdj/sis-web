@@ -1,35 +1,27 @@
 ---
-import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS para estilos de notas */
+import "../../style/style-admin/notas.css"; // Importa los estilos CSS para la página de notas
 ---
 
-<!-- Nueva sección del Título "Notas Académicas" -->
 <section class="notas-header-card">
   <div class="welcome-search-data">
-    <h2 class="welcome-search-data__title">Notas Académicas</h2>
+    <h2 class="welcome-search-data__title">Gestión de Notas</h2>
   </div>
 </section>
 
 <section class="data-content-section">
-  <!-- Sección de Tarjeta Consolidada de Resumen de Notas -->
   <section class="content-info-data">
     <section class="data-general-control grid-layout">
       <div class="registro-control consolidated-notas-card">
         <div class="card-icon-title">
-          <i class='bx bxs-book-content'></i> <!-- Icono para notas -->
-          <h5 class="card-title">Resumen de Notas Académicas</h5>
+          <i class='bx bxs-edit-alt'></i> <!-- Icono para notas -->
+          <h5 class="card-title">Resumen de Notas</h5>
         </div>
         <div class="notas-summary-grid">
           <div class="summary-item">
             <span class="summary-count" id="totalNotasCount">0</span>
             <span class="summary-label">Total Notas</span>
           </div>
-          <div class="summary-item">
-            <span class="summary-count" id="promedioGeneralNotas">N/A</span>
-            <span class="summary-label">Promedio General</span>
-          </div>
-          <!-- Puedes añadir más items de resumen aquí si los necesitas -->
         </div>
-        <!-- Botón para añadir nota -->
         <div class="mt-3 text-center">
           <button class="btn btn-primary" id="btnAnadirNota" data-bs-toggle="modal" data-bs-target="#modalAnadirNota">
             <i class='bx bx-plus me-2'></i>Añadir Nota
@@ -39,7 +31,6 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
     </section>
   </section>
 
-  <!-- La tabla de Notas Académicas -->
   <div class="display-table mt-4" id="tableNotas">
     <div class="tabla-info-person">
       <table class="table table-dark table-hover table-striped">
@@ -48,17 +39,15 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
             <th scope="col">Nº</th>
             <th scope="col">Estudiante</th>
             <th scope="col">Materia</th>
-            <th scope="col">Periodo</th>
-            <th scope="col">Curso/Sección</th>
+            <th scope="col">Actividad</th>
             <th scope="col">Nota</th>
-            <th scope="col">Descripción</th>
-            <th scope="col">Fecha</th>
+            <th scope="col">Fecha Registro</th>
             <th scope="col">Acciones</th>
           </tr>
         </thead>
         <tbody id="notasTableBody">
           <tr>
-            <td colspan="9" class="text-center">Cargando notas académicas...</td>
+            <td colspan="7" class="text-center">Cargando notas...</td>
           </tr>
         </tbody>
       </table>
@@ -67,12 +56,12 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
   </div>
 </section>
 
-<!-- Modal para Añadir Nueva Nota Académica -->
+<!-- Modal para Añadir Nueva Nota -->
 <div class="modal fade" id="modalAnadirNota" tabindex="-1" aria-labelledby="modalAnadirNotaLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-custom-width modal-lg">
+  <div class="modal-dialog modal-dialog-custom-width">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalAnadirNotaLabel">Añadir Nueva Nota Académica</h5>
+        <h5 class="modal-title" id="modalAnadirNotaLabel">Añadir Nueva Nota</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal">
           <i class='bx bx-x'></i>
         </button>
@@ -81,60 +70,30 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
         <form id="formAnadirNota">
           <h6 class="section-title">Información de la Nota</h6>
           <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="anadirPeriodo" class="form-label">Periodo Académico</label>
-              <select class="form-select" id="anadirPeriodo" required>
-                <option value="">Seleccione un Periodo</option>
-                <!-- Opciones cargadas dinámicamente -->
-              </select>
+            <div class="col-md-12 mb-3">
+              <label for="anadirIdEstudiante" class="form-label">ID Estudiante</label>
+              <input type="number" class="form-control" id="anadirIdEstudiante" placeholder="Ej. 1" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-12 mb-3">
+              <label for="anadirIdActividad" class="form-label">ID Actividad</label>
+              <input type="number" class="form-control" id="anadirIdActividad" placeholder="Ej. 101" required />
               <div class="invalid-feedback"></div>
             </div>
             <div class="col-md-6 mb-3">
-              <label for="anadirCurso" class="form-label">Curso / Sección</label>
-              <select class="form-select" id="anadirCurso" required disabled>
-                <option value="">Seleccione un Curso</option>
-                <!-- Opciones cargadas dinámicamente -->
-              </select>
-              <div class="invalid-feedback"></div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="anadirEstudiante" class="form-label">Estudiante</label>
-              <select class="form-select" id="anadirEstudiante" required disabled>
-                <option value="">Seleccione un Estudiante</option>
-                <!-- Opciones cargadas dinámicamente -->
-              </select>
+              <label for="anadirNotaValor" class="form-label">Nota</label>
+              <input type="number" step="0.01" class="form-control" id="anadirNotaValor" placeholder="Ej. 15.50" required />
               <div class="invalid-feedback"></div>
             </div>
             <div class="col-md-6 mb-3">
-              <label for="anadirMateria" class="form-label">Materia</label>
-              <select class="form-select" id="anadirMateria" required disabled>
-                <option value="">Seleccione una Materia</option>
-                <!-- Opciones cargadas dinámicamente -->
-              </select>
+              <label for="anadirFechaRegistro" class="form-label">Fecha de Registro</label>
+              <input type="date" class="form-control" id="anadirFechaRegistro" required />
               <div class="invalid-feedback"></div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="anadirValorNota" class="form-label">Valor de la Nota</label>
-              <input type="number" step="0.01" min="0" max="20" class="form-control" id="anadirValorNota" placeholder="Ej. 18.50" required />
-              <div class="invalid-feedback"></div>
+            <div class="col-md-12 mb-3">
+              <label for="anadirComentarios" class="form-label">Comentarios (Opcional)</label>
+              <textarea class="form-control" id="anadirComentarios" rows="3"></textarea>
             </div>
-            <div class="col-md-6 mb-3">
-              <label for="anadirFechaNota" class="form-label">Fecha de la Nota</label>
-              <input type="date" class="form-control" id="anadirFechaNota" required />
-              <div class="invalid-feedback"></div>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="anadirDescripcionNota" class="form-label">Descripción de la Nota</label>
-            <input type="text" class="form-control" id="anadirDescripcionNota" placeholder="Ej. Examen Final" />
-          </div>
-          <div class="mb-3">
-            <label for="anadirObservaciones" class="form-label">Observaciones</label>
-            <textarea class="form-control" id="anadirObservaciones" rows="3" placeholder="Comentarios adicionales sobre la nota..."></textarea>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -151,23 +110,25 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
   <div class="modal-dialog modal-dialog-custom-width modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalVerMasInformacionNotaLabel">Detalles de la Nota Académica</h5>
+        <h5 class="modal-title" id="modalVerMasInformacionNotaLabel">Detalles de la Nota</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal">
           <i class='bx bx-x'></i>
         </button>
       </div>
       <div class="modal-body">
-        <h6 class="section-title">Información de la Nota</h6>
-        <p><strong>Estudiante:</strong> <span id="detalleNotaEstudiante"></span></p>
-        <p><strong>Materia:</strong> <span id="detalleNotaMateria"></span></p>
-        <p><strong>Periodo:</strong> <span id="detalleNotaPeriodo"></span></p>
-        <p><strong>Curso/Sección:</strong> <span id="detalleNotaCurso"></span></p>
-        <p><strong>Valor:</strong> <span id="detalleNotaValor"></span></p>
-        <p><strong>Descripción:</strong> <span id="detalleNotaDescripcion"></span></p>
-        <p><strong>Fecha:</strong> <span id="detalleNotaFecha"></span></p>
-        <p><strong>Observaciones:</strong> <span id="detalleNotaObservaciones"></span></p>
-        <p><strong>Registrado el:</strong> <span id="detalleNotaCreadoEn"></span></p>
-        <p><strong>Última Actualización:</strong> <span id="detalleNotaActualizadoEn"></span></p>
+        <h6 class="section-title">Información General</h6>
+        <p><strong>Estudiante:</strong> <span id="detalleEstudianteNombre"></span> (<span id="detalleEstudianteID"></span>)</p>
+        <p><strong>Materia:</strong> <span id="detalleMateriaNombre"></span> (<span id="detalleMateriaID"></span>)</p>
+        <p><strong>Actividad:</strong> <span id="detalleActividadNombre"></span> (<span id="detalleActividadID"></span>)</p>
+        <p><strong>Nota:</strong> <span id="detalleNotaValor"></span></p>
+        <p><strong>Fecha de Registro:</strong> <span id="detalleFechaRegistro"></span></p>
+        <p><strong>Comentarios:</strong> <span id="detalleComentarios"></span></p>
+        <hr/>
+        <h6 class="section-title">Contexto Académico</h6>
+        <p><strong>Curso:</strong> <span id="detalleCursoNombre"></span> (<span id="detalleCursoID"></span>)</p>
+        <p><strong>Periodo:</strong> <span id="detallePeriodoNombre"></span> (<span id="detallePeriodoID"></span>)</p>
+        <p><strong>Sección:</strong> <span id="detalleSeccionNombre"></span> (<span id="detalleSeccionID"></span>)</p>
+        <p><strong>Descripción Actividad:</strong> <span id="detalleActividadDescripcion"></span></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -176,12 +137,12 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
   </div>
 </div>
 
-<!-- Modal para Editar Nota Académica -->
+<!-- Modal para Editar Notas -->
 <div class="modal fade" id="modalEditarNota" tabindex="-1" aria-labelledby="modalEditarNotaLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-custom-width modal-lg">
+  <div class="modal-dialog modal-dialog-custom-width">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalEditarNotaLabel">Editar Nota Académica</h5>
+        <h5 class="modal-title" id="modalEditarNotaLabel">Editar Nota</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal">
           <i class='bx bx-x'></i>
         </button>
@@ -191,56 +152,25 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
           <input type="hidden" id="editIdNota" />
           <h6 class="section-title">Información de la Nota</h6>
           <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editPeriodo" class="form-label">Periodo Académico</label>
-              <select class="form-select" id="editPeriodo" required>
-                <!-- Opciones cargadas dinámicamente -->
-              </select>
+            <div class="col-md-12 mb-3">
+              <label for="editIdActividad" class="form-label">ID Actividad</label>
+              <input type="number" class="form-control" id="editIdActividad" placeholder="Ej. 101" required />
               <div class="invalid-feedback"></div>
             </div>
             <div class="col-md-6 mb-3">
-              <label for="editCurso" class="form-label">Curso / Sección</label>
-              <select class="form-select" id="editCurso" required disabled>
-                <!-- Opciones cargadas dinámicamente -->
-              </select>
-              <div class="invalid-feedback"></div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editEstudiante" class="form-label">Estudiante</label>
-              <select class="form-select" id="editEstudiante" required disabled>
-                <!-- Opciones cargadas dinámicamente -->
-              </select>
+              <label for="editNotaValor" class="form-label">Nota</label>
+              <input type="number" step="0.01" class="form-control" id="editNotaValor" placeholder="Ej. 15.50" required />
               <div class="invalid-feedback"></div>
             </div>
             <div class="col-md-6 mb-3">
-              <label for="editMateria" class="form-label">Materia</label>
-              <select class="form-select" id="editMateria" required disabled>
-                <!-- Opciones cargadas dinámicamente -->
-              </select>
+              <label for="editFechaRegistro" class="form-label">Fecha de Registro</label>
+              <input type="date" class="form-control" id="editFechaRegistro" required />
               <div class="invalid-feedback"></div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editValorNota" class="form-label">Valor de la Nota</label>
-              <input type="number" step="0.01" min="0" max="20" class="form-control" id="editValorNota" required />
-              <div class="invalid-feedback"></div>
+            <div class="col-md-12 mb-3">
+              <label for="editComentarios" class="form-label">Comentarios (Opcional)</label>
+              <textarea class="form-control" id="editComentarios" rows="3"></textarea>
             </div>
-            <div class="col-md-6 mb-3">
-              <label for="editFechaNota" class="form-label">Fecha de la Nota</label>
-              <input type="date" class="form-control" id="editFechaNota" required />
-              <div class="invalid-feedback"></div>
-            </div>
-          </div>
-          <div class="mb-3">
-            <label for="editDescripcionNota" class="form-label">Descripción de la Nota</label>
-            <input type="text" class="form-control" id="editDescripcionNota" />
-          </div>
-          <div class="mb-3">
-            <label for="editObservaciones" class="form-label">Observaciones</label>
-            <textarea class="form-control" id="editObservaciones" rows="3"></textarea>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -252,279 +182,104 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
   </div>
 </div>
 
-<!-- Scripts de Bootstrap y JavaScript personalizado -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script is:inline>
   document.addEventListener('DOMContentLoaded', function() {
-    console.log("DEBUG: DOMContentLoaded - Script principal de Notas cargado.");
-    console.log("DEBUG: window.bootstrap is", typeof window.bootstrap); // Verificación de Bootstrap
 
+    // NOTA: Para el propósito de esta demostración, se usa un ID de usuario fijo.
+    // En una aplicación real, este ID vendría del contexto del usuario logueado.
+    const CURRENT_USER_ID = 1; // ID de usuario de ejemplo
     let currentPage = 1;
     const itemsPerPage = 5; 
     const notasTableBody = document.getElementById('notasTableBody');
     const paginationControls = document.getElementById('paginationControls');
-
-    // Contadores y promedios
     const totalNotasCount = document.getElementById('totalNotasCount');
-    const promedioGeneralNotas = document.getElementById('promedioGeneralNotas');
 
-    // Modales
+    // Modales y Elementos para Añadir Nota
     const modalAnadirNota = new bootstrap.Modal(document.getElementById('modalAnadirNota'));
-    const modalVerMasInformacionNota = new bootstrap.Modal(document.getElementById('modalVerMasInformacionNota'));
-    const modalEditarNota = new bootstrap.Modal(document.getElementById('modalEditarNota'));
-
-    // Elementos del formulario Añadir Nota
     const formAnadirNota = document.getElementById('formAnadirNota');
-    const anadirPeriodo = document.getElementById('anadirPeriodo');
-    const anadirCurso = document.getElementById('anadirCurso');
-    const anadirEstudiante = document.getElementById('anadirEstudiante');
-    const anadirMateria = document.getElementById('anadirMateria');
-    const anadirValorNota = document.getElementById('anadirValorNota');
-    const anadirFechaNota = document.getElementById('anadirFechaNota');
-    const anadirDescripcionNota = document.getElementById('anadirDescripcionNota');
-    const anadirObservaciones = document.getElementById('anadirObservaciones');
+    const anadirIdEstudiante = document.getElementById('anadirIdEstudiante');
+    const anadirIdActividad = document.getElementById('anadirIdActividad');
+    const anadirNotaValor = document.getElementById('anadirNotaValor');
+    const anadirFechaRegistro = document.getElementById('anadirFechaRegistro');
+    const anadirComentarios = document.getElementById('anadirComentarios');
     const btnGuardarNota = document.getElementById('btnGuardarNota');
 
-    // Elementos del modal Ver Más Información
-    const detalleNotaEstudiante = document.getElementById('detalleNotaEstudiante');
-    const detalleNotaMateria = document.getElementById('detalleNotaMateria');
-    const detalleNotaPeriodo = document.getElementById('detalleNotaPeriodo');
-    const detalleNotaCurso = document.getElementById('detalleNotaCurso');
+    // Modales y Elementos para Ver Más Información de Nota
+    const modalVerMasInformacionNota = new bootstrap.Modal(document.getElementById('modalVerMasInformacionNota'));
+    const detalleEstudianteNombre = document.getElementById('detalleEstudianteNombre');
+    const detalleEstudianteID = document.getElementById('detalleEstudianteID');
+    const detalleMateriaNombre = document.getElementById('detalleMateriaNombre');
+    const detalleMateriaID = document.getElementById('detalleMateriaID');
+    const detalleActividadNombre = document.getElementById('detalleActividadNombre');
+    const detalleActividadID = document.getElementById('detalleActividadID');
     const detalleNotaValor = document.getElementById('detalleNotaValor');
-    const detalleNotaDescripcion = document.getElementById('detalleNotaDescripcion');
-    const detalleNotaFecha = document.getElementById('detalleNotaFecha');
-    const detalleNotaObservaciones = document.getElementById('detalleNotaObservaciones');
-    const detalleNotaCreadoEn = document.getElementById('detalleNotaCreadoEn');
-    const detalleNotaActualizadoEn = document.getElementById('detalleNotaActualizadoEn');
+    const detalleFechaRegistro = document.getElementById('detalleFechaRegistro');
+    const detalleComentarios = document.getElementById('detalleComentarios');
+    const detalleCursoNombre = document.getElementById('detalleCursoNombre');
+    const detalleCursoID = document.getElementById('detalleCursoID');
+    const detallePeriodoNombre = document.getElementById('detallePeriodoNombre');
+    const detallePeriodoID = document.getElementById('detallePeriodoID');
+    const detalleSeccionNombre = document.getElementById('detalleSeccionNombre');
+    const detalleSeccionID = document.getElementById('detalleSeccionID');
+    const detalleActividadDescripcion = document.getElementById('detalleActividadDescripcion');
 
-    // Elementos del formulario Editar Nota
+    // Modales y Elementos para Editar Nota
+    const modalEditarNota = new bootstrap.Modal(document.getElementById('modalEditarNota'));
     const formEditarNota = document.getElementById('formEditarNota');
     const editIdNota = document.getElementById('editIdNota');
-    const editPeriodo = document.getElementById('editPeriodo');
-    const editCurso = document.getElementById('editCurso');
-    const editEstudiante = document.getElementById('editEstudiante');
-    const editMateria = document.getElementById('editMateria');
-    const editValorNota = document.getElementById('editValorNota');
-    const editFechaNota = document.getElementById('editFechaNota');
-    const editDescripcionNota = document.getElementById('editDescripcionNota');
-    const editObservaciones = document.getElementById('editObservaciones');
+    const editIdActividad = document.getElementById('editIdActividad');
+    const editNotaValor = document.getElementById('editNotaValor');
+    const editFechaRegistro = document.getElementById('editFechaRegistro');
+    const editComentarios = document.getElementById('editComentarios');
     const btnGuardarEdicionNota = document.getElementById('btnGuardarEdicionNota');
 
-    // --- Lógica de Habilitación/Deshabilitación del botón Añadir Nota ---
-    function validarFormularioAnadirNota() {
-      const periodoValido = anadirPeriodo.value !== "";
-      const cursoValido = anadirCurso.value !== "";
-      const estudianteValido = anadirEstudiante.value !== "";
-      const materiaValida = anadirMateria.value !== "";
-      const valorNotaValido = anadirValorNota.value !== "";
-      const fechaNotaValida = anadirFechaNota.value !== "";
-      
-      btnGuardarNota.disabled = !(periodoValido && cursoValido && estudianteValido && materiaValida && valorNotaValido && fechaNotaValida);
-    }
 
-    anadirPeriodo.addEventListener("change", validarFormularioAnadirNota);
-    anadirCurso.addEventListener("change", validarFormularioAnadirNota);
-    anadirEstudiante.addEventListener("change", validarFormularioAnadirNota);
-    anadirMateria.addEventListener("change", validarFormularioAnadirNota);
-    anadirValorNota.addEventListener("input", validarFormularioAnadirNota);
-    anadirFechaNota.addEventListener("input", validarFormularioAnadirNota);
-
-    // --- Lógica de Habilitación/Deshabilitación del botón Editar Nota ---
-    function validarFormularioEditarNota() {
-      const periodoValido = editPeriodo.value !== "";
-      const cursoValido = editCurso.value !== "";
-      const estudianteValido = editEstudiante.value !== "";
-      const materiaValida = editMateria.value !== "";
-      const valorNotaValido = editValorNota.value !== "";
-      const fechaNotaValida = editFechaNota.value !== "";
-      
-      btnGuardarEdicionNota.disabled = !(periodoValido && cursoValido && estudianteValido && materiaValida && valorNotaValido && fechaNotaValida);
-    }
-    
-    editPeriodo.addEventListener("change", validarFormularioEditarNota);
-    editCurso.addEventListener("change", validarFormularioEditarNota);
-    editEstudiante.addEventListener("change", validarFormularioEditarNota);
-    editMateria.addEventListener("change", validarFormularioEditarNota);
-    editValorNota.addEventListener("input", validarFormularioEditarNota);
-    editFechaNota.addEventListener("input", validarFormularioEditarNota);
-
-    // --- Funciones para cargar dropdowns dinámicamente ---
-    async function loadPeriodosDropdown(selectElement, selectedId = null) {
-        try {
-            const response = await fetch('http://localhost:3001/api/periodos-academicos'); // Obtener todos los periodos
-            if (!response.ok) throw new Error('Error al cargar periodos para el dropdown.');
-            const data = await response.json();
-            const periodos = data.periodos;
-
-            selectElement.innerHTML = '<option value="">Seleccione un Periodo</option>';
-            periodos.forEach(p => {
-                const option = document.createElement('option');
-                option.value = p.id_periodo;
-                option.textContent = p.periodo;
-                if (selectedId && p.id_periodo === selectedId) {
-                    option.selected = true;
-                }
-                selectElement.appendChild(option);
-            });
-            console.log(`DEBUG: Dropdown de periodos cargado con ${periodos.length} elementos.`);
-        } catch (error) {
-            console.error('❌ Error al cargar dropdown de periodos:', error);
-            mostrarErrorAlUsuario('No se pudieron cargar los periodos.');
-        }
-    }
-
-    async function loadCursosDropdown(selectElement, periodoId, selectedId = null) {
-        selectElement.innerHTML = '<option value="">Seleccione un Curso</option>';
-        selectElement.disabled = true;
-        if (!periodoId) return;
-
-        try {
-            const response = await fetch(`http://localhost:3001/api/cursos?id_periodo=${periodoId}`);
-            if (!response.ok) throw new Error('Error al cargar cursos para el dropdown.');
-            const data = await response.json();
-            const cursos = data.cursos; // Asumiendo que tu API devuelve { cursos: [...], totalCount: ... }
-
-            cursos.forEach(c => {
-                const option = document.createElement('option');
-                option.value = c.id_curso;
-                option.textContent = c.nombre_curso;
-                if (selectedId && c.id_curso === selectedId) {
-                    option.selected = true;
-                }
-                selectElement.appendChild(option);
-            });
-            selectElement.disabled = false;
-            console.log(`DEBUG: Dropdown de cursos cargado con ${cursos.length} elementos para periodo ${periodoId}.`);
-        } catch (error) {
-            console.error('❌ Error al cargar dropdown de cursos:', error);
-            mostrarErrorAlUsuario('No se pudieron cargar los cursos para el periodo seleccionado.');
-        }
-    }
-
-    async function loadEstudiantesDropdown(selectElement, cursoId, selectedId = null) {
-        selectElement.innerHTML = '<option value="">Seleccione un Estudiante</option>';
-        selectElement.disabled = true;
-        if (!cursoId) return;
-
-        try {
-            // Asumiendo que tienes un endpoint para obtener estudiantes por curso
-            const response = await fetch(`http://localhost:3001/api/usuarios?tipo_usuario=estudiante&id_curso=${cursoId}&limit=all`);
-            if (!response.ok) throw new Error('Error al cargar estudiantes para el dropdown.');
-            const data = await response.json();
-            const estudiantes = data.usuarios; // Asumiendo que tu API devuelve { usuarios: [...], totalCount: ... }
-
-            estudiantes.forEach(s => {
-                const option = document.createElement('option');
-                option.value = s.id_usuario;
-                option.textContent = `${s.nombre} ${s.apellido}`; // Asume que tienes nombre y apellido
-                if (selectedId && s.id_usuario === selectedId) {
-                    option.selected = true;
-                }
-                selectElement.appendChild(option);
-            });
-            selectElement.disabled = false;
-            console.log(`DEBUG: Dropdown de estudiantes cargado con ${estudiantes.length} elementos para curso ${cursoId}.`);
-        } catch (error) {
-            console.error('❌ Error al cargar dropdown de estudiantes:', error);
-            mostrarErrorAlUsuario('No se pudieron cargar los estudiantes para el curso seleccionado.');
-        }
-    }
-
-    async function loadMateriasDropdown(selectElement, cursoId, selectedId = null) {
-        selectElement.innerHTML = '<option value="">Seleccione una Materia</option>';
-        selectElement.disabled = true;
-        if (!cursoId) return;
-
-        try {
-            // Asumiendo que tienes un endpoint para obtener materias por curso
-            const response = await fetch(`http://localhost:3001/api/materias?id_curso=${cursoId}&limit=all`);
-            if (!response.ok) throw new Error('Error al cargar materias para el dropdown.');
-            const data = await response.json();
-            const materias = data.materias; // Asumiendo que tu API devuelve { materias: [...], totalCount: ... }
-
-            materias.forEach(m => {
-                const option = document.createElement('option');
-                option.value = m.id_materia;
-                option.textContent = m.nombre_materia;
-                if (selectedId && m.id_materia === selectedId) {
-                    option.selected = true;
-                }
-                selectElement.appendChild(option);
-            });
-            selectElement.disabled = false;
-            console.log(`DEBUG: Dropdown de materias cargado con ${materias.length} elementos para curso ${cursoId}.`);
-        } catch (error) {
-            console.error('❌ Error al cargar dropdown de materias:', error);
-            mostrarErrorAlUsuario('No se pudieron cargar las materias para el curso seleccionado.');
-        }
-    }
-
-    // --- Eventos de cambio para los dropdowns de añadir nota ---
-    anadirPeriodo.addEventListener('change', () => {
-        const selectedPeriodoId = anadirPeriodo.value;
-        anadirCurso.value = ''; // Reset curso
-        anadirEstudiante.value = ''; // Reset estudiante
-        anadirMateria.value = ''; // Reset materia
-        anadirEstudiante.disabled = true;
-        anadirMateria.disabled = true;
-        loadCursosDropdown(anadirCurso, selectedPeriodoId);
-        validarFormularioAnadirNota();
+    // Event listener para el botón "Añadir Nota"
+    document.getElementById('btnAnadirNota').addEventListener('click', function() {
+        formAnadirNota.reset(); // Limpia el formulario
+        anadirIdEstudiante.value = CURRENT_USER_ID; // Pre-llenar con el ID del usuario actual
+        limpiarErroresFormulario(formAnadirNota);
     });
 
-    anadirCurso.addEventListener('change', () => {
-        const selectedCursoId = anadirCurso.value;
-        anadirEstudiante.value = ''; // Reset estudiante
-        anadirMateria.value = ''; // Reset materia
-        loadEstudiantesDropdown(anadirEstudiante, selectedCursoId);
-        loadMateriasDropdown(anadirMateria, selectedCursoId);
-        validarFormularioAnadirNota();
-    });
-
-    // --- Eventos de cambio para los dropdowns de editar nota ---
-    editPeriodo.addEventListener('change', async () => {
-        const selectedPeriodoId = editPeriodo.value;
-        await loadCursosDropdown(editCurso, selectedPeriodoId);
-        editEstudiante.value = '';
-        editMateria.value = '';
-        editEstudiante.disabled = true;
-        editMateria.disabled = true;
-        validarFormularioEditarNota();
-    });
-
-    editCurso.addEventListener('change', async () => {
-        const selectedCursoId = editCurso.value;
-        await loadEstudiantesDropdown(editEstudiante, selectedCursoId);
-        await loadMateriasDropdown(editMateria, selectedCursoId);
-        validarFormularioEditarNota();
-    });
-
-
-    // --- Lógica del formulario Añadir Nota ---
+    // Manejar envío del formulario de Añadir Nota
     formAnadirNota.addEventListener('submit', async function(e) {
       e.preventDefault();
-      console.log("DEBUG: Formulario de añadir nota enviado. Iniciando validación...");
 
-      // Validación básica del lado del cliente
       let valid = true;
-      if (anadirPeriodo.value === '') { mostrarError(anadirPeriodo, 'El periodo es obligatorio.'); valid = false; } else { limpiarError(anadirPeriodo); }
-      if (anadirCurso.value === '') { mostrarError(anadirCurso, 'El curso es obligatorio.'); valid = false; } else { limpiarError(anadirCurso); }
-      if (anadirEstudiante.value === '') { mostrarError(anadirEstudiante, 'El estudiante es obligatorio.'); valid = false; } else { limpiarError(anadirEstudiante); }
-      if (anadirMateria.value === '') { mostrarError(anadirMateria, 'La materia es obligatoria.'); valid = false; } else { limpiarError(anadirMateria); }
-      if (anadirValorNota.value === '' || parseFloat(anadirValorNota.value) < 0 || parseFloat(anadirValorNota.value) > 20) { mostrarError(anadirValorNota, 'La nota debe ser un número entre 0 y 20.'); valid = false; } else { limpiarError(anadirValorNota); }
-      if (anadirFechaNota.value === '') { mostrarError(anadirFechaNota, 'La fecha es obligatoria.'); valid = false; } else { limpiarError(anadirFechaNota); }
+      if (anadirIdEstudiante.value.trim() === '') {
+        mostrarError(anadirIdEstudiante, 'El ID del estudiante es obligatorio.');
+        valid = false;
+      } else {
+        limpiarError(anadirIdEstudiante);
+      }
+      if (anadirIdActividad.value.trim() === '') {
+        mostrarError(anadirIdActividad, 'El ID de la actividad es obligatorio.');
+        valid = false;
+      } else {
+        limpiarError(anadirIdActividad);
+      }
+      if (anadirNotaValor.value.trim() === '' || isNaN(parseFloat(anadirNotaValor.value))) {
+        mostrarError(anadirNotaValor, 'La nota es obligatoria y debe ser un número.');
+        valid = false;
+      } else {
+        limpiarError(anadirNotaValor);
+      }
+      if (anadirFechaRegistro.value === '') {
+        mostrarError(anadirFechaRegistro, 'La fecha de registro es obligatoria.');
+        valid = false;
+      } else {
+        limpiarError(anadirFechaRegistro);
+      }
 
       if (!valid) {
-        console.log("DEBUG: Validación de formulario fallida. Deteniendo envío.");
         return;
       }
 
-      console.log("DEBUG: Validación de formulario exitosa. Mostrando confirmación...");
       const confirmResult = await mostrarConfirmacion(
-            `¿Estás seguro de que quieres añadir esta nota para ${anadirEstudiante.options[anadirEstudiante.selectedIndex].text} en ${anadirMateria.options[anadirMateria.selectedIndex].text}?`
+            `¿Estás seguro de que quieres añadir esta nota para el estudiante ${anadirIdEstudiante.value}?`
         );
       
-      console.log("DEBUG: Resultado de la confirmación:", confirmResult);
-
       if (!confirmResult) {
         console.log("DEBUG: Adición de nota cancelada por el usuario.");
         return;
@@ -539,14 +294,11 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
 
       try {
         const formData = {
-          id_periodo: anadirPeriodo.value,
-          id_curso: anadirCurso.value,
-          id_usuario: anadirEstudiante.value,
-          id_materia: anadirMateria.value,
-          valor_nota: parseFloat(anadirValorNota.value),
-          descripcion_nota: anadirDescripcionNota.value.trim(),
-          fecha_nota: anadirFechaNota.value,
-          observaciones: anadirObservaciones.value.trim()
+          id_estudiante: parseInt(anadirIdEstudiante.value),
+          id_actividad: parseInt(anadirIdActividad.value),
+          nota: parseFloat(anadirNotaValor.value),
+          fecha_registro: anadirFechaRegistro.value,
+          comentarios: anadirComentarios.value.trim() || null
         };
 
         console.log("DEBUG: Datos a enviar (frontend - añadir nota):", formData); 
@@ -558,16 +310,15 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
         });
         console.log("DEBUG: Solicitud de fetch completada. Procesando respuesta...");
 
-
         const data = await response.json();
         console.log("DEBUG: Datos recibidos del backend:", data);
 
         if (!response.ok) {
-          throw new Error(data.error || 'Error al añadir la nota académica');
+          throw new Error(data.error || 'Error al añadir la nota');
         }
 
         console.log("DEBUG: Respuesta del backend (añadir nota):", data);
-        mostrarMensajeExito('Nota académica añadida exitosamente');
+        mostrarMensajeExito('Nota añadida exitosamente');
         
         setTimeout(() => {
           modalAnadirNota.hide();
@@ -577,7 +328,7 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
         }, 1500);
 
       } catch (error) {
-        console.error('❌ Error en la adición de la nota académica (frontend):', error); 
+        console.error('❌ Error en la adición de la nota (frontend):', error); 
         mostrarErrorAlUsuario(`Error al añadir nota: ${error.message}`);
       } finally {
         btnGuardarNota.disabled = false;
@@ -586,18 +337,30 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
       }
     });
 
-    // --- Lógica del formulario Editar Nota ---
+    // Manejar envío del formulario de Edición de Nota
     formEditarNota.addEventListener('submit', async function(e) {
       e.preventDefault();
       console.log("DEBUG: Formulario de edición de nota enviado. Iniciando validación...");
 
       let valid = true;
-      if (editPeriodo.value === '') { mostrarError(editPeriodo, 'El periodo es obligatorio.'); valid = false; } else { limpiarError(editPeriodo); }
-      if (editCurso.value === '') { mostrarError(editCurso, 'El curso es obligatorio.'); valid = false; } else { limpiarError(editCurso); }
-      if (editEstudiante.value === '') { mostrarError(editEstudiante, 'El estudiante es obligatorio.'); valid = false; } else { limpiarError(editEstudiante); }
-      if (editMateria.value === '') { mostrarError(editMateria, 'La materia es obligatoria.'); valid = false; } else { limpiarError(editMateria); }
-      if (editValorNota.value === '' || parseFloat(editValorNota.value) < 0 || parseFloat(editValorNota.value) > 20) { mostrarError(editValorNota, 'La nota debe ser un número entre 0 y 20.'); valid = false; } else { limpiarError(editValorNota); }
-      if (editFechaNota.value === '') { mostrarError(editFechaNota, 'La fecha es obligatoria.'); valid = false; } else { limpiarError(editFechaNota); }
+      if (editIdActividad.value.trim() === '') {
+        mostrarError(editIdActividad, 'El ID de la actividad es obligatorio.');
+        valid = false;
+      } else {
+        limpiarError(editIdActividad);
+      }
+      if (editNotaValor.value.trim() === '' || isNaN(parseFloat(editNotaValor.value))) {
+        mostrarError(editNotaValor, 'La nota es obligatoria y debe ser un número.');
+        valid = false;
+      } else {
+        limpiarError(editNotaValor);
+      }
+      if (editFechaRegistro.value === '') {
+        mostrarError(editFechaRegistro, 'La fecha de registro es obligatoria.');
+        valid = false;
+      } else {
+        limpiarError(editFechaRegistro);
+      }
 
       if (!valid) {
         console.log("DEBUG: Validación de formulario de edición fallida. Deteniendo envío.");
@@ -606,7 +369,7 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
 
       console.log("DEBUG: Validación de formulario de edición exitosa. Mostrando confirmación...");
       const confirmResult = await mostrarConfirmacion(
-            `¿Estás seguro de guardar los cambios para la nota de ${editEstudiante.options[editEstudiante.selectedIndex].text}?`
+            `¿Estás seguro de guardar los cambios para esta nota?`
         );
       if (!confirmResult) {
         console.log("DEBUG: Edición de nota cancelada por el usuario.");
@@ -624,14 +387,10 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
 
       try {
         const formData = {
-          id_periodo: editPeriodo.value,
-          id_curso: editCurso.value,
-          id_usuario: editEstudiante.value,
-          id_materia: editMateria.value,
-          valor_nota: parseFloat(editValorNota.value),
-          descripcion_nota: editDescripcionNota.value.trim(),
-          fecha_nota: editFechaNota.value,
-          observaciones: editObservaciones.value.trim()
+          id_actividad: parseInt(editIdActividad.value),
+          nota: parseFloat(editNotaValor.value),
+          fecha_registro: editFechaRegistro.value,
+          comentarios: editComentarios.value.trim() || null
         };
 
         console.log("DEBUG: Datos a enviar (frontend - edición de nota):", formData); 
@@ -643,16 +402,15 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
         });
         console.log("DEBUG: Solicitud de fetch (edición) completada. Procesando respuesta...");
 
-
         const data = await response.json();
         console.log("DEBUG: Datos recibidos del backend (edición):", data);
 
         if (!response.ok) {
-          throw new Error(data.error || 'Error al actualizar la nota académica');
+          throw new Error(data.error || 'Error al actualizar la nota');
         }
 
         console.log("DEBUG: Respuesta del backend (edición de nota):", data);
-        mostrarMensajeExito('Nota académica actualizada correctamente');
+        mostrarMensajeExito('Nota actualizada correctamente');
         
         setTimeout(() => {
           modalEditarNota.hide();
@@ -662,7 +420,7 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
         }, 1500);
 
       } catch (error) {
-        console.error('❌ Error en la actualización de la nota académica (frontend):', error);
+        console.error('❌ Error en la actualización de la nota (frontend):', error);
         mostrarErrorAlUsuario(`Error al actualizar nota: ${error.message}`);
       } finally {
         btnGuardarEdicionNota.disabled = false;
@@ -672,7 +430,7 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
     });
 
 
-    // Función para inicializar los dropdowns de Bootstrap después de cargar la tabla
+    // Función para inicializar los dropdowns de Bootstrap
     function initializeDropdowns() {
       console.log('DEBUG: initializeDropdowns called.');
       if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
@@ -708,27 +466,25 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
             console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Dropdowns.`);
         }
       } else {
-        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible. Esto es crucial para que los dropdowns funcionen. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
+        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible. Asegúrese de que el JavaScript de Bootstrap esté cargado.');
       }
     }
 
     // Función principal para cargar notas en la tabla y actualizar contadores
     async function loadNotas(page) {
       console.log(`DEBUG: loadNotas called for page ${page}.`);
-      notasTableBody.innerHTML = `<tr><td colspan="9" class="text-center">Cargando notas...</td></tr>`;
+      notasTableBody.innerHTML = `<tr><td colspan="7" class="text-center">Cargando notas...</td></tr>`;
       paginationControls.innerHTML = ''; 
       totalNotasCount.textContent = '...';
-      promedioGeneralNotas.textContent = '...';
 
       try {
-        console.log(`DEBUG: Solicitando notas para la página ${page} a http://localhost:3001/api/notas...`);
-        const response = await fetch(`http://localhost:3001/api/notas?page=${page}&limit=${itemsPerPage}`);
+        console.log(`DEBUG: Solicitando notas para el usuario ${CURRENT_USER_ID}, página ${page} a http://localhost:3001/api/notas/usuario/${CURRENT_USER_ID}...`);
+        const response = await fetch(`http://localhost:3001/api/notas/usuario/${CURRENT_USER_ID}?page=${page}&limit=${itemsPerPage}`);
         
         if (!response.ok) {
           if (response.status === 404) {
-            notasTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No se encontraron notas.</td></tr>`;
+            notasTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No se encontraron notas.</td></tr>`;
             totalNotasCount.textContent = '0';
-            promedioGeneralNotas.textContent = 'N/A';
             console.log("DEBUG: 404 - No se encontraron notas.");
             return;
           }
@@ -742,34 +498,27 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
 
         console.log("DEBUG: Datos de notas recibidos del backend:", data); 
 
-        // Actualizar contadores y promedios
         totalNotasCount.textContent = data.totalCount;
-        promedioGeneralNotas.textContent = data.promedioGeneral ? parseFloat(data.promedioGeneral).toFixed(2) : 'N/A';
 
         notasTableBody.innerHTML = ''; 
 
         if (notas.length === 0) {
-          notasTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No se encontraron notas.</td></tr>`;
+          notasTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No se encontraron notas.</td></tr>`;
           console.log("DEBUG: Array de notas vacío.");
           return;
         }
 
         notas.forEach((nota, index) => {
-          const notaDataAttribute = JSON.stringify(nota);
-
           const row = document.createElement('tr');
           row.dataset.id = nota.id_nota;
-          row.dataset.notaData = notaDataAttribute; 
 
           row.innerHTML = `
             <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td>${nota.nombre_estudiante || 'N/A'} ${nota.apellido_estudiante || ''}</td> 
-            <td>${nota.nombre_materia || 'N/A'}</td>
-            <td>${nota.nombre_periodo || 'N/A'}</td>
-            <td>${nota.nombre_curso || 'N/A'}</td>
-            <td>${nota.valor_nota !== undefined ? nota.valor_nota.toFixed(2) : 'N/A'}</td>
-            <td>${nota.descripcion_nota || 'N/A'}</td>
-            <td>${nota.fecha_nota ? new Date(nota.fecha_nota).toLocaleDateString() : 'N/A'}</td>
+            <td>${nota.nombre_materia || 'N/A'}</td> 
+            <td>${nota.nombre_actividad || 'N/A'}</td>
+            <td>${nota.nota !== null ? parseFloat(nota.nota).toFixed(2) : 'N/A'}</td>
+            <td>${nota.fecha_registro ? new Date(nota.fecha_registro).toLocaleDateString() : 'N/A'}</td>
             <td>
               <div class="dropdown">
                 <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton${nota.id_nota}" data-bs-toggle="dropdown" aria-expanded="false">
@@ -786,44 +535,42 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
           notasTableBody.appendChild(row);
         });
 
-        initializeDropdowns(); // Asegura que los dropdowns se inicien
+        initializeDropdowns(); 
         setupPagination(totalPages, currentPage);
-        setupActionListeners(notas);
+        setupActionListeners(); // Se llama sin `notas` para que los listeners fetcheen individualmente
         console.log("DEBUG: Renderizado de notas completado.");
       } catch (error) {
         console.error('❌ Error al cargar notas:', error);
-        notasTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error al cargar notas. Intente nuevamente.</td></tr>`;
+        notasTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Error al cargar notas. Intente nuevamente.</td></tr>`;
         totalNotasCount.textContent = '0';
-        promedioGeneralNotas.textContent = 'N/A';
       }
     }
 
     // Configurar listeners para los botones de acción en cada fila
-    function setupActionListeners(notasData) {
+    function setupActionListeners() {
         notasTableBody.querySelectorAll('.dropdown-item').forEach(item => {
             item.removeEventListener('click', handleActionClick); 
             item.addEventListener('click', handleActionClick);
 
-            function handleActionClick(e) {
+            async function handleActionClick(e) {
                 e.preventDefault();
                 const action = e.currentTarget.dataset.action;
                 const notaId = e.currentTarget.dataset.id;
-                const nota = notasData.find(n => n.id_nota.toString() === notaId);
-
-                if (!nota) {
-                    console.error('Error: Nota no encontrada para ID:', notaId);
+                
+                if (!notaId) {
+                    console.error('Error: ID de nota no encontrado en el elemento data-id.');
                     return;
                 }
 
                 switch (action) {
                     case 'ver-mas':
-                        mostrarDetallesNota(nota);
+                        await mostrarDetallesNota(notaId);
                         break;
                     case 'editar':
-                        editarNota(nota);
+                        await editarNota(notaId);
                         break;
                     case 'eliminar':
-                        eliminarNota(nota);
+                        await eliminarNota(notaId);
                         break;
                     default:
                         console.warn('Acción desconocida:', action);
@@ -833,24 +580,34 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
     }
 
     // Mostrar los detalles de la nota en el modal
-    async function mostrarDetallesNota(nota) {
-        console.log("DEBUG: Nota para ver detalles (mostrarDetallesNota):", nota);
+    async function mostrarDetallesNota(notaId) {
+        console.log("DEBUG: Solicitando detalles para nota ID:", notaId);
         try {
-            const response = await fetch(`http://localhost:3001/api/notas/${nota.id_nota}`);
+            // **IMPORTANTE**: Asegúrate de que tu ruta GET /api/notas/:id_nota en el backend
+            // esté definida con el parámetro de ID, es decir: `router.get('/notas/:id_nota', ...)`
+            // Si está como `router.get('/notas', ...)` entonces `req.params.id_nota` será `undefined`.
+            const response = await fetch(`http://localhost:3001/api/notas/${notaId}`);
             if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
             const detallesCompletos = await response.json();
-            console.log("DEBUG: Detalles completos de la nota del backend (mostrarDetallesNota):", detallesCompletos);
+            console.log("DEBUG: Detalles completos de la nota del backend:", detallesCompletos);
 
-            detalleNotaEstudiante.textContent = `${detallesCompletos.nombre_estudiante || 'N/A'} ${detallesCompletos.apellido_estudiante || ''}`;
-            detalleNotaMateria.textContent = detallesCompletos.nombre_materia || 'N/A';
-            detalleNotaPeriodo.textContent = detallesCompletos.nombre_periodo || 'N/A';
-            detalleNotaCurso.textContent = detallesCompletos.nombre_curso || 'N/A';
-            detalleNotaValor.textContent = detallesCompletos.valor_nota !== undefined ? detallesCompletos.valor_nota.toFixed(2) : 'N/A';
-            detalleNotaDescripcion.textContent = detallesCompletos.descripcion_nota || 'N/A';
-            detalleNotaFecha.textContent = detallesCompletos.fecha_nota ? new Date(detallesCompletos.fecha_nota).toLocaleDateString() : 'N/A';
-            detalleNotaObservaciones.textContent = detallesCompletos.observaciones || 'N/A';
-            detalleNotaCreadoEn.textContent = detallesCompletos.creado_en ? new Date(detallesCompletos.creado_en).toLocaleString() : 'N/A';
-            detalleNotaActualizadoEn.textContent = detallesCompletos.actualizado_en ? new Date(detallesCompletos.actualizado_en).toLocaleString() : 'N/A';
+            detalleEstudianteNombre.textContent = `${detallesCompletos.nombre_estudiante || 'N/A'} ${detallesCompletos.apellido_estudiante || ''}`;
+            detalleEstudianteID.textContent = detallesCompletos.id_usuario || 'N/A';
+            detalleMateriaNombre.textContent = detallesCompletos.nombre_materia || 'N/A';
+            detalleMateriaID.textContent = detallesCompletos.id_materia || 'N/A';
+            detalleActividadNombre.textContent = detallesCompletos.nombre_actividad || 'N/A';
+            detalleActividadID.textContent = detallesCompletos.id_actividad || 'N/A';
+            detalleNotaValor.textContent = detallesCompletos.nota !== null ? parseFloat(detallesCompletos.nota).toFixed(2) : 'N/A';
+            detalleFechaRegistro.textContent = detallesCompletos.fecha_registro ? new Date(detallesCompletos.fecha_registro).toLocaleDateString() : 'N/A';
+            detalleComentarios.textContent = detallesCompletos.comentarios || 'Sin comentarios';
+            
+            detalleCursoNombre.textContent = detallesCompletos.nombre_curso || 'N/A';
+            detalleCursoID.textContent = detallesCompletos.id_curso || 'N/A';
+            detallePeriodoNombre.textContent = detallesCompletos.nombre_periodo || 'N/A';
+            detallePeriodoID.textContent = detallesCompletos.id_periodo || 'N/A';
+            detalleSeccionNombre.textContent = detallesCompletos.nombre_seccion || 'N/A';
+            detalleSeccionID.textContent = detallesCompletos.id_seccion || 'N/A';
+            detalleActividadDescripcion.textContent = detallesCompletos.descripcion_actividad || 'Sin descripción';
 
             modalVerMasInformacionNota.show();
 
@@ -860,40 +617,23 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
         }
     }
 
-
     // Función para Editar Nota
-    async function editarNota(nota) {
-        console.log("DEBUG: Nota para editar (editarNota):", nota); 
+    async function editarNota(notaId) {
+        console.log("DEBUG: Solicitando detalles para editar nota ID:", notaId); 
 
         try {
-            const response = await fetch(`http://localhost:3001/api/notas/${nota.id_nota}`);
+            const response = await fetch(`http://localhost:3001/api/notas/${notaId}`);
             if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
             const detallesCompletos = await response.json();
-            console.log("DEBUG: Detalles completos de la nota para edición (editarNota):", detallesCompletos);
+            console.log("DEBUG: Detalles completos de la nota para edición:", detallesCompletos);
 
             editIdNota.value = detallesCompletos.id_nota;
-            editValorNota.value = detallesCompletos.valor_nota || '';
-            editFechaNota.value = detallesCompletos.fecha_nota ? new Date(detallesCompletos.fecha_nota).toISOString().split('T')[0] : '';
-            editDescripcionNota.value = detallesCompletos.descripcion_nota || '';
-            editObservaciones.value = detallesCompletos.observaciones || '';
+            editIdActividad.value = detallesCompletos.id_actividad || '';
+            editNotaValor.value = detallesCompletos.nota !== null ? parseFloat(detallesCompletos.nota).toFixed(2) : '';
+            editFechaRegistro.value = detallesCompletos.fecha_registro ? new Date(detallesCompletos.fecha_registro).toISOString().split('T')[0] : '';
+            editComentarios.value = detallesCompletos.comentarios || '';
 
-            // Cargar y seleccionar Periodo, Curso, Estudiante, Materia
-            await loadPeriodosDropdown(editPeriodo, detallesCompletos.id_periodo);
-            if (detallesCompletos.id_periodo) {
-                await loadCursosDropdown(editCurso, detallesCompletos.id_periodo, detallesCompletos.id_curso);
-            }
-            if (detallesCompletos.id_curso) {
-                await loadEstudiantesDropdown(editEstudiante, detallesCompletos.id_curso, detallesCompletos.id_usuario);
-                await loadMateriasDropdown(editMateria, detallesCompletos.id_curso, detallesCompletos.id_materia);
-            }
-
-            limpiarError(editPeriodo);
-            limpiarError(editCurso);
-            limpiarError(editEstudiante);
-            limpiarError(editMateria);
-            limpiarError(editValorNota);
-            limpiarError(editFechaNota);
-            validarFormularioEditarNota(); // Actualiza el estado del botón
+            limpiarErroresFormulario(formEditarNota);
 
             modalEditarNota.show();
 
@@ -904,15 +644,15 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
     }
 
     // Función para Eliminar Nota
-    async function eliminarNota(nota) {
+    async function eliminarNota(notaId) {
         const confirmResult = await mostrarConfirmacion(
-            `¿Estás seguro de que quieres eliminar la nota de ${nota.nombre_estudiante} ${nota.apellido_estudiante} en ${nota.nombre_materia} con valor ${nota.valor_nota}? Esta acción es irreversible.`
+            `¿Estás seguro de que quieres eliminar la nota con ID ${notaId}? Esta acción es irreversible.`
         );
 
         if (!confirmResult) return;
 
         try {
-            const response = await fetch(`http://localhost:3001/api/notas/${nota.id_nota}`, {
+            const response = await fetch(`http://localhost:3001/api/notas/${notaId}`, {
                 method: 'DELETE',
             });
 
@@ -922,7 +662,7 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
                 throw new Error(data.error || 'Error al eliminar la nota');
             }
 
-            mostrarMensajeExito(`Nota eliminada exitosamente.`);
+            mostrarMensajeExito(`Nota con ID ${notaId} eliminada exitosamente.`);
             loadNotas(currentPage); 
         } catch (error) {
             console.error('Error al eliminar nota:', error);
@@ -931,7 +671,7 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
     }
 
 
-    // Función de paginación (generalizada)
+    // Función de paginación
     function setupPagination(totalPages, currentPage) {
       console.log('DEBUG: setupPagination called.');
       paginationControls.innerHTML = '';
@@ -1033,11 +773,9 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
       paginationControls.appendChild(ul);
     }
 
-    // Carga inicial al cargar la página
-    loadNotas(1);
-    loadPeriodosDropdown(anadirPeriodo); // Carga el dropdown de periodos al inicio para añadir nota
+    loadNotas(1); 
 
-    // Funciones auxiliares (reutilizables de per.txt)
+    // Funciones auxiliares
     function mostrarError(elemento, mensaje) {
       elemento.classList.add('is-invalid');
       const errorElement = elemento.nextElementSibling; 
@@ -1066,12 +804,18 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
           parentErrorElement.textContent = '';
           parentErrorElement.style.display = 'none';
         }
-        // También limpia el error visual de los select, si es el caso
-        if (elemento.tagName === 'SELECT') {
-            elemento.classList.remove('is-invalid');
-        }
       }
       console.log(`DEBUG: Error limpiado para ${elemento.id}.`);
+    }
+
+    function limpiarErroresFormulario(formElement) {
+        formElement.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+            if (el.nextElementSibling && el.nextElementSibling.classList.contains('invalid-feedback')) {
+                el.nextElementSibling.textContent = '';
+                el.nextElementSibling.style.display = 'none';
+            }
+        });
     }
 
     function mostrarMensajeExito(mensaje) {
@@ -1102,12 +846,12 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
       }, 5000);
     }
 
-    // Función para mostrar un modal de confirmación personalizado
+    // Función para mostrar un modal de confirmación personalizado (reutilizada)
     function mostrarConfirmacion(mensaje) {
-      console.log("DEBUG: [mostrarConfirmacion] Iniciando...");
+      console.log("DEBUG: Iniciando mostrarConfirmacion...");
       return new Promise((resolve) => {
         if (typeof window.bootstrap === 'undefined' || typeof window.bootstrap.Modal === 'undefined') {
-          console.error("ERROR: [mostrarConfirmacion] Bootstrap JS (o Modal) no está disponible. No se puede mostrar el modal de confirmación.");
+          console.error("ERROR: Bootstrap JS (o Modal) no está disponible. No se puede mostrar el modal de confirmación.");
           mostrarErrorAlUsuario("Un error interno impide mostrar la confirmación. Por favor, recargue la página.");
           resolve(false); 
           return;
@@ -1125,8 +869,8 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
                   ${mensaje}
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelActionBtnModal">Cancelar</button>
-                  <button type="button" class="btn btn-danger" id="confirmActionBtnModal">Confirmar</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirmar</button>
                 </div>
               </div>
             </div>
@@ -1134,76 +878,46 @@ import "../../style/style-admin/notas.css"; /* Asume que tendrás un archivo CSS
         `;
         document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
         const confirmModalElement = document.getElementById('customConfirmModal');
-        console.log("DEBUG: [mostrarConfirmacion] customConfirmModalElement (después de insertarlo):", confirmModalElement); 
         
-        let customConfirmModal;
-        try {
-            customConfirmModal = new bootstrap.Modal(confirmModalElement);
-            console.log("DEBUG: [mostrarConfirmacion] customConfirmModal instancia creada:", customConfirmModal); 
-        } catch (e) {
-            console.error("ERROR: [mostrarConfirmacion] Fallo al crear instancia de Bootstrap Modal:", e);
-            mostrarErrorAlUsuario("Un error al inicializar el modal impide la confirmación. Contacte soporte.");
-            resolve(false);
-            return;
-        }
+        const customConfirmModal = new bootstrap.Modal(confirmModalElement);
 
-        let isPromiseResolved = false; // Flag to prevent multiple resolutions
+        let isResolved = false;
 
-        // Función para resolver la promesa y limpiar
-        const cleanupAndResolve = (result) => {
-            if (!isPromiseResolved) {
-                isPromiseResolved = true;
-                console.log(`DEBUG: [mostrarConfirmacion] Promesa resuelta con: ${result}`);
-                try {
-                    // Solo intentar ocultar el modal si la instancia existe y el modal está visible
-                    if (customConfirmModal && confirmModalElement.classList.contains('show')) {
-                        customConfirmModal.hide(); 
-                        console.log("DEBUG: [mostrarConfirmacion] customConfirmModal.hide() llamado.");
-                    }
-                } catch (e) {
-                    console.error("ERROR: [mostrarConfirmacion] Fallo al ocultar modal durante cleanup:", e);
-                }
-                // Asegura que el elemento del modal se elimina después de que esté completamente oculto
-                confirmModalElement.addEventListener('hidden.bs.modal', () => {
-                    console.log("DEBUG: [mostrarConfirmacion] Evento 'hidden.bs.modal' disparado. Removiendo elemento del DOM.");
-                    confirmModalElement.remove();
-                }, { once: true });
-                resolve(result);
+        const confirmActionBtn = document.getElementById('confirmActionBtn');
+        if (confirmActionBtn) { 
+          confirmActionBtn.addEventListener('click', () => {
+            if (!isResolved) {
+                customConfirmModal.hide();
+                resolve(true);
+                isResolved = true;
             }
-        };
-
-        const confirmActionBtn = document.getElementById('confirmActionBtnModal');
-        const cancelActionBtn = document.getElementById('cancelActionBtnModal');
-
-        if (confirmActionBtn) {
-            confirmActionBtn.addEventListener('click', () => {
-                console.log("DEBUG: [mostrarConfirmacion] Botón 'Confirmar' clickeado.");
-                cleanupAndResolve(true);
-            }, { once: true });
-            console.log("DEBUG: [mostrarConfirmacion] Listener para 'Confirmar' añadido.");
+          }, { once: true }); 
         } else {
-            console.error("ERROR: [mostrarConfirmacion] Botón 'confirmActionBtnModal' no encontrado.");
-            cleanupAndResolve(false); // Resuelve a false si el botón de confirmación no se encuentra
+            if (!isResolved) {
+                resolve(false); 
+                isResolved = true;
+            }
         }
         
+        const cancelActionBtn = confirmModalElement.querySelector('.btn-secondary'); 
         if (cancelActionBtn) {
             cancelActionBtn.addEventListener('click', () => {
-                console.log("DEBUG: [mostrarConfirmacion] Botón 'Cancelar' clickeado.");
-                cleanupAndResolve(false);
+                if (!isResolved) {
+                    customConfirmModal.hide();
+                    resolve(false);
+                    isResolved = true;
+                }
             }, { once: true });
-            console.log("DEBUG: [mostrarConfirmacion] Listener para 'Cancelar' añadido.");
-        } else {
-            console.error("ERROR: [mostrarConfirmacion] Botón 'cancelActionBtnModal' no encontrado.");
         }
 
-        // Añadir listener para el cierre del modal (ej. tecla ESC, clic fuera)
-        // Este listener también resolverá la promesa si el modal se cierra por medios externos.
         confirmModalElement.addEventListener('hidden.bs.modal', () => {
-            console.log("DEBUG: [mostrarConfirmacion] Evento 'hidden.bs.modal' disparado (posiblemente por ESC/clic fuera, o hide() programático).");
-            cleanupAndResolve(false); // Resuelve a false si se oculta sin una acción explícita de los botones
+          confirmModalElement.remove(); 
+          if (!isResolved) { 
+            resolve(false); 
+            isResolved = true;
+          }
         }, { once: true }); 
 
-        console.log("DEBUG: [mostrarConfirmacion] Llamando a customConfirmModal.show()...");
         customConfirmModal.show();
       });
     }

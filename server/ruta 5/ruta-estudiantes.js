@@ -6,8 +6,6 @@ import { syncRelationships, syncSingleRelationship } from '../f(x)/relaciones.js
 
 const router = express.Router();
 
-// 🔹 RUTA PARA OBTENER TODOS LOS ESTUDIANTES 🔹
-// Eliminado el '/api' ya que el router se monta con '/api' en server.js
 router.get('/estudiantes', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
@@ -124,8 +122,6 @@ router.put('/estudiantes/:id', async (req, res) => { // Eliminado el '/api'
       telefono, direccion, materias, cursos, secciones, periodoAcademico 
     } = req.body;
 
-    console.log('DEBUG: Received PUT request body:', req.body); // DEBUG LOG
-
     try {
       let id_direccion_a_usar = null;
 
@@ -137,8 +133,6 @@ router.put('/estudiantes/:id', async (req, res) => { // Eliminado el '/api'
           WHERE u.id_usuario = ?
       `, [id]);
       const currentAddress = currentAddressResult[0]; 
-
-      console.log("DEBUG: Dirección actual del estudiante (DB):", currentAddress); 
 
       if (currentAddress) {
           id_direccion_a_usar = currentAddress.id_direccion; 
@@ -157,7 +151,6 @@ router.put('/estudiantes/:id', async (req, res) => { // Eliminado el '/api'
                   'UPDATE direccion SET direccion = ? WHERE id_direccion = ?',
                   [direccion.trim(), currentAddress.id_direccion]
               );
-              console.log(`DEBUG: Dirección actualizada para id_direccion ${currentAddress.id_direccion} a: ${direccion.trim()}`);
           } else {
               console.error(`❌ Error: El estudiante ID ${id} no tiene una dirección asociada para actualizar, y la UI de edición no proporciona datos completos para insertar una nueva dirección.`);
               return res.status(400).json({ error: "No se pudo actualizar la dirección: El estudiante no tiene una dirección asociada o faltan datos (ciudad/estado) para crear una nueva." });
@@ -182,7 +175,6 @@ router.put('/estudiantes/:id', async (req, res) => { // Eliminado el '/api'
         cedula, correo, primerNombre, segundoNombre, primerApellido, segundoApellido,
         telefono, id_direccion_a_usar, id
       ]);
-      console.log('DEBUG: User update result:', userUpdateResult.affectedRows, 'rows affected.');
 
       if (periodoAcademico !== undefined) { 
         await syncSingleRelationship(id, periodoAcademico, 'usuario_periodo', 'id_periodo', 'id_usuario');

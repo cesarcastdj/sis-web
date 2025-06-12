@@ -370,7 +370,338 @@ router.put('/periodos-academicos/:id', /*isAuthenticated,*/ async (req, res) => 
     }
 });
 
-// ==========================================================
+
+
+router.get('/cursos-academicos', /*isAuthenticated,*/ async (req, res) => {
+  const { page = 1, limit = 5, search = '' } = req.query;
+  const offset = (parseInt(page) - 1) * parseInt(limit);
+  const searchTerm = `%${search}%`;
+
+
+    try {
+        // Consulta para el conteo total con filtro de búsqueda
+        let countQuery = `
+            SELECT COUNT(DISTINCT c.id_curso) AS total
+            FROM cursos c
+            LEFT JOIN periodo p ON p.id_periodo 
+            LEFT JOIN seccion s ON s.id_seccion 
+            WHERE c.curso LIKE ?;
+        `;
+        const [totalCursosResult] = await db.promise().query(countQuery, [searchTerm]);
+        const totalCount = totalCursosResult[0].total;
+        const totalPages = Math.ceil(totalCount / limit);
+
+        // Consulta principal para obtener los cursos con sus detalles
+        let cursosQuery = `
+            SELECT
+                c.id_curso,
+                c.curso AS nombre_curso,
+                c.activo AS estado,
+                IFNULL(p.periodo, 'N/A') AS nombre_periodo,
+                IFNULL(s.seccion, 'N/A') AS nombre_seccion,
+                (
+                    SELECT COUNT(DISTINCT uc.id_usuario)
+                    FROM usuario_cursos uc
+                    JOIN usuarios u ON uc.id_usuario = u.id_usuario
+                    WHERE uc.id_curso = c.id_curso AND u.rol = 'estudiante'
+                ) AS total_estudiantes_curso,
+                (
+                    SELECT COUNT(DISTINCT uc.id_usuario)
+                    FROM usuario_cursos uc
+                    JOIN usuarios u ON uc.id_usuario = u.id_usuario
+                    WHERE uc.id_curso = c.id_curso AND u.rol = 'profesor'
+                ) AS total_profesores_curso,
+                (
+                    SELECT COUNT(DISTINCT m.id_materia)
+                    FROM materias m
+                    WHERE m.id_curso = c.id_curso
+                ) AS total_materias_curso
+            FROM cursos c
+            LEFT JOIN periodo p ON p.id_periodo 
+            LEFT JOIN seccion s ON s.id_seccion 
+            WHERE c.curso LIKE ?
+            LIMIT ?, ?;
+        `;
+        const [cursos] = await db.promise().query(cursosQuery, [searchTerm, offset, parseInt(limit)]);
+
+        res.json({
+            cursos,
+            totalCount,
+            totalPages,
+            currentPage: parseInt(page)
+        });
+
+    } catch (error) {
+        console.error("❌ Error al obtener lista de cursos:", error);
+        res.status(500).json({ error: "Error al obtener lista de cursos", detalle: error.message });
+    }
+});
+
+/**
+ * @route GET /api/cursos-academicos/resumen
+ * @description Obtiene un resumen de los cursos (total y activos).
+ * @returns {json} Objeto con el total de cursos y cursos activos.
+ */
+router.get('/cursos-academicos/resumen', /*isAuthenticated,*/ async (req, res) => {
+    try {
+        const [totalCursosResult] = await db.promise().query('SELECT COUNT(*) AS total FROM cursos;');
+        const totalCursos = totalCursosResult[0].total;
+
+        const [cursosActivosResult] = await db.promise().query('SELECT COUNT(*) AS total FROM cursos WHERE activo = 1;');
+        const cursosActivos = cursosActivosResult[0].total;
+
+        const [totalEstudiantesResult] = await db.promise().query(`
+          SELECT COUNT(DISTINCT uc.id_usuario) AS total_estudiantes
+          FROM usuario_cursos uc
+          JOIN usuarios u ON uc.id_usuario = u.id_usuario
+          WHERE u.rol = 'estudiante';
+      `);
+      const totalEstudiantesInscritos = totalEstudiantesResult[0].total_estudiantes;
+
+      const [totalProfesoresResult] = await db.promise().query(`
+          SELECT COUNT(DISTINCT uc.id_usuario) AS total_profesores
+          FROM usuario_cursos uc
+          JOIN usuarios u ON uc.id_usuario = u.id_usuario
+          WHERE u.rol = 'profesor';
+      `);
+      const totalProfesoresAsignados = totalProfesoresResult[0].total_profesores;
+
+        res.json({
+            totalCursos,
+            cursosActivos,
+            totalEstudiantesInscritos,
+            totalProfesoresAsignados
+        });
+    } catch (error) {
+        console.error("❌ Error al obtener resumen de cursos:", error);
+        res.status(500).json({ error: "Error al obtener resumen de cursos", detalle: error.message });
+    }
+});
+
+
+router.get('/cursos-academicos/:id', /*isAuthenticated,*/ async (req, res) => {
+    const { id } = req.params;
+    try {
+        const cursoQuery = `
+            SELECT
+                c.id_curso,
+                c.curso AS nombre_curso,
+                c.activo AS estado,
+                c.id_periodo,
+                p.periodo AS nombre_periodo,
+                c.id_seccion,
+                s.seccion AS nombre_seccion
+            FROM cursos c
+            LEFT JOIN periodo p ON p.id_periodo = p.id_periodo
+            LEFT JOIN seccion s ON s.id_seccion = s.id_seccion
+            WHERE c.id_curso = ?;
+        `;
+        const [cursoRows] = await db.promise().query(cursoQuery, [id]);
+
+        if (cursoRows.length === 0) {
+            return res.status(404).json({ error: 'Curso no encontrado.' });
+        }
+
+        const curso = cursoRows[0];
+
+        // Obtener estudiantes inscritos en este curso
+        const [estudiantesResult] = await db.promise().query(`
+            SELECT uc.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula
+            FROM usuario_cursos uc
+            JOIN usuarios u ON uc.id_usuario = u.id_usuario
+            WHERE uc.id_curso = ? AND u.rol = 'estudiante';
+        `, [id]);
+        curso.estudiantes_info = estudiantesResult.map(e => ({
+            id_usuario: e.id_usuario,
+            nombre_completo: `${e.primer_nombre} ${e.primer_apellido} (${e.cedula})`
+        }));
+
+        // Obtener materias que pertenecen a este curso
+        const [materiasResult] = await db.promise().query(`
+            SELECT id_materia, materia AS nombre_materia
+            FROM materias
+            WHERE id_curso = ?;
+        `, [id]);
+        curso.materias_info = materiasResult.map(m => ({
+            id_materia: m.id_materia,
+            nombre_materia: m.nombre_materia
+        }));
+
+        res.json(curso);
+    } catch (error) {
+        console.error("❌ Error al obtener detalles del curso:", error);
+        res.status(500).json({ error: "Error al obtener detalles del curso", detalle: error.message });
+    }
+});
+
+/**
+ * @route POST /api/cursos-academicos
+ * @description Crea un nuevo curso académico.
+ * @param {string} req.body.nombreCurso - Nombre del curso.
+ * @param {number} req.body.id_periodo - ID del periodo académico asociado.
+ * @param {number} req.body.id_seccion - ID de la sección asociada.
+ * @param {boolean} [req.body.agregarMateria=false] - Indica si se debe agregar una materia junto con el curso.
+ * @param {string} [req.body.nombreMateria] - Nombre de la materia si se va a agregar (obligatorio si agregarMateria es true).
+ * @param {Array<number>} [req.body.estudiantesAsignados=[]] - IDs de estudiantes a asignar al curso/materia.
+ * @returns {json} Mensaje de éxito e ID del nuevo curso.
+ */
+router.post('/cursos-academicos', /*isAuthenticated,*/ async (req, res) => {
+    const { nombreCurso, id_periodo, id_seccion, agregarMateria = false, nombreMateria = null, estudiantesAsignados = [] } = req.body;
+
+    if (!nombreCurso || !id_periodo || !id_seccion) {
+        return res.status(400).json({ error: 'El nombre del curso, periodo y sección son obligatorios.' });
+    }
+    if (agregarMateria && !nombreMateria) {
+        return res.status(400).json({ error: 'El nombre de la materia es obligatorio si se desea agregar.' });
+    }
+
+    let connection;
+    try {
+        connection = await db.promise().getConnection();
+        await connection.beginTransaction();
+
+        // Insertar el nuevo curso
+        const [cursoResult] = await connection.query(
+            'INSERT INTO cursos (curso, id_seccion, activo) VALUES (?, ?, 1)',
+            [nombreCurso, id_seccion]
+        );
+        const id_curso = cursoResult.insertId;
+
+        // Asignar estudiantes al curso (si hay)
+        if (estudiantesAsignados.length > 0) {
+            const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+            const cursoValues = estudiantesAsignados.map(id_est => [id_est, id_curso, currentDateTime]);
+            await connection.query('INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES ?', [cursoValues]);
+        }
+
+        // Si se solicita, agregar una materia con el curso
+        if (agregarMateria && nombreMateria) {
+            const [materiaResult] = await connection.query(
+                'INSERT INTO materias (id_curso, materia, activo) VALUES (?, ?, 1)',
+                [id_curso, nombreMateria]
+            );
+            const id_materia_creada = materiaResult.insertId;
+
+            // Asignar estudiantes a la materia recién creada si hay
+            if (estudiantesAsignados.length > 0) {
+                const materiaEstValues = estudiantesAsignados.map(id_est => [id_est, id_materia_creada]);
+                await connection.query('INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?', [materiaEstValues]);
+            }
+        }
+
+        await connection.commit();
+        res.status(201).json({ message: 'Curso registrado exitosamente.', id_curso });
+
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error("❌ Error al crear curso:", error);
+        res.status(500).json({ error: "Error al crear curso", detalle: error.message });
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+/**
+ * @route PUT /api/cursos-academicos/:id
+ * @description Actualiza un curso existente.
+ * @param {number} req.params.id - ID del curso a actualizar.
+ * @param {string} req.body.nombre_curso - Nuevo nombre del curso.
+ * @param {number} req.body.id_periodo - Nuevo ID del periodo.
+ * @param {number} req.body.id_seccion - Nuevo ID de la sección.
+ * @returns {json} Mensaje de éxito.
+ */
+router.put('/cursos-academicos/:id', /*isAuthenticated,*/ async (req, res) => {
+    const { id } = req.params;
+    const { nombre_curso, id_periodo, id_seccion } = req.body;
+
+    try {
+        if (!nombre_curso || !id_periodo || !id_seccion) {
+            return res.status(400).json({ error: 'Nombre del curso, periodo y sección son obligatorios para la actualización.' });
+        }
+
+        const updateQuery = `
+            UPDATE cursos
+            SET curso = ?, id_periodo = ?, id_seccion = ?
+            WHERE id_curso = ?;
+        `;
+        await db.promise().query(updateQuery, [nombre_curso, id_periodo, id_seccion, id]);
+
+        res.json({ message: 'Curso actualizado exitosamente.' });
+
+    } catch (error) {
+        console.error("❌ Error al actualizar curso:", error);
+        res.status(500).json({ error: "Error al actualizar curso", detalle: error.message });
+    }
+});
+
+/**
+ * @route PUT /api/cursos-academicos/:id/estado
+ * @description Cambia el estado (activo/inactivo) de un curso.
+ * @param {number} req.params.id - ID del curso.
+ * @param {number} req.body.estado - Nuevo estado (1 para activo, 0 para inactivo).
+ * @returns {json} Mensaje de éxito.
+ */
+router.put('/cursos-academicos/:id/estado', /*isAuthenticated,*/ async (req, res) => {
+    const { id } = req.params;
+    const { estado } = req.body; // 1 o 0
+
+    if (estado === undefined || (estado !== 0 && estado !== 1)) {
+        return res.status(400).json({ error: 'El estado es inválido. Debe ser 0 o 1.' });
+    }
+
+    try {
+        await db.promise().query(
+            'UPDATE cursos SET activo = ? WHERE id_curso = ?',
+            [estado, id]
+        );
+        res.json({ message: `Estado del curso ${id} actualizado a ${estado}.` });
+    } catch (error) {
+        console.error("❌ Error al cambiar estado del curso:", error);
+        res.status(500).json({ error: "Error al cambiar estado del curso", detalle: error.message });
+    }
+});
+
+/**
+ * @route DELETE /api/cursos-academicos/:id
+ * @description Elimina un curso y todas sus asociaciones (materias y usuarios).
+ * @param {number} req.params.id - ID del curso a eliminar.
+ * @returns {json} Mensaje de éxito.
+ */
+router.delete('/cursos-academicos/:id', /*isAuthenticated,*/ async (req, res) => {
+    const { id } = req.params;
+    let connection;
+    try {
+        connection = await db.promise().getConnection();
+        await connection.beginTransaction();
+
+        // Eliminar las materias asociadas a este curso
+        // NOTA: Si `materias.id_curso` tiene ON DELETE RESTRICT, esto fallará si hay materias.
+        // Asumiendo que `ON DELETE CASCADE` o que se pueden eliminar las materias primero.
+        // Si no, necesitarías una estrategia diferente (ej. pedir al usuario que elimine materias primero).
+        await connection.query('DELETE FROM materias WHERE id_curso = ?', [id]);
+        
+        // Eliminar las asociaciones de usuarios con este curso
+        await connection.query('DELETE FROM usuario_cursos WHERE id_curso = ?', [id]);
+
+        // Finalmente, eliminar el curso
+        const [result] = await connection.query('DELETE FROM cursos WHERE id_curso = ?', [id]);
+
+        if (result.affectedRows === 0) {
+            await connection.rollback(); // Deshacer si no se encontró el curso
+            return res.status(404).json({ error: 'Curso no encontrado para eliminar.' });
+        }
+
+        await connection.commit();
+        res.json({ message: 'Curso y todas sus asociaciones (materias y usuarios) eliminadas exitosamente.' });
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error("❌ Error al eliminar curso:", error);
+        res.status(500).json({ error: "Error al eliminar curso", detalle: error.message });
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
 // 🚀 RUTAS PARA MATERIAS ACADÉMICAS (Funcionalidad Completa Restaurada) 🚀
 // ==========================================================
 

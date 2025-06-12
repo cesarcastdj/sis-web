@@ -1,22 +1,22 @@
 ---
-import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt */
+import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta sea correcta y el CSS exista */
 ---
 
 <section class="data-content-section">
-  <!-- Nueva sección del Título "Estudiantes" con el estilo de la tarjeta de bienvenida -->
+  <!-- Nueva sección del Título "Profesores" con el estilo de la tarjeta de bienvenida -->
   <section class="estudiantes-header-card">
     <div class="welcome-search-data">
       <h2 class="welcome-search-data__title">Profesores</h2>
     </div>
   </section>
 
-  <!-- Sección de Tarjeta Consolidada de Resumen de Estudiantes -->
+  <!-- Sección de Tarjeta Consolidada de Resumen de Profesores -->
   <section class="content-info-data">
     <section class="data-general-control">
-      <!-- Tarjeta Consolidada de Estudiantes -->
+      <!-- Tarjeta Consolidada de Profesores -->
       <div class="registro-control consolidated-students-card">
         <div class="card-icon-title">
-          <i class="bx bxs-group"></i> <!-- Icono para grupo de estudiantes -->
+          <i class="bx bxs-group"></i> <!-- Icono para grupo de profesores -->
           <h5 class="card-title">Resumen de Profesores</h5>
         </div>
         <div class="students-summary-grid">
@@ -37,7 +37,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
     </section>
   </section>
 
-  <!-- La tabla de Estudiantes -->
+  <!-- La tabla de Profesores -->
   <div class="display-table" id="table1">
     <div class="tabla-info-person">
       <table class="table table-dark table-hover table-striped">
@@ -64,12 +64,12 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
   </div>
 </section>
 
-<!-- Modal para Ver Más Información del Estudiante -->
-<div class="modal fade" id="modalVerMasInformacionEstudiante" tabindex="-1" aria-labelledby="modalVerMasInformacionEstudianteLabel" aria-hidden="true">
+<!-- Modal para Ver Más Información del Profesor -->
+<div class="modal fade" id="modalVerMasInformacionProfesor" tabindex="-1" aria-labelledby="modalVerMasInformacionProfesorLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-custom-width modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalVerMasInformacionEstudianteLabel">Detalles del Estudiante</h5>
+        <h5 class="modal-title" id="modalVerMasInformacionProfesorLabel">Detalles del Profesor</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal">
           <i class='bx bx-x'></i>
         </button>
@@ -77,11 +77,11 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
       <div class="modal-body">
         <h6 class="section-title">Información Personal</h6>
         <p><strong>Cédula:</strong> <span id="detalleCedula"></span></p>
-        <p><strong>Nombre Completo:</strong> <span id="detalleNombreCompleto"></span></p>
+        <p><strong>Nombre Completo:</strong> <span id="detalleNombreComplepleto"></span></p>
         <p><strong>Correo:</strong> <span id="detalleCorreo"></span></p>
         <p><strong>Teléfono:</strong> <span id="detalleTelefono"></span></p>
         <p><strong>Dirección:</strong> <span id="detalleDireccion"></span></p>
-        <p><strong>Estado del Estudiante:</strong> <span id="detalleEstadoEstudiante"></span></p>
+        <p><strong>Estado del Profesor:</strong> <span id="detalleEstadoProfesor"></span></p>
         <p><strong>Última Conexión:</strong> <span id="detalleUltimaConexion"></span></p>
 
         <h6 class="section-title mt-4">Información Académica</h6>
@@ -97,18 +97,18 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
   </div>
 </div>
 
-<!-- Modal para Editar Estudiantes -->
-<div class="modal fade" id="modalEditarEstudiante" tabindex="-1" aria-labelledby="modalEditarEstudianteLabel" aria-hidden="true">
+<!-- Modal para Editar Profesor -->
+<div class="modal fade" id="modalEditarProfesor" tabindex="-1" aria-labelledby="modalEditarProfesorLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-custom-width">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalEditarEstudianteLabel">Editar Estudiante</h5>
+        <h5 class="modal-title" id="modalEditarProfesorLabel">Editar Profesor</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal">
           <i class='bx bx-x'></i>
         </button>
       </div>
       <div class="modal-body">
-        <form id="formEditarEstudiante">
+        <form id="formEditarProfesor">
           <input type="hidden" id="editIdUsuario" />
           <h6 class="section-title">Información Personal</h6>
           <div class="row">
@@ -225,34 +225,37 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script is:inline>
   document.addEventListener('DOMContentLoaded', function() {
+    console.log("DEBUG: DOMContentLoaded - Script principal de Profesores cargado.");
+    console.log("DEBUG: window.bootstrap is", typeof window.bootstrap); // Verificación de Bootstrap
+
     let currentPage = 1;
     const itemsPerPage = 5; 
     const profesoresTableBody = document.getElementById('profesoresTableBody');
     const paginationControls = document.getElementById('paginationControls');
 
     // Contadores de profesores
-    const totalProfesoresCount = document.getElementById('totalProfesoresCount');
-    const activeProfesoresCount = document.getElementById('activeProfesoresCount');
-    const inactiveProfesoresCount = document.getElementById('inactiveProfesoresCount');
+    const TotalProfesores = document.getElementById('totalProfesoresCount');
+    const ProfesoresActivos = document.getElementById('activeProfesoresCount');
+    const ProfesoresInactivos = document.getElementById('inactiveProfesoresCount');
 
 
     // Elementos del modal "Ver Más Información"
-    const modalVerMasInformacionEstudiante = new bootstrap.Modal(document.getElementById('modalVerMasInformacionEstudiante'));
+    const modalVerMasInformacionProfesor = new bootstrap.Modal(document.getElementById('modalVerMasInformacionProfesor'));
     const detalleCedula = document.getElementById('detalleCedula');
     const detalleNombreCompleto = document.getElementById('detalleNombreCompleto');
     const detalleCorreo = document.getElementById('detalleCorreo');
     const detalleTelefono = document.getElementById('detalleTelefono');
     const detalleDireccion = document.getElementById('detalleDireccion');
-    const detalleEstadoEstudiante = document.getElementById('detalleEstadoEstudiante');
+    const detalleEstadoProfesor = document.getElementById('detalleEstadoProfesor'); // Renombrado de Estudiante a Profesor
     const detalleUltimaConexion = document.getElementById('detalleUltimaConexion');
     const detallePeriodoAcademico = document.getElementById('detallePeriodoAcademico');
     const detalleSeccion = document.getElementById('detalleSeccion');
     const detalleCursos = document.getElementById('detalleCursos');
     const detalleMaterias = document.getElementById('detalleMaterias');
 
-    // Elementos del Modal Editar Estudiantes
-    const modalEditarEstudiante = new bootstrap.Modal(document.getElementById('modalEditarEstudiante'));
-    const formEditarEstudiante = document.getElementById('formEditarEstudiante');
+    // Elementos del Modal Editar Profesores
+    const modalEditarProfesor = new bootstrap.Modal(document.getElementById('modalEditarProfesor')); // Renombrado de Estudiante a Profesor
+    const formEditarProfesor = document.getElementById('formEditarProfesor'); // Renombrado de Estudiante a Profesor
     const editIdUsuario = document.getElementById('editIdUsuario');
     const editCedula = document.getElementById('editCedula');
     const editCorreo = document.getElementById('editCorreo');
@@ -260,8 +263,8 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
     const editSegundoNombre = document.getElementById('editSegundoNombre');
     const editPrimerApellido = document.getElementById('editPrimerApellido');
     const editSegundoApellido = document.getElementById('editSegundoApellido');
-    const editCodigoAreaSelect = document.querySelector('#modalEditarEstudiante .codigo-area-edit');
-    const editNumeroTelefonoInput = document.querySelector('#modalEditarEstudiante .numero-telefono-edit');
+    const editCodigoAreaSelect = document.querySelector('#modalEditarProfesor .codigo-area-edit'); // Selector actualizado
+    const editNumeroTelefonoInput = document.querySelector('#modalEditarProfesor .numero-telefono-edit'); // Selector actualizado
     const editDireccion = document.getElementById('editDireccion');
     const editPeriodoAcademico = document.getElementById('editPeriodoAcademico'); 
     const editCurso = document.getElementById('editCurso');
@@ -271,6 +274,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
 
     // Cargar datos al abrir el modal de Editar Profesores
     modalEditarProfesor._element.addEventListener('shown.bs.modal', async function() {
+      console.log("DEBUG: Modal de edición de profesor abierto. Cargando dropdowns...");
       await cargarPeriodos('edit'); 
       await cargarCursos('edit'); 
       await cargarSecciones('edit'); 
@@ -284,9 +288,11 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
       targetPeriodoSelect.disabled = true;
       targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Cargando periodos...</option>';
       try {
+        console.log("DEBUG: Fetching periods for dropdown...");
         const response = await fetch('http://localhost:3001/api/periodos');
         if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
         const periodos = await response.json();
+        console.log("DEBUG: Periods received:", periodos);
         targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Seleccione un periodo</option>';
         periodos.forEach(periodo => {
           const option = document.createElement('option');
@@ -295,8 +301,9 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
           targetPeriodoSelect.appendChild(option);
         });
         targetPeriodoSelect.disabled = false;
+        console.log("DEBUG: Periods dropdown loaded.");
       } catch (error) {
-        console.error('Error cargando periodos:', error);
+        console.error('❌ Error cargando periodos:', error);
         targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Error al cargar periodos</option>';
         mostrarErrorAlUsuario('Error al cargar periodos académicos. Intente recargar la página.');
       }
@@ -311,9 +318,11 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
       targetCursoSelect.disabled = true; 
       targetCursoSelect.innerHTML = '<option value="" selected disabled>Cargando cursos...</option>';
       try {
+        console.log("DEBUG: Fetching courses for dropdown...");
         const response = await fetch('http://localhost:3001/api/cursos');
         if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
         const cursos = await response.json();
+        console.log("DEBUG: Courses received:", cursos);
         targetCursoSelect.innerHTML = '<option value="" selected disabled>Seleccione un curso</option>';
         cursos.forEach(curso => {
           const option = document.createElement('option');
@@ -322,9 +331,10 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
           targetCursoSelect.appendChild(option);
         });
         targetCursoSelect.disabled = false; 
+        console.log("DEBUG: Courses dropdown loaded.");
       }
       catch (error) {
-        console.error('Error cargando cursos:', error);
+        console.error('❌ Error cargando cursos:', error);
         targetCursoSelect.innerHTML = '<option value="" selected disabled>Error al cargar cursos</option>';
         mostrarErrorAlUsuario('Error al cargar cursos. Intente recargar la página.');
       }
@@ -342,9 +352,11 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         return;
       }
       try {
+        console.log(`DEBUG: Fetching subjects for course ID ${cursoId}...`);
         const response = await fetch(`http://localhost:3001/api/cursos/${cursoId}/materias`);
         if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
         const materias = await response.json();
+        console.log("DEBUG: Subjects received:", materias);
         targetMateriasSelect.innerHTML = ''; 
         if (materias.length === 0) {
           targetMateriasSelect.innerHTML = '<option value="" disabled>No hay materias para este curso</option>';
@@ -357,9 +369,10 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
           });
           targetMateriasSelect.disabled = false; 
         }
+        console.log("DEBUG: Subjects dropdown loaded.");
       }
       catch (error) {
-        console.error('Error cargando materias:', error);
+        console.error('❌ Error cargando materias:', error);
         targetMateriasSelect.innerHTML = '<option value="" selected disabled>Error al cargar materias</option>';
         mostrarErrorAlUsuario('Error al cargar materias. Intente nuevamente.');
       }
@@ -373,9 +386,11 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
       targetSeccionSelect.innerHTML = '<option value="" selected disabled>Cargando secciones...</option>';
       targetSeccionSelect.disabled = true;
       try {
+        console.log("DEBUG: Fetching sections for dropdown...");
         const response = await fetch('http://localhost:3001/api/secciones');
         if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
         const secciones = await response.json();
+        console.log("DEBUG: Sections received:", secciones);
         targetSeccionSelect.innerHTML = '<option value="" selected disabled>Seleccione una sección</option>';
         if (secciones.length === 0) {
           targetSeccionSelect.innerHTML = '<option value="" disabled>No hay secciones disponibles</option>';
@@ -388,16 +403,18 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
           });
           targetSeccionSelect.disabled = false;
         }
+        console.log("DEBUG: Sections dropdown loaded.");
       }
       catch (error) {
-        console.error('Error cargando secciones:', error);
+        console.error('❌ Error cargando secciones:', error);
         targetSeccionSelect.innerHTML = '<option value="" selected disabled>Error al cargar secciones</option>';
         mostrarErrorAlUsuario('Error al cargar secciones. Intente nuevamente.');
       }
     }
 
-    // Event listeners for Edit Student Modal
+    // Event listeners for Edit Professor Modal
     editCurso.addEventListener('change', async function() { 
+        console.log("DEBUG: Edit Curso dropdown changed. Value:", this.value);
         await cargarMateriasPorCurso(this.value, 'edit');
         const profesorBeingEdited = profesoresTableBody.querySelector(`[data-id="${editIdUsuario.value}"]`);
         if (profesorBeingEdited) {
@@ -408,10 +425,12 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
                     if (editMaterias.selectedIndex === -1) { 
                         editMaterias.value = ''; 
                     }
+                    console.log("DEBUG: Materia pre-seleccionada en edición:", editMaterias.value);
                 }, 100);
             } else {
                 editMaterias.value = ''; 
                 editMaterias.disabled = false; 
+                console.log("DEBUG: No hay materias para pre-seleccionar o no se encontró profesorData.");
             }
         }
     });
@@ -429,11 +448,15 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
     // Manejar envío del formulario de Edición de Profesor
     formEditarProfesor.addEventListener('submit', async function(e) {
       e.preventDefault();
+      console.log("DEBUG: Formulario de edición de profesor enviado.");
 
       const confirmResult = await mostrarConfirmacion(
             `¿Estás seguro de guardar los cambios para este profesor?`
         );
-      if (!confirmResult) return;
+      if (!confirmResult) {
+        console.log("DEBUG: Edición de profesor cancelada por el usuario.");
+        return;
+      }
 
       const id_usuario = editIdUsuario.value;
       const telefonoCompleto = `${editCodigoAreaSelect.value}-${editNumeroTelefonoInput.value}`;
@@ -447,6 +470,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         Guardando...
       `;
+      console.log("DEBUG: Botón de guardar deshabilitado y spinner activado.");
 
       try {
         const formData = {
@@ -490,28 +514,28 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         }, 1500);
 
       } catch (error) {
-        console.error('Error en la actualización del profesor:', error);
+        console.error('❌ Error en la actualización del profesor:', error);
         mostrarErrorAlUsuario(error.message);
       } finally {
         btnGuardarEdicion.disabled = false;
         btnGuardarEdicion.textContent = 'Guardar Cambios';
+        console.log("DEBUG: Proceso de edición finalizado.");
       }
     });
 
 
     // Función para inicializar los dropdowns de Bootstrap después de cargar la tabla
     function initializeDropdowns() {
-      console.log('Debugging Bootstrap (inside initializeDropdowns):');
-      console.log('window.bootstrap:', typeof window.bootstrap, window.bootstrap);
+      console.log('DEBUG: initializeDropdowns called.');
       if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
         const dropdownToggles = profesoresTableBody.querySelectorAll('.dropdown-toggle');
-        console.log('Attempting to initialize', dropdownToggles.length, 'Bootstrap Dropdowns...');
+        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Dropdowns...');
         dropdownToggles.forEach(button => {
           // Destruir instancias existentes para evitar duplicados si la tabla se recarga
           const existingDropdown = bootstrap.Dropdown.getInstance(button);
           if (existingDropdown) {
             existingDropdown.dispose();
-            console.log(`Disposed existing dropdown for #${button.id}`);
+            console.log(`DEBUG: Disposed existing dropdown for #${button.id}`);
           }
           // Crear nueva instancia de Dropdown con popperConfig para evitar ser cortado
           new bootstrap.Dropdown(button, {
@@ -532,35 +556,38 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
               };
             }
           });
-          console.log(`Initialized new dropdown for #${button.id}`);
+          console.log(`DEBUG: Initialized new dropdown for #${button.id}`);
         });
         if (dropdownToggles.length === 0) {
-            console.log('No dropdown toggles found to initialize.');
+            console.log('DEBUG: No dropdown toggles found to initialize.');
         } else {
-            console.log(`✅ Finished initializing ${dropdownToggles.length} Bootstrap Dropdowns.`);
+            console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Dropdowns.`);
         }
       } else {
-        console.warn('⚠️ bootstrap.Dropdown no está disponible. Esto es crucial para que los dropdowns funcionen. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
+        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible. Esto es crucial para que los dropdowns funcionen. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
       }
     }
 
-    // Función principal para cargar estudiantes en la tabla y actualizar contadores
+    // Función principal para cargar profesores en la tabla y actualizar contadores
     async function loadProfesores(page) {
+      console.log(`DEBUG: loadProfesores called for page ${page}.`);
       profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center">Cargando profesores...</td></tr>`;
       paginationControls.innerHTML = ''; 
-      totalProfesoresCount.textContent = '...';
-      activeProfesoresCount.textContent = '...';
-      inactiveProfesoresCount.textContent = '...';
+      TotalProfesores.textContent = '...';
+      ProfesoresActivos.textContent = '...';
+      ProfesoresInactivos.textContent = '...';
 
       try {
-        console.log(`DEBUG: Solicitando profesores para la página ${page}...`);
+        console.log(`DEBUG: Solicitando profesores para la página ${page} a http://localhost:3001/api/profesores?page=${page}&limit=${itemsPerPage}`);
         const response = await fetch(`http://localhost:3001/api/profesores?page=${page}&limit=${itemsPerPage}`);
+        
         if (!response.ok) {
           if (response.status === 404) {
             profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron profesores.</td></tr>`;
-            totalProfesoresCount.textContent = '0';
-            activeProfesoresCount.textContent = '0';
-            inactiveProfesoresCount.textContent = '0';
+            TotalProfesores.textContent = '0';
+            ProfesoresActivos.textContent = '0';
+            ProfesoresInactivos.textContent = '0';
+            console.log("DEBUG: 404 - No se encontraron profesores.");
             return;
           }
           throw new Error(`Error HTTP: ${response.status}`);
@@ -574,19 +601,19 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         console.log("DEBUG: Datos de profesores recibidos del backend:", data);
 
         // Actualizar contadores
-        totalProfesoresCount.textContent = data.totalCount || '0';
-        activeProfesoresCount.textContent = data.activeCount || '0';
-        inactiveProfesoresCount.textContent = '0';
+        TotalProfesores.textContent = data.totalCount || '0';
+        ProfesoresActivos.textContent = data.activeCount || '0';
+        ProfesoresInactivos.textContent = data.inactiveCount || '0'; // Asegúrate de actualizar también el contador de inactivos
 
-        profesoresTableBody.innerHTML = ''; 
+        profesoresTableBody.innerHTML = ''; // Limpiar las filas existentes
 
         if (profesores.length === 0) {
           profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron profesores.</td></tr>`;
+          console.log("DEBUG: Array de profesores vacío después de fetch.");
           return;
         }
 
-        // Procesar los resultados para asegurar que los arrays de IDs y nombres sean vacíos si no hay datos
-        const processedProfesores = profesores.map(profesor => ({
+        const processedProfesores = profesor.map(profesor => ({
           ...profesor,
           // Aseguramos que `periodoAcademicoNames` sea un array, incluso si viene vacío de la DB
           // Si el backend envía "N/A", lo convertimos en un array que contiene "N/A"
@@ -602,10 +629,8 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
           seccionIds: (typeof profesor.seccionIds === 'string' && profesor.seccionIds) ? profesor.seccionIds.split(',').map(s => s.trim()).filter(Boolean) : [],
           direccion: profesor.direccion || 'N/A' 
         }));
-
-        console.log("DEBUG: Datos de profesores procesados para renderizar (frontend):", processedProfesores);
-
         processedProfesores.forEach((profesor, index) => {
+          console.log(`DEBUG: Renderizando profesor ${index + 1}:`, profesor);
           const profesorDataAttribute = JSON.stringify(profesor);
 
           const profesorStatus = profesor.estado === 1 ? 'Activo' : (profesor.estado === 0 ? 'Inactivo' : 'Desconocido'); 
@@ -615,14 +640,9 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
           row.dataset.id = profesor.id_usuario;
           row.dataset.profesorData = profesorDataAttribute; 
 
-          // ************************************************************
-          // DEBUGGING: Log the periodoAcademicoNames at render time
-          console.log(`DEBUG: Estudiante ${estudiante.cedula}: Periodo Académico para renderizar en tabla:`, estudiante.periodoAcademicoNames.join(', '));
-          // ************************************************************
-
           row.innerHTML = `
             <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
-            <td>${profesor.periodoAcademicoNames.join(', ')}</td> 
+            <td>${profesor.periodoAcademicoNames ? profesor.periodoAcademicoNames.split(',').join(', ') : 'N/A'}</td>
             <td>${profesor.cedula || ''}</td>
             <td>${profesor.primer_nombre || ''}</td>
             <td>${profesor.primer_apellido || ''}</td>
@@ -644,44 +664,37 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
           profesoresTableBody.appendChild(row);
         });
 
-        console.log('Debugging Bootstrap (after rows appended, before initializeDropdowns):');
-        console.log('window.bootstrap:', typeof window.bootstrap, window.bootstrap);
-        if (typeof window.bootstrap !== 'undefined') {
-          console.log('window.bootstrap.Dropdown:', typeof window.bootstrap.Dropdown, window.bootstrap.Dropdown);
-        } else {
-          console.error('Bootstrap global object (window.bootstrap) is not found. Ensure Bootstrap JS is loaded before this script.');
-        }
-
         initializeDropdowns();
-
         setupPagination(totalPages, currentPage);
-        setupActionListeners(processedProfesores); 
+        setupActionListeners(processedProfesores);
+        console.log("DEBUG: Renderizado de profesores completado.");
       } catch (error) {
-        console.error('Error al cargar profesores:', error);
+        console.error('❌ Error al cargar profesores:', error);
         profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar profesores. Intente nuevamente.</td></tr>`;
-        totalProfesoresCount.textContent = '0';
-        activeProfesoresCount.textContent = '0';
-        inactiveProfesoresCount.textContent = '0';
+        TotalProfesores.textContent = '0';
+        ProfesoresActivos.textContent = '0';
+        ProfesoresInactivos.textContent = '0';
       }
     }
 
     // Configurar listeners para los botones de acción en cada fila
     function setupActionListeners(profesoresData) {
+        console.log("DEBUG: Setting up action listeners for professor table.");
         profesoresTableBody.querySelectorAll('.dropdown-item').forEach(item => {
-            item.removeEventListener('click', handleActionClick); 
+            item.removeEventListener('click', handleActionClick); // Eliminar listeners anteriores para evitar duplicados
             item.addEventListener('click', handleActionClick);
 
             function handleActionClick(e) {
                 e.preventDefault();
                 const action = e.currentTarget.dataset.action;
                 const userId = e.currentTarget.dataset.id;
-                const profesor = profesoresData.find(s => s.id_usuario.toString() === userId);
+                const profesor = profesoresData.find(p => p.id_usuario.toString() === userId); 
 
                 if (!profesor) {
-                    console.error('Profesor no encontrado para ID:', userId);
+                    console.error('Error: Profesor no encontrado para ID:', userId);
                     return;
                 }
-
+                console.log(`DEBUG: Action "${action}" triggered for professor ID: ${userId}`);
                 switch (action) {
                     case 'ver-mas':
                         mostrarDetallesProfesor(profesor);
@@ -697,9 +710,10 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
                 }
             }
         });
+        console.log("DEBUG: Action listeners setup complete.");
     }
 
-    // Mostrar los detalles del estudiante en el modal
+    // Mostrar los detalles del profesor en el modal
     async function mostrarDetallesProfesor(profesor) {
         console.log("DEBUG: Datos del profesor para 'Ver más información':", profesor); 
 
@@ -712,16 +726,23 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         detalleDireccion.textContent = profesor.direccion || 'N/A'; 
         detalleEstadoProfesor.textContent = profesorStatusModal;
         detalleUltimaConexion.textContent = profesor.ultima_conexion ? new Date(profesor.ultima_conexion).toLocaleDateString() : 'No ha ingresado a la pagina';
-        detallePeriodoAcademico.textContent = (profesor.periodoAcademicoNames && profesor.periodoAcademicoNames.length > 0) ? profesor.periodoAcademicoNames.join(', ') : 'N/A';
-        detalleSeccion.textContent = (profesor.seccionNames && profesor.seccionNames.length > 0) ? profesor.seccionNames.join(', ') : 'N/A';
-        detalleCursos.textContent = (profesor.cursosNames && profesor.cursosNames.length > 0) ? profesor.cursosNames.join(', ') : 'Ninguno';
-        detalleMaterias.textContent = (profesor.materiasNames && profesor.materiasNames.length > 0) ? profesor.materiasNames.join(', ') : 'Ninguna';
+        detallePeriodoAcademico.textContent = (profesor.periodoAcademicoNames && profesor.periodoAcademicoNames.length > 0) ? profesor.periodoAcademicoNames.join(', ') : 'N/A';        
+        detalleSeccion.textContent = Array.isArray(profesor.seccionNames) && profesor.seccionNames.length > 0
+            ? profesor.seccionNames.join(', ')
+            : 'N/A';
+        detalleCursos.textContent = Array.isArray(profesor.cursosNames) && profesor.cursosNames.length > 0
+            ? profesor.cursosNames.join(', ')
+            : 'Ninguno';
+        detalleMaterias.textContent = Array.isArray(profesor.materiasNames) && profesor.materiasNames.length > 0
+            ? profesor.materiasNames.join(', ')
+            : 'Ninguna';
 
-        modalVerMasInformacionEstudiante.show();
+        modalVerMasInformacionProfesor.show();
+        console.log("DEBUG: Modal 'Ver más información' mostrado.");
     }
 
 
-    // Función para Editar Estudiante
+    // Función para Editar Profesor
     async function editarProfesor(profesor) {
         console.log("DEBUG: Profesor para editar:", profesor); 
 
@@ -735,7 +756,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         editDireccion.value = profesor.direccion || ''; 
 
         // Separar teléfono en código de área y número
-        if (profesor.telefono) {
+        if (profesor.telefono && typeof profesor.telefono === 'string') {
             const [codigo, numero] = profesor.telefono.split('-');
             editCodigoAreaSelect.value = codigo || '';
             editNumeroTelefonoInput.value = numero || '';
@@ -743,6 +764,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
             editCodigoAreaSelect.value = '';
             editNumeroTelefonoInput.value = '';
         }
+        console.log("DEBUG: Teléfono parseado. Codigo:", editCodigoAreaSelect.value, "Numero:", editNumeroTelefonoInput.value);
 
         // Cargar periodos y pre-seleccionar
         await cargarPeriodos('edit');
@@ -754,6 +776,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         } else {
             editPeriodoAcademico.value = ''; 
         }
+        console.log("DEBUG: Periodo académico pre-seleccionado:", editPeriodoAcademico.value);
 
         // Cargar cursos y pre-seleccionar
         await cargarCursos('edit'); 
@@ -773,7 +796,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
                         }
                     }, 100); 
                 } else {
-                    editMaterias.value = ''; 
+                    editMaterias.innerHTML = '<option value="" selected disabled>No hay materias disponibles para pre-seleccionar</option>'; // Mejor mensaje
                     editMaterias.disabled = false; 
                 }
             } else { 
@@ -786,6 +809,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
             editMaterias.innerHTML = '<option value="" selected disabled>Primero seleccione un curso</option>';
             editMaterias.disabled = true;
         }
+        console.log("DEBUG: Curso y Materias pre-seleccionadas.");
 
         // Cargar secciones y pre-seleccionar
         await cargarSecciones('edit');
@@ -797,11 +821,13 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         } else {
             editSeccion.value = ''; 
         }
+        console.log("DEBUG: Sección pre-seleccionada:", editSeccion.value);
 
-        modalEditarEstudiante.show();
+        modalEditarProfesor.show();
+        console.log("DEBUG: Modal 'Editar Profesor' mostrado.");
     }
 
-    // Función para Desactivar Estudiante (Eliminación Lógica)
+    // Función para Desactivar Profesor (Eliminación Lógica)
     async function desactivarProfesor(profesor) {
         const confirmResult = await mostrarConfirmacion(
             `¿Estás seguro de que quieres desactivar al profesor ${profesor.primer_nombre} ${profesor.primer_apellido}? Esto cambiará su estado a "Inactivo".`
@@ -810,6 +836,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         if (!confirmResult) return;
 
         try {
+            console.log(`DEBUG: Desactivando profesor ID: ${profesor.id_usuario}`);
             const response = await fetch(`http://localhost:3001/api/profesores/${profesor.id_usuario}/estado`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -824,8 +851,9 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
 
             mostrarMensajeExito(`Profesor ${profesor.primer_nombre} ${profesor.primer_apellido} ha sido desactivado exitosamente.`);
             loadProfesores(currentPage); 
+            console.log("DEBUG: Profesor desactivado y tabla recargada.");
         } catch (error) {
-            console.error('Error al desactivar profesor:', error);
+            console.error('❌ Error al desactivar profesor:', error);
             mostrarErrorAlUsuario(`Error al desactivar al profesor: ${error.message}`);
         }
     }
@@ -833,6 +861,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
 
     // Función de paginación (generalizada)
     function setupPagination(totalPages, currentPage) {
+      console.log('DEBUG: setupPagination called. Total pages:', totalPages, 'Current page:', currentPage);
       paginationControls.innerHTML = '';
       if (totalPages <= 1) return;
 
@@ -930,9 +959,10 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
       ul.appendChild(nextLi);
 
       paginationControls.appendChild(ul);
+      console.log("DEBUG: Pagination controls setup complete.");
     }
 
-    loadProfesores(1); 
+    loadProfesores(1); // Carga inicial de profesores
 
     // Funciones auxiliares
     function mostrarError(elemento, mensaje) {
@@ -942,6 +972,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         errorElement.textContent = mensaje;
         errorElement.style.display = 'block';
       }
+      console.log(`DEBUG: Error mostrado para ${elemento.id}: ${mensaje}`);
     }
 
     function limpiarError(elemento) {
@@ -950,6 +981,7 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
       if (errorElement) {
         errorElement.style.display = 'none';
       }
+      console.log(`DEBUG: Error limpiado para ${elemento.id}.`);
     }
 
     function mostrarMensajeExito(mensaje) {
@@ -958,9 +990,11 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
       alerta.style.zIndex = '1100';
       alerta.textContent = mensaje;
       document.body.appendChild(alerta);
+      console.log(`DEBUG: Mensaje de éxito mostrado: ${mensaje}`);
       
       setTimeout(() => {
         alerta.remove();
+        console.log("DEBUG: Mensaje de éxito removido.");
       }, 3000);
     }
 
@@ -970,15 +1004,25 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
       alerta.style.zIndex = '1100';
       alerta.textContent = mensaje;
       document.body.appendChild(alerta);
+      console.log(`DEBUG: Mensaje de error mostrado al usuario: ${mensaje}`);
       
       setTimeout(() => {
         alerta.remove();
+        console.log("DEBUG: Mensaje de error removido.");
       }, 5000);
     }
 
     // Función para mostrar un modal de confirmación personalizado
     function mostrarConfirmacion(mensaje) {
+      console.log("DEBUG: [mostrarConfirmacion] Iniciando...");
       return new Promise((resolve) => {
+        if (typeof window.bootstrap === 'undefined' || typeof window.bootstrap.Modal === 'undefined') {
+          console.error("ERROR: [mostrarConfirmacion] Bootstrap JS (o Modal) no está disponible. No se puede mostrar el modal de confirmación.");
+          mostrarErrorAlUsuario("Un error interno impide mostrar la confirmación. Por favor, recargue la página.");
+          resolve(false); 
+          return;
+        }
+
         const confirmModalHtml = `
           <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -991,8 +1035,8 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
                   ${mensaje}
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirmar</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelActionBtnModal">Cancelar</button>
+                  <button type="button" class="btn btn-danger" id="confirmActionBtnModal">Confirmar</button>
                 </div>
               </div>
             </div>
@@ -1000,19 +1044,74 @@ import "../../style/style-admin/profesores.css"; /* Ahora solo importa est-c.txt
         `;
         document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
         const confirmModalElement = document.getElementById('customConfirmModal');
-        const customConfirmModal = new bootstrap.Modal(confirmModalElement);
+        console.log("DEBUG: [mostrarConfirmacion] customConfirmModalElement (después de insertarlo):", confirmModalElement); 
+        
+        let customConfirmModal;
+        try {
+            customConfirmModal = new bootstrap.Modal(confirmModalElement);
+            console.log("DEBUG: [mostrarConfirmacion] customConfirmModal instancia creada:", customConfirmModal); 
+        } catch (e) {
+            console.error("ERROR: [mostrarConfirmacion] Fallo al crear instancia de Bootstrap Modal:", e);
+            mostrarErrorAlUsuario("Un error al inicializar el modal impide la confirmación. Contacte soporte.");
+            resolve(false);
+            return;
+        }
 
-        const confirmActionBtn = document.getElementById('confirmActionBtn');
-        confirmActionBtn.addEventListener('click', () => {
-          customConfirmModal.hide();
-          resolve(true);
-        });
+        let isPromiseResolved = false; // Flag to prevent multiple resolutions
+
+        // Función para resolver la promesa y limpiar
+        const cleanupAndResolve = (result) => {
+            if (!isPromiseResolved) {
+                isPromiseResolved = true;
+                console.log(`DEBUG: [mostrarConfirmacion] Promesa resuelta con: ${result}`);
+                try {
+                    // Solo intentar ocultar el modal si la instancia existe y el modal está visible
+                    if (customConfirmModal && confirmModalElement.classList.contains('show')) {
+                        customConfirmModal.hide(); 
+                        console.log("DEBUG: [mostrarConfirmacion] customConfirmModal.hide() llamado.");
+                    }
+                } catch (e) {
+                    console.error("ERROR: [mostrarConfirmacion] Fallo al ocultar modal durante cleanup:", e);
+                }
+                // Asegura que el elemento del modal se elimina después de que esté completamente oculto
+                confirmModalElement.addEventListener('hidden.bs.modal', () => {
+                    console.log("DEBUG: [mostrarConfirmacion] Evento 'hidden.bs.modal' disparado. Removiendo elemento del DOM.");
+                    confirmModalElement.remove();
+                }, { once: true });
+                resolve(result);
+            }
+        };
+
+        const confirmActionBtn = document.getElementById('confirmActionBtnModal');
+        const cancelActionBtn = document.getElementById('cancelActionBtnModal');
+
+        if (confirmActionBtn) {
+            confirmActionBtn.addEventListener('click', () => {
+                console.log("DEBUG: [mostrarConfirmacion] Botón 'Confirmar' clickeado.");
+                cleanupAndResolve(true);
+            }, { once: true });
+            console.log("DEBUG: [mostrarConfirmacion] Listener para 'Confirmar' añadido.");
+        } else {
+            console.error("ERROR: [mostrarConfirmacion] Botón 'confirmActionBtnModal' no encontrado.");
+            cleanupAndResolve(false); 
+        }
+        
+        if (cancelActionBtn) {
+            cancelActionBtn.addEventListener('click', () => {
+                console.log("DEBUG: [mostrarConfirmacion] Botón 'Cancelar' clickeado.");
+                cleanupAndResolve(false);
+            }, { once: true });
+            console.log("DEBUG: [mostrarConfirmacion] Listener para 'Cancelar' añadido.");
+        } else {
+            console.error("ERROR: [mostrarConfirmacion] Botón 'cancelActionBtnModal' no encontrado.");
+        }
 
         confirmModalElement.addEventListener('hidden.bs.modal', () => {
-          confirmModalElement.remove();
-          resolve(false); 
+            console.log("DEBUG: [mostrarConfirmacion] Evento 'hidden.bs.modal' disparado (posiblemente por ESC/clic fuera, o hide() programático).");
+            cleanupAndResolve(false); 
         }, { once: true }); 
 
+        console.log("DEBUG: [mostrarConfirmacion] Llamando a customConfirmModal.show()...");
         customConfirmModal.show();
       });
     }

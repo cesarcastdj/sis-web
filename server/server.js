@@ -10,7 +10,6 @@ import { syncRelationships, syncSingleRelationship } from './f(x)/relaciones.js'
 // Middlewares
 import { isAuthenticated } from './middleware/protegerRutas.js'; // Middleware de autenticación
 
-
 // Rutas
 import rutaLogin from './ruta 5/ruta-login.js';
 import rutaComunes from './ruta 5/ruta-comunes.js'; 
@@ -25,18 +24,29 @@ const app = express();
 
 // --- Middlewares Globales ---
 app.use(cors({
-  origin: 'http://localhost:4321', // ajusta si usas otro puerto, creo q es imporntate para cuando se ponga en produccion
-  credentials: true
+    origin: ['http://localhost:4321', 'http://127.0.0.1:4321'], // Permitir ambos localhost y 127.0.0.1
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json()); // Para parsear JSON en el cuerpo de las peticiones
 app.use(session({
-  secret: 'gllr_sistema_secreto',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 60 * 60 * 1000 // 60 minutos
-  }
+    secret: 'gllr_sistema_secreto',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // set to true if using https
+        httpOnly: true,
+        maxAge: 60 * 60 * 1000 // 60 minutos
+    }
 }));
+
+// Middleware para debugging de sesión
+app.use((req, res, next) => {
+    console.log('Sesión actual:', req.session);
+    next();
+});
 
 app.use('/', rutaLogin); 
 app.use('/api', rutaComunes); 

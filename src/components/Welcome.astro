@@ -336,7 +336,7 @@ import '../style/welcome.css';
                             if (data.rol === 'admin') {
                                 window.location.href = '/Admin-Control/Admin-home';
                             } else if (data.rol === 'estudiante') {
-                                window.location.href = '/Students/Students-Control';
+                                window.location.href = '/Students-Control/Students-Control';
                             }
                         }, 200);    
                     });
@@ -700,7 +700,7 @@ import '../style/welcome.css';
                 }
 
                 // Mostrar mensaje de éxito y redirigir o abrir modal de login
-                showCustomAlert('Usuario registrado exitosamente. Ya puedes iniciar sesión.', () => {
+                showCustomAlert('Usuario registrado exitosamente. Espera aprobación del administrador.', () => {
                     const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
                     modal.hide();
                     new bootstrap.Modal(document.getElementById('loginModal')).show(); // Abrir modal de login
