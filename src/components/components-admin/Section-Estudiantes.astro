@@ -187,8 +187,8 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 
             <div class="col-md-6 mb-3">
               <label for="editCurso" class="form-label">Curso</label>
-              <select class="form-select" id="editCurso"> 
-                <option value="" selected disabled>Seleccione un curso</option>
+              <select class="form-select" id="editCurso" style="color: var(--color-tertiary);"> 
+                <option value="" style="color: var(--color-tertiary);" selected disabled>Seleccione un curso</option>
               </select>
               <div class="invalid-feedback">Por favor seleccione un curso</div>
             </div>
@@ -196,7 +196,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label for="editMaterias" class="form-label">Materias</label>
+              <label for="editMaterias" class="form-label" >Materias</label>
               <select class="form-select" id="editMaterias" disabled> 
                 <option value="" selected disabled>Primero seleccione un curso</option>
               </select>
@@ -331,31 +331,31 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
     }
 
     // Función para cargar materias por curso
-    async function cargarMateriasPorCurso(cursoId, prefix = '') {
-      const targetMateriasSelect = prefix === 'edit' ? editMaterias : null; 
+    async function cargarMateriasPorCurso(cursoId, periodoId) {
+      const targetMateriasSelect = editMaterias; 
       if (!targetMateriasSelect) return; 
 
       targetMateriasSelect.innerHTML = '<option value="" selected disabled>Cargando materias...</option>';
       targetMateriasSelect.disabled = true;
-      if (!cursoId) {
-        targetMateriasSelect.innerHTML = '<option value="" selected disabled>Primero seleccione un curso</option>';
+      if (!cursoId || !periodoId) {
+        targetMateriasSelect.innerHTML = '<option value="" selected disabled>Primero seleccione un curso y un periodo</option>';
         return;
       }
       try {
-        const response = await fetch(`http://localhost:3001/api/cursos/${cursoId}/materias`);
+        const response = await fetch(`${API_BASE_URL}/materias?curso=${cursoId}&periodo=${periodoId}`);
         if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
         const materias = await response.json();
-        targetMateriasSelect.innerHTML = ''; 
+        targetMateriasSelect.innerHTML = '';
         if (materias.length === 0) {
-          targetMateriasSelect.innerHTML = '<option value="" disabled>No hay materias para este curso</option>';
+          targetMateriasSelect.innerHTML = '<option value="" disabled>No hay materias para este curso y periodo</option>';
         } else {
           materias.forEach(materia => {
             const option = document.createElement('option');
             option.value = materia.id_materia;
-            option.textContent = materia.materia;
+            option.textContent = materia.nombre_materia || materia.materia;
             targetMateriasSelect.appendChild(option);
           });
-          targetMateriasSelect.disabled = false; 
+          targetMateriasSelect.disabled = false;
         }
       }
       catch (error) {
@@ -398,7 +398,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 
     // Event listeners for Edit Student Modal
     editCurso.addEventListener('change', async function() { 
-        await cargarMateriasPorCurso(this.value, 'edit');
+        await cargarMateriasPorCurso(this.value, editPeriodoAcademico.value);
         const studentBeingEdited = studentsTableBody.querySelector(`[data-id="${editIdUsuario.value}"]`);
         if (studentBeingEdited) {
             const studentData = JSON.parse(studentBeingEdited.dataset.studentData); 
@@ -458,11 +458,10 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           segundoApellido: document.getElementById('editSegundoApellido').value.trim(),
           telefono: telefonoCompleto,
           direccion: editDireccion.value.trim(), 
-          // Envía array vacío si no se selecciona o el valor es inválido
-          periodoAcademico: editPeriodoAcademico.value && editPeriodoAcademico.value !== '' ? [editPeriodoAcademico.value] : [],
-          materias: editMaterias.value && editMaterias.value !== '' ? [editMaterias.value] : [], 
-          cursos: editCurso.value && editCurso.value !== '' ? [editCurso.value] : [], 
-          secciones: editSeccion.value && editSeccion.value !== '' ? [editSeccion.value] : [], 
+          periodoAcademico: editPeriodoAcademico.value && editPeriodoAcademico.value !== '' ? editPeriodoAcademico.value : undefined,
+          materias: editMaterias.value && editMaterias.value !== '' ? editMaterias.value : undefined, 
+          cursos: editCurso.value && editCurso.value !== '' ? editCurso.value : undefined, 
+          secciones: editSeccion.value && editSeccion.value !== '' ? editSeccion.value : undefined, 
         };
 
 
@@ -475,7 +474,16 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || 'Error al actualizar el estudiante');
+          // Si la respuesta tiene el mensaje de éxito, igual muestra éxito
+          if (data && data.message && data.message.includes('actualizado')) {
+            mostrarMensajeExito(data.message);
+            setTimeout(() => {
+              modalEditarEstudiante.hide();
+              loadStudents(currentPage);
+            }, 1500);
+            return;
+          }
+          throw new Error(data.detalle || data.error || 'Error al actualizar el estudiante');
         }
 
         mostrarMensajeExito('Estudiante actualizado exitosamente');
@@ -750,7 +758,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
             }
             
             if (editCurso.value && editCurso.value !== '') { 
-                await cargarMateriasPorCurso(editCurso.value, 'edit'); 
+                await cargarMateriasPorCurso(editCurso.value, editPeriodoAcademico.value); 
                 if (estudiante.materiasIds && estudiante.materiasIds.length > 0) {
                     setTimeout(() => {
                         editMaterias.value = estudiante.materiasIds[0]; 

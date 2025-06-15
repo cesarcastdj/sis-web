@@ -526,6 +526,91 @@ body {
     box-shadow: var(--box-shadow-button-gradient);
     transform: translateY(-3px) scale(1.02);
 }
+.lista-usuarios {
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1.5px solid #c77dff;
+    border-radius: 5px;
+    padding: 8px;
+    background: #181818;
+  }
+  .usuario-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #222;
+    color: #fff;
+    transition: background 0.2s, border 0.2s;
+    border: 1.5px solid transparent;
+  }
+  .usuario-item.selected {
+    background: #6f42c1;
+    color: #fff;
+    border: 1.5px solid #e754e7;
+  }
+  .usuario-item .check-icon {
+    color: var(--color-pink-hover);
+    font-size: 1.2em;
+    display: inline;
+    margin-left: 6px;
+  }
+  /* Input radio personalizado para profesor */
+  .usuario-item input[type="radio"]:checked {
+    accent-color: #c77dff;
+  }
+  /* Input radio círculo más grande y color institucional */
+  .usuario-item input[type="radio"] {
+    width: 1.1em;
+    height: 1.1em;
+    accent-color: #c77dff;
+    border: 2px solid #c77dff;
+    margin-right: 8px;
+  }
+  /* Borde divisor vertical */
+  .col-md-7.border-end {
+    border-right: 2px solid #c77dff !important;
+  }
+  /* Input de búsqueda con borde morado */
+  #buscarEstudiante, #buscarProfesor {
+    border: 1.5px solid #c77dff;
+    color: #fff;
+    background: #181818;
+  }
+  #buscarEstudiante:focus, #buscarProfesor:focus {
+    border-color: #e754e7;
+    box-shadow: 0 0 0 2px #e754e733;
+    color: #fff;
+    background: #181818;
+  }
+  /* Botón guardar con color institucional */
+  .modal-footer form button {
+    width: 45%;
+    flex-wrap: wrap;
+    margin: 0 auto;
+    padding: 1rem 2.5rem;
+    font-size: 1.2rem;
+    font-weight: var(--font-weight-700);
+    border-radius: var(--border-radius-12);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .modal-footer form button[type="submit"] {
+    background-color: var(--color-primary);
+    color: var(--color-quaternary);
+    border: none;
+    box-shadow: var(--box-shadow-button-gradient);
+  }
+  .modal-footer form button[type="submit"]:hover {
+    background-color: var(--color-pink-hover);
+    box-shadow: 0 0 10px var(--color-pink-hover);
+    transform: translateY(-3px) scale(1.02);
+}
+
+
 
 .form-check-input:checked {
     background-color: var(--color-primary);

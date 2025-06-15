@@ -13,7 +13,13 @@ const router = express.Router();
 
 // Obtener cursos disponibles
 router.get('/cursos', (req, res) => {
-    db.query('SELECT id_curso, curso AS nombre_curso FROM cursos WHERE activo = 1', (err, results) => {
+    const sql = `
+      SELECT c.id_curso, c.curso AS nombre_curso, cp.id_periodo, p.periodo AS nombre_periodo
+      FROM cursos c
+      JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+      JOIN periodo p ON cp.id_periodo = p.id_periodo
+      WHERE c.activo = 1`;
+    db.query(sql, (err, results) => {
       if (err) return res.status(500).json({ error: 'Error al obtener cursos', detalle: err.message });
       res.json(results);
     });
@@ -106,64 +112,74 @@ router.post('/register-materia', async (req, res) => { // Mantengo esta ruta exi
 // 🔹 Ruta para registrar un nuevo curso 🔹
 router.post('/register-curso', async (req, res) => {
     try {
-      const { nombreCurso, id_periodo, id_seccion, agregarMateria, nombreMateria = null, estudiantesAsignados = [] } = req.body;
+      const { nombreCurso, id_periodo, agregarMateria, nombreMateria = null, estudiantesAsignados = [] } = req.body;
 
-      if (!nombreCurso || !id_periodo || !id_seccion) {
-        return res.status(400).json({ error: 'El nombre del curso, periodo y sección son obligatorios.' });
+      if (!nombreCurso || !id_periodo) {
+        return res.status(400).json({ error: 'El nombre del curso y el periodo son obligatorios.' });
       }
       if (agregarMateria && !nombreMateria) {
         return res.status(400).json({ error: 'El nombre de la materia es obligatorio si se desea agregar.' });
       }
 
-      db.query('INSERT INTO cursos (curso, id_periodo, id_seccion, activo) VALUES (?, ?, ?, 1)',
-        [nombreCurso, id_periodo, id_seccion], async (err, cursoResult) => {
+      // Insertar el curso solo con nombre
+      db.query('INSERT INTO cursos (curso, activo) VALUES (?, 1)',
+        [nombreCurso], async (err, cursoResult) => {
           if (err) {
             console.error('Error insertando curso:', err);
             return res.status(500).json({ error: 'Error al registrar el curso.', detalle: err.message });
           }
           const id_curso = cursoResult.insertId;
 
-          const assignments = [];
+          // Insertar la relación en cursos_periodo
+          db.query('INSERT INTO cursos_periodo (id_curso, id_periodo) VALUES (?, ?)',
+            [id_curso, id_periodo], async (err2, relResult) => {
+              if (err2) {
+                console.error('Error insertando relación curso-periodo:', err2);
+                return res.status(500).json({ error: 'Error al registrar la relación curso-periodo.', detalle: err2.message });
+              }
 
-          if (agregarMateria && nombreMateria) {
-            assignments.push(new Promise((resolve, reject) => {
-              db.query('INSERT INTO materias (id_curso, materia, activo) VALUES (?, ?, 1)',
-                [id_curso, nombreMateria], (materiaErr, materiaRes) => {
-                  if (materiaErr) return reject(materiaErr);
-                  const id_materia_creada = materiaRes.insertId;
-                  if (estudiantesAsignados.length > 0) {
-                    const materiaEstValues = estudiantesAsignados.map(id_est => [id_est, id_materia_creada]);
-                    db.query('INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?',
-                      [materiaEstValues], (estMatErr) => {
-                        if (estMatErr) return reject(estMatErr);
+              const assignments = [];
+
+              if (agregarMateria && nombreMateria) {
+                assignments.push(new Promise((resolve, reject) => {
+                  db.query('INSERT INTO materias (id_curso, materia, activo) VALUES (?, ?, 1)',
+                    [id_curso, nombreMateria], (materiaErr, materiaRes) => {
+                      if (materiaErr) return reject(materiaErr);
+                      const id_materia_creada = materiaRes.insertId;
+                      if (estudiantesAsignados.length > 0) {
+                        const materiaEstValues = estudiantesAsignados.map(id_est => [id_est, id_materia_creada]);
+                        db.query('INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?',
+                          [materiaEstValues], (estMatErr) => {
+                            if (estMatErr) return reject(estMatErr);
+                            resolve();
+                          });
+                      } else {
                         resolve();
-                      });
-                  } else {
-                    resolve();
-                  }
-                });
-            }));
-          }
+                      }
+                    });
+                }));
+              }
 
-          if (estudiantesAsignados.length > 0) {
-            const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-            const cursoValues = estudiantesAsignados.map(id_est => [id_est, id_curso, currentDateTime]);
-            assignments.push(new Promise((resolve, reject) => {
-              db.query('INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES ?',
-                [cursoValues], (cursoEstErr) => {
-                  if (cursoEstErr) return reject(cursoEstErr);
-                  resolve();
-                });
-            }));
-          }
+              if (estudiantesAsignados.length > 0) {
+                const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                const cursoValues = estudiantesAsignados.map(id_est => [id_est, id_curso, currentDateTime]);
+                assignments.push(new Promise((resolve, reject) => {
+                  db.query('INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES ?',
+                    [cursoValues], (cursoEstErr) => {
+                      if (cursoEstErr) return reject(cursoEstErr);
+                      resolve();
+                    });
+                }));
+              }
 
-          Promise.all(assignments)
-            .then(() => {
-              res.json({ message: 'Curso registrado exitosamente.', id_curso });
-            })
-            .catch(assignError => {
-              console.error('Error asignando elementos al curso:', assignError);
-              res.status(500).json({ error: 'Curso registrado, pero hubo un error al asignar elementos adicionales.', detalle: assignError.message });
+              Promise.all(assignments)
+                .then(() => {
+                  res.json({ message: 'Curso registrado exitosamente.', id_curso });
+                })
+                .catch(assignError => {
+                  console.error('Error asignando elementos al curso:', assignError);
+                  res.status(500).json({ error: 'Curso registrado, pero hubo un error al asignar elementos adicionales.', detalle: assignError.message });
+                });
             });
         });
     } catch (error) {
@@ -266,10 +282,12 @@ router.get('/periodos-academicos/:id', /*isAuthenticated,*/ async (req, res) => 
 
       const periodo = rows[0];
 
+      // Obtener cursos de este periodo usando cursos_periodo
       const [cursosResult] = await db.promise().query(`
-        SELECT id_curso, curso AS curso
-        FROM cursos
-        WHERE id_periodo = ?;
+        SELECT c.id_curso, c.curso AS curso
+        FROM cursos c
+        JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+        WHERE cp.id_periodo = ?;
       `, [id]);
       const cursos_info = cursosResult.map(c => ({ id_curso: c.id_curso, curso: c.curso }));
 
@@ -539,17 +557,16 @@ router.get('/cursos-academicos/:id', /*isAuthenticated,*/ async (req, res) => {
  * @description Crea un nuevo curso académico.
  * @param {string} req.body.nombreCurso - Nombre del curso.
  * @param {number} req.body.id_periodo - ID del periodo académico asociado.
- * @param {number} req.body.id_seccion - ID de la sección asociada.
  * @param {boolean} [req.body.agregarMateria=false] - Indica si se debe agregar una materia junto con el curso.
  * @param {string} [req.body.nombreMateria] - Nombre de la materia si se va a agregar (obligatorio si agregarMateria es true).
  * @param {Array<number>} [req.body.estudiantesAsignados=[]] - IDs de estudiantes a asignar al curso/materia.
  * @returns {json} Mensaje de éxito e ID del nuevo curso.
  */
 router.post('/cursos-academicos', /*isAuthenticated,*/ async (req, res) => {
-    const { nombreCurso, id_periodo, id_seccion, agregarMateria = false, nombreMateria = null, estudiantesAsignados = [] } = req.body;
+    const { nombreCurso, id_periodo, agregarMateria = false, nombreMateria = null, estudiantesAsignados = [] } = req.body;
 
-    if (!nombreCurso || !id_periodo || !id_seccion) {
-        return res.status(400).json({ error: 'El nombre del curso, periodo y sección son obligatorios.' });
+    if (!nombreCurso || !id_periodo) {
+        return res.status(400).json({ error: 'El nombre del curso y el periodo son obligatorios.' });
     }
     if (agregarMateria && !nombreMateria) {
         return res.status(400).json({ error: 'El nombre de la materia es obligatorio si se desea agregar.' });
@@ -560,12 +577,15 @@ router.post('/cursos-academicos', /*isAuthenticated,*/ async (req, res) => {
         connection = await db.promise().getConnection();
         await connection.beginTransaction();
 
-        // Insertar el nuevo curso
+        // Insertar el nuevo curso solo con nombre
         const [cursoResult] = await connection.query(
-            'INSERT INTO cursos (curso, id_seccion, activo) VALUES (?, ?, 1)',
-            [nombreCurso, id_seccion]
+            'INSERT INTO cursos (curso, activo) VALUES (?, 1)',
+            [nombreCurso]
         );
         const id_curso = cursoResult.insertId;
+
+        // Insertar la relación en cursos_periodo
+        await connection.query('INSERT INTO cursos_periodo (id_curso, id_periodo) VALUES (?, ?)', [id_curso, id_periodo]);
 
         // Asignar estudiantes al curso (si hay)
         if (estudiantesAsignados.length > 0) {
@@ -607,24 +627,23 @@ router.post('/cursos-academicos', /*isAuthenticated,*/ async (req, res) => {
  * @param {number} req.params.id - ID del curso a actualizar.
  * @param {string} req.body.nombre_curso - Nuevo nombre del curso.
  * @param {number} req.body.id_periodo - Nuevo ID del periodo.
- * @param {number} req.body.id_seccion - Nuevo ID de la sección.
  * @returns {json} Mensaje de éxito.
  */
 router.put('/cursos-academicos/:id', /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
-    const { nombre_curso, id_periodo, id_seccion } = req.body;
+    const { nombre_curso, id_periodo } = req.body;
 
     try {
-        if (!nombre_curso || !id_periodo || !id_seccion) {
-            return res.status(400).json({ error: 'Nombre del curso, periodo y sección son obligatorios para la actualización.' });
+        if (!nombre_curso || !id_periodo) {
+            return res.status(400).json({ error: 'Nombre del curso y periodo son obligatorios para la actualización.' });
         }
 
         const updateQuery = `
             UPDATE cursos
-            SET curso = ?, id_periodo = ?, id_seccion = ?
+            SET curso = ?, id_periodo = ?
             WHERE id_curso = ?;
         `;
-        await db.promise().query(updateQuery, [nombre_curso, id_periodo, id_seccion, id]);
+        await db.promise().query(updateQuery, [nombre_curso, id_periodo, id]);
 
         res.json({ message: 'Curso actualizado exitosamente.' });
 
@@ -770,23 +789,26 @@ router.get('/materias-academicas', /*isAuthenticated,*/ async (req, res) => {
                 m.activo AS estado,
                 c.curso AS nombre_curso,
                 c.id_curso,
-                -- Aseguramos que los nombres de periodo y seccion sean siempre cadenas, no nulos
                 IFNULL(p.periodo, 'N/A') AS nombre_periodo, 
                 IFNULL(s.seccion, 'N/A') AS nombre_seccion,
-                -- Subconsulta para el conteo de estudiantes
                 (
                     SELECT COUNT(DISTINCT um_est.id_usuario) 
                     FROM usuario_materias um_est
                     JOIN usuarios u_est ON um_est.id_usuario = u_est.id_usuario
                     WHERE um_est.id_materia = m.id_materia AND u_est.rol = 'estudiante'
                 ) AS total_estudiantes_materia,
-                -- Subconsulta para el conteo de profesores
                 (
                     SELECT COUNT(DISTINCT um_prof.id_usuario) 
                     FROM usuario_materias um_prof
                     JOIN usuarios u_prof ON um_prof.id_usuario = u_prof.id_usuario
                     WHERE um_prof.id_materia = m.id_materia AND u_prof.rol = 'profesor'
-                ) AS total_profesores_materia
+                ) AS total_profesores_materia,
+                (
+                    SELECT GROUP_CONCAT(CONCAT(u_prof.primer_nombre, ' ', u_prof.primer_apellido, ' (', u_prof.cedula, ')') SEPARATOR '|')
+                    FROM usuario_materias um_prof
+                    JOIN usuarios u_prof ON um_prof.id_usuario = u_prof.id_usuario
+                    WHERE um_prof.id_materia = m.id_materia AND u_prof.rol = 'profesor'
+                ) AS profesores_nombres
             FROM materias m
             JOIN cursos c ON m.id_curso = c.id_curso
             LEFT JOIN periodo p ON p.id_periodo = p.id_periodo
@@ -796,6 +818,13 @@ router.get('/materias-academicas', /*isAuthenticated,*/ async (req, res) => {
             LIMIT ?, ?;
         `;
         const [materias] = await db.promise().query(materiasQuery, [searchTerm, offset, parseInt(limit)]);
+
+        // Después de obtener las materias, procesar el campo profesores_nombres para que sea un array de objetos
+        materias.forEach(m => {
+          m.profesores_info = m.profesores_nombres
+            ? m.profesores_nombres.split('|').map(nombre => ({ nombre_completo: nombre }))
+            : [];
+        });
 
         res.json({
             materias,
@@ -818,7 +847,7 @@ router.get('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) => 
         const materiaQuery = `
             SELECT
                 m.id_materia,
-                m.materia AS materia,
+                m.materia AS nombre_materia,
                 m.activo AS estado,
                 m.id_curso,
                 c.curso AS curso,
@@ -916,10 +945,10 @@ router.post('/materias-academicas', /*isAuthenticated,*/ async (req, res) => {
 // Actualizar una materia existente
 router.put('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
-    const { nombre_materia, id_curso, estudiantes = [], profesores = [] } = req.body;
+    const { materia, id_curso, estudiantes = [], profesores = [] } = req.body;
 
-    if (!nombre_materia || !id_curso) {
-        return res.status(400).json({ error: 'Nombre de la materia y Curso asociado son obligatorios.' });
+    if (!materia || !id_curso) {
+        return res.status(400).json({ error: 'El nombre de la materia y el curso asociado son obligatorios.' });
     }
 
     let connection;
@@ -930,14 +959,29 @@ router.put('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) => 
         // Actualizar la materia
         await connection.query(
             'UPDATE materias SET materia = ?, id_curso = ? WHERE id_materia = ?',
-            [nombre_materia, id_curso, id]
+            [materia, id_curso, id]
         );
 
-        // Sincronizar estudiantes asignados
-        await syncRelationships(connection, 'usuario_materias', 'id_materia', 'id_usuario', id, estudiantes, 'estudiante');
-        
-        // Sincronizar profesores asignados
-        await syncRelationships(connection, 'usuario_materias', 'id_materia', 'id_usuario', id, profesores, 'profesor');
+        // Eliminar todas las asignaciones existentes
+        await connection.query('DELETE FROM usuario_materias WHERE id_materia = ?', [id]);
+
+        // Insertar nuevas asignaciones de estudiantes
+        if (estudiantes.length > 0) {
+            const estudianteValues = estudiantes.map(id_est => [id_est, id]);
+            await connection.query(
+                'INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?',
+                [estudianteValues]
+            );
+        }
+
+        // Insertar nuevas asignaciones de profesores
+        if (profesores.length > 0) {
+            const profesorValues = profesores.map(id_prof => [id_prof, id]);
+            await connection.query(
+                'INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?',
+                [profesorValues]
+            );
+        }
 
         await connection.commit();
         res.json({ message: 'Materia actualizada y asignaciones sincronizadas exitosamente.' });
@@ -1002,5 +1046,65 @@ router.delete('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) 
     }
 });
 
+// Agregar estudiantes y profesor a una materia (sin eliminar los existentes) - versión MySQL clásico
+// Agregar estudiantes y profesor a una materia (sin eliminar los existentes) - versión conexión única
+router.post('/materias-academicas/:id/asignar', (req, res) => {
+  const { id } = req.params;
+  const { estudiantes = [], profesores = [] } = req.body;
+  console.log('[API] POST /materias-academicas/:id/asignar - Recibido:', { id, estudiantes, profesores });
+
+  db.beginTransaction((txErr) => {
+      if (txErr) {
+          console.error('[API] Error al iniciar transacción:', txErr);
+          return res.status(500).json({ error: 'Error al iniciar transacción.' });
+      }
+
+      function agregarUsuarios(usuarios, done) {
+          if (!usuarios || usuarios.length === 0) return done();
+          let i = 0;
+          function next() {
+              if (i >= usuarios.length) return done();
+              const id_usuario = usuarios[i++];
+              db.query('SELECT 1 FROM usuario_materias WHERE id_usuario = ? AND id_materia = ?', [id_usuario, id], (selErr, rows) => {
+                  if (selErr) return done(selErr);
+                  if (rows.length === 0) {
+                      db.query('INSERT INTO usuario_materias (id_usuario, id_materia) VALUES (?, ?)', [id_usuario, id], (insErr) => {
+                          if (insErr) return done(insErr);
+                          console.log(`[API] Asignado usuario ${id_usuario} a materia ${id}`);
+                          next();
+                      });
+                  } else {
+                      next();
+                  }
+              });
+          }
+          next();
+      }
+
+      agregarUsuarios(estudiantes, (errEst) => {
+          if (errEst) {
+              return db.rollback(() => {
+                  console.error('[API] Error al asignar estudiantes:', errEst);
+                  res.status(500).json({ error: 'Error al asignar estudiantes', detalle: errEst.message });
+              });
+          }
+          agregarUsuarios(profesores, (errProf) => {
+              if (errProf) {
+                  return db.rollback(() => {
+                      console.error('[API] Error al asignar profesores:', errProf);
+                      res.status(500).json({ error: 'Error al asignar profesores', detalle: errProf.message });
+                  });
+              }
+              db.commit((commitErr) => {
+                  if (commitErr) {
+                      console.error('[API] Error al hacer commit:', commitErr);
+                      return res.status(500).json({ error: 'Error al guardar asignaciones', detalle: commitErr.message });
+                  }
+                  res.json({ message: 'Asignaciones agregadas exitosamente.' });
+              });
+          });
+      });
+  });
+});
 
 export default router;

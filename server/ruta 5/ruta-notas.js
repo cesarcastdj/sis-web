@@ -5,19 +5,8 @@ import { isAuthenticated } from '../middleware/protegerRutas.js'; // Ajusta esta
 const router = express.Router();
 
 // Middleware de autenticación
-const verificarAutenticacion = (req, res, next) => {
-    if (!req.session || !req.session.usuario) {
-        return res.status(401).json({
-            error: "No autorizado",
-            mensaje: "Debe iniciar sesión para acceder a esta información"
-        });
-    }
-    next();
-};
 
 // Aplicar middleware de autenticación a todas las rutas
-router.use(verificarAutenticacion);
-
 // ==========================================================
 // 🚀 RUTAS PARA GESTIÓN DE NOTAS 🚀
 // ==========================================================
@@ -370,12 +359,12 @@ router.post('/actividades', /*isAuthenticated,*/ async (req, res) => {
         const formattedFechaCreacion = new Date(fecha_creacion).toISOString().slice(0, 10);
 
         const insertActividadQuery = `
-            INSERT INTO actividades (nombre_actividad, descripcion, fecha_creacion, id_materia)
-            VALUES (?, ?, ?, ?);
+            INSERT INTO actividades (nombre_actividad, descripcion, fecha_creacion, id_materia, ponderacion)
+            VALUES (?, ?, ?, ?, ?);
         `;
         const [result] = await db.promise().query(
             insertActividadQuery,
-            [nombre_actividad, descripcion, formattedFechaCreacion, id_materia]
+            [nombre_actividad, descripcion, formattedFechaCreacion, id_materia, 1.0]
         );
         const nuevaActividadId = result.insertId;
 
@@ -605,6 +594,153 @@ router.get('/estudiante/notas', async (req, res) => {
             detalle: error.message 
         });
     }
+});
+
+// Endpoint para obtener materias filtradas por curso y periodo (PROFESIONAL)
+// router.get('/materias', isAuthenticated, async (req, res) => {
+router.get('/materias', async (req, res) => {
+  const { curso, periodo } = req.query;
+  if (!curso || !periodo) {
+    return res.status(400).json({ error: 'Debes especificar curso y periodo.' });
+  }
+  try {
+    const query = `
+      SELECT m.id_materia, m.materia AS nombre_materia
+      FROM materias m
+      JOIN cursos_periodo cp ON cp.id_curso = m.id_curso
+      WHERE cp.id_curso = ? AND cp.id_periodo = ? AND m.activo = 1
+    `;
+    const [materias] = await db.promise().query(query, [curso, periodo]);
+    res.json(materias);
+  } catch (error) {
+    console.error('Error al obtener materias filtradas:', error);
+    res.status(500).json({ error: 'Error al obtener materias filtradas', detalle: error.message });
+  }
+});
+
+// Obtener estudiantes de una materia
+router.get('/materias/:id_materia/estudiantes', async (req, res) => {
+  const { id_materia } = req.params;
+  try {
+    const query = `
+      SELECT u.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula
+      FROM usuario_materias um
+      JOIN usuarios u ON um.id_usuario = u.id_usuario
+      WHERE um.id_materia = ? AND u.rol = 'estudiante' AND u.estado = 1
+    `;
+    const [estudiantes] = await db.promise().query(query, [id_materia]);
+    res.json(estudiantes);
+  } catch (error) {
+    console.error('Error al obtener estudiantes de la materia:', error);
+    res.status(500).json({ error: 'Error al obtener estudiantes de la materia', detalle: error.message });
+  }
+});
+
+// Registrar o actualizar notas de varios estudiantes para una actividad
+router.post('/notas/actividad/:id_actividad', async (req, res) => {
+  const { id_actividad } = req.params;
+  const { notas } = req.body; // [{id_estudiante, nota, fecha_registro, comentarios}]
+  if (!Array.isArray(notas) || notas.length === 0) {
+    return res.status(400).json({ error: 'Debes enviar un array de notas.' });
+  }
+  const conn = await db.promise().getConnection();
+  try {
+    await conn.beginTransaction();
+    for (const n of notas) {
+      if (!n.id_estudiante || n.nota === undefined || !n.fecha_registro) continue;
+      // Verificar si ya existe la nota
+      const [existe] = await conn.query('SELECT id_nota FROM notas WHERE id_actividad = ? AND id_estudiante = ?', [id_actividad, n.id_estudiante]);
+      if (existe.length > 0) {
+        // Actualizar
+        await conn.query('UPDATE notas SET nota = ?, fecha_registro = ?, comentarios = ? WHERE id_nota = ?', [n.nota, n.fecha_registro, n.comentarios || null, existe[0].id_nota]);
+      } else {
+        // Insertar
+        await conn.query('INSERT INTO notas (id_actividad, id_estudiante, nota, fecha_registro, comentarios) VALUES (?, ?, ?, ?, ?)', [id_actividad, n.id_estudiante, n.nota, n.fecha_registro, n.comentarios || null]);
+      }
+    }
+    await conn.commit();
+    res.json({ message: 'Notas registradas/actualizadas correctamente.' });
+  } catch (error) {
+    await conn.rollback();
+    console.error('Error al registrar/actualizar notas:', error);
+    res.status(500).json({ error: 'Error al registrar/actualizar notas', detalle: error.message });
+  } finally {
+    conn.release();
+  }
+});
+
+// Obtener actividades de una materia (para frontend de actividades)
+router.get('/materias/:id/actividades', async (req, res) => {
+  const { id } = req.params;
+  const page = parseInt(req.query.page || '1');
+  const limit = parseInt(req.query.limit || '10');
+  const offset = (page - 1) * limit;
+  try {
+    const [actividades, actividadesCount] = await Promise.all([
+      db.promise().query(
+        `SELECT id_actividad, nombre_actividad, descripcion, fecha_creacion AS fecha_entrega, ponderacion
+         FROM actividades WHERE id_materia = ? ORDER BY fecha_creacion DESC LIMIT ?, ?`,
+        [id, offset, limit]
+      ),
+      db.promise().query(
+        `SELECT COUNT(*) AS total FROM actividades WHERE id_materia = ?`, [id]
+      )
+    ]);
+    res.json({
+      actividades: actividades[0],
+      totalPages: Math.ceil(actividadesCount[0][0].total / limit)
+    });
+  } catch (error) {
+    console.error('Error al obtener actividades de la materia:', error);
+    res.status(500).json({ error: 'Error al obtener actividades de la materia', detalle: error.message });
+  }
+});
+
+// Corregir resumen de actividades:
+router.get('/materias/:id/actividades/resumen', async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Total de actividades
+    const [[{ totalActividades }]] = await db.promise().query(
+      'SELECT COUNT(*) AS totalActividades FROM actividades WHERE id_materia = ?', [id]
+    );
+    // Promedio general de la materia (de todas las notas de todas las actividades de la materia)
+    const [[{ promedioGeneralMateria }]] = await db.promise().query(
+      `SELECT AVG(nota) AS promedioGeneralMateria FROM notas n
+       JOIN actividades a ON n.id_actividad = a.id_actividad
+       WHERE a.id_materia = ?`, [id]
+    );
+    // Total de estudiantes en la materia
+    const [[{ total_estudiantes_materia }]] = await db.promise().query(
+      `SELECT COUNT(DISTINCT um.id_usuario) AS total_estudiantes_materia
+       FROM usuario_materias um
+       WHERE um.id_materia = ?`, [id]
+    );
+    res.json({
+      totalActividades,
+      promedioGeneralMateria: promedioGeneralMateria || 0,
+      total_estudiantes_materia
+    });
+  } catch (error) {
+    console.error('Error al obtener resumen de actividades:', error);
+    res.status(500).json({ error: 'Error al obtener resumen de actividades', detalle: error.message });
+  }
+});
+
+// Endpoint para obtener notas y comentarios de los estudiantes para una actividad
+router.get('/notas/actividad/:id_actividad', async (req, res) => {
+  const { id_actividad } = req.params;
+  try {
+    const [notas] = await db.promise().query(
+      `SELECT n.id_estudiante, n.nota, n.comentarios
+       FROM notas n
+       WHERE n.id_actividad = ?`, [id_actividad]
+    );
+    res.json({ notas });
+  } catch (error) {
+    console.error('Error al obtener notas de la actividad:', error);
+    res.status(500).json({ error: 'Error al obtener notas de la actividad', detalle: error.message });
+  }
 });
 
 export default router;

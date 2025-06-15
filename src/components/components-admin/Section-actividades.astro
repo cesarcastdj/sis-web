@@ -14,6 +14,41 @@ const materiaId = Astro.url.searchParams.get('materiaId');
 
 
 <section class="data-content-section">
+  <!-- Título principal de la sección -->
+  <section class="actividades-header-card mb-4">
+    <div class="welcome-search-data">
+      <h2 class="welcome-search-data__title">Actividades</h2>
+    </div>
+  </section>
+
+  <!-- Filtros de selección en tarjeta -->
+  <div class="card shadow-sm mb-4" style="border-radius: 16px;">
+    <div class="card-body">
+      <div class="row justify-content-center align-items-end">
+        <div class="col-md-3 mb-2 mb-md-0">
+          <label for="selectCurso" class="form-label fw-bold">Curso</label>
+          <select class="form-select" id="selectCurso" disabled>
+            <option value="">Cargando cursos...</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-2 mb-md-0">
+          <label for="selectPeriodo" class="form-label fw-bold">Período</label>
+          <select class="form-select" id="selectPeriodo" disabled>
+            <option value="">Cargando períodos...</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="selectMateria" class="form-label fw-bold">Materia</label>
+          <select class="form-select" id="selectMateria" disabled>
+            <option value="">Selecciona primero curso y período</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de actividades, solo visible si hay materia seleccionada -->
+  <div id="actividadesSection" style="display:none;">
   <!-- Nueva sección del Título "Actividades Académicas" -->
   <section class="actividades-header-card">
     <div class="welcome-search-data">
@@ -73,8 +108,7 @@ const materiaId = Astro.url.searchParams.get('materiaId');
             <th scope="col">Nombre de la Actividad</th>
             <th scope="col">Descripción</th>
             <th scope="col">Fecha de Entrega</th>
-            <th scope="col">Valor Máximo</th>
-            <th scope="col">Estado</th>
+            <th scope="col">Ponderación</th>
             <th scope="col">Acciones</th>
           </tr>
         </thead>
@@ -93,6 +127,7 @@ const materiaId = Astro.url.searchParams.get('materiaId');
         <!-- Los botones de paginación se insertarán aquí -->
       </ul>
     </nav>
+  </div>
   </div>
 </section>
 
@@ -125,9 +160,9 @@ const materiaId = Astro.url.searchParams.get('materiaId');
             <div class="invalid-feedback">Por favor, ingresa la fecha de entrega.</div>
           </div>
           <div class="mb-3">
-            <label for="valorMaximo" class="form-label">Valor Máximo (Puntos) <span class="campo-obligatorio">*</span></label>
-            <input type="number" class="form-control" id="valorMaximo" min="1" required>
-            <div class="invalid-feedback">Por favor, ingresa el valor máximo de la actividad.</div>
+            <label for="ponderacion" class="form-label">Ponderación <span class="campo-obligatorio">*</span></label>
+            <input type="number" class="form-control" id="ponderacion" required min="0" max="100" step="0.01">
+            <div class="invalid-feedback">Por favor, ingresa la ponderación.</div>
           </div>
           <div class="d-flex justify-content-between mt-4">
             <button type="reset" class="btn btn-secondary">Limpiar</button>
@@ -167,13 +202,33 @@ const materiaId = Astro.url.searchParams.get('materiaId');
             <div class="invalid-feedback">Por favor, ingresa la fecha de entrega.</div>
           </div>
           <div class="mb-3">
-            <label for="editValorMaximo" class="form-label">Valor Máximo (Puntos) <span class="campo-obligatorio">*</span></label>
-            <input type="number" class="form-control" id="editValorMaximo" min="1" required>
-            <div class="invalid-feedback">Por favor, ingresa el valor máximo de la actividad.</div>
+            <label for="editPonderacion" class="form-label">Ponderación <span class="campo-obligatorio">*</span></label>
+            <input type="number" class="form-control" id="editPonderacion" required min="0" max="100" step="0.01">
+            <div class="invalid-feedback">Por favor, ingresa la ponderación.</div>
           </div>
           <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para calificar estudiantes -->
+<div class="modal fade" id="modalCalificarEstudiantes" tabindex="-1" aria-labelledby="modalCalificarEstudiantesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCalificarEstudiantesLabel">Calificar Estudiantes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formCalificarEstudiantes">
+          <div id="listaEstudiantesNotas"></div>
+          <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-primary">Guardar Notas</button>
           </div>
         </form>
       </div>
@@ -329,6 +384,14 @@ const materiaId = Astro.url.searchParams.get('materiaId');
     if (formEditarActividad) {
       formEditarActividad.addEventListener('submit', editarActividad);
     }
+
+    document.body.addEventListener('click', async function(e) {
+      if (e.target.closest('.calificar-estudiantes-btn')) {
+        e.preventDefault();
+        const idActividad = e.target.closest('.calificar-estudiantes-btn').dataset.id;
+        await abrirModalCalificarEstudiantes(idActividad);
+      }
+    });
   });
 
   async function fetchMateriaDetails(id) {
@@ -392,22 +455,14 @@ const materiaId = Astro.url.searchParams.get('materiaId');
           <td>${actividad.nombre_actividad}</td>
           <td title="${actividad.descripcion}">${actividad.descripcion ? (actividad.descripcion.length > 50 ? actividad.descripcion.substring(0, 50) + '...' : actividad.descripcion) : 'Sin descripción'}</td>
           <td>${fechaEntrega}</td>
-          <td>${actividad.valor_maximo}</td>
-          <td>
-            <span class="badge ${actividad.estado === 'pendiente' ? 'bg-warning text-dark' : 'bg-success'}">
-              ${actividad.estado}
-            </span>
-          </td>
+          <td>${actividad.ponderacion ? actividad.ponderacion.toFixed(2) : 'N/A'}</td>
           <td>
             <div class="dropdown">
               <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton${actividad.id_actividad}" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class='bx bx-dots-vertical-rounded'></i>
               </button>
               <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${actividad.id_actividad}">
-                <li><a class="dropdown-item edit-actividad-btn" href="#" data-id="${actividad.id_actividad}"><i class='bx bx-edit-alt'></i> Editar</a></li>
-                <li><a class="dropdown-item estado-actividad-btn" href="#" data-id="${actividad.id_actividad}" data-estado="${actividad.estado}">
-                  <i class='bx bx-${actividad.estado === 'calificada' ? 'low-vision' : 'check'}'></i> ${actividad.estado === 'calificada' ? 'Marcar Pendiente' : 'Marcar Calificada'}
-                </a></li>
+                <li><a class="dropdown-item calificar-estudiantes-btn" href="#" data-id="${actividad.id_actividad}"><i class='bx bx-edit-alt'></i> Calificar estudiantes</a></li>
                 <li><a class="dropdown-item delete-actividad-btn" href="#" data-id="${actividad.id_actividad}"><i class='bx bx-trash'></i> Eliminar</a></li>
                 <li><a class="dropdown-item gestionar-calificaciones-btn" href="/admin/calificaciones?materiaId=${materiaId}&actividadId=${actividad.id_actividad}"><i class='bx bx-spreadsheet'></i> Gestionar Calificaciones</a></li>
               </ul>
@@ -481,12 +536,6 @@ const materiaId = Astro.url.searchParams.get('materiaId');
       button.addEventListener('click', handleEditActividad);
     });
 
-    // Event listeners para botones de cambiar estado
-    document.querySelectorAll('.estado-actividad-btn').forEach(button => {
-      button.removeEventListener('click', handleChangeActividadEstado); // Evitar duplicados
-      button.addEventListener('click', handleChangeActividadEstado);
-    });
-
     // Event listeners para botones de eliminar
     document.querySelectorAll('.delete-actividad-btn').forEach(button => {
       button.removeEventListener('click', handleDeleteActividad); // Evitar duplicados
@@ -505,10 +554,10 @@ const materiaId = Astro.url.searchParams.get('materiaId');
     const nombreActividad = form.elements['nombreActividad'].value.trim();
     const descripcionActividad = form.elements['descripcionActividad'].value.trim();
     const fechaEntrega = form.elements['fechaEntrega'].value;
-    const valorMaximo = form.elements['valorMaximo'].value;
+    const ponderacion = form.elements['ponderacion'].value;
 
     // Validación básica
-    if (!nombreActividad || !fechaEntrega || !valorMaximo) {
+    if (!nombreActividad || !fechaEntrega || !ponderacion) {
       form.classList.add('was-validated'); // Muestra feedback de Bootstrap
       mostrarAlerta('Por favor, completa todos los campos obligatorios.', 'danger');
       return;
@@ -519,7 +568,7 @@ const materiaId = Astro.url.searchParams.get('materiaId');
       nombre_actividad: nombreActividad,
       descripcion: descripcionActividad,
       fecha_entrega: fechaEntrega,
-      valor_maximo: parseFloat(valorMaximo)
+      ponderacion: parseFloat(ponderacion)
     };
 
     try {
@@ -566,7 +615,7 @@ const materiaId = Astro.url.searchParams.get('materiaId');
       document.getElementById('editNombreActividad').value = actividad.nombre_actividad;
       document.getElementById('editDescripcionActividad').value = actividad.descripcion || '';
       document.getElementById('editFechaEntrega').value = actividad.fecha_entrega ? new Date(actividad.fecha_entrega).toISOString().split('T')[0] : '';
-      document.getElementById('editValorMaximo').value = actividad.valor_maximo;
+      document.getElementById('editPonderacion').value = actividad.ponderacion ? actividad.ponderacion.toFixed(2) : '';
 
       const modalElement = document.getElementById('modalEditarActividad');
       const bootstrapModal = new bootstrap.Modal(modalElement);
@@ -586,9 +635,9 @@ const materiaId = Astro.url.searchParams.get('materiaId');
     const nombreActividad = form.elements['editNombreActividad'].value.trim();
     const descripcionActividad = form.elements['editDescripcionActividad'].value.trim();
     const fechaEntrega = form.elements['editFechaEntrega'].value;
-    const valorMaximo = form.elements['editValorMaximo'].value;
+    const ponderacion = form.elements['editPonderacion'].value;
 
-    if (!nombreActividad || !fechaEntrega || !valorMaximo) {
+    if (!nombreActividad || !fechaEntrega || !ponderacion) {
       form.classList.add('was-validated');
       mostrarAlerta('Por favor, completa todos los campos obligatorios.', 'danger');
       return;
@@ -598,7 +647,7 @@ const materiaId = Astro.url.searchParams.get('materiaId');
       nombre_actividad: nombreActividad,
       descripcion: descripcionActividad,
       fecha_entrega: fechaEntrega,
-      valor_maximo: parseFloat(valorMaximo)
+      ponderacion: parseFloat(ponderacion)
     };
 
     try {
@@ -626,41 +675,6 @@ const materiaId = Astro.url.searchParams.get('materiaId');
     } catch (error) {
       console.error('Error al actualizar actividad:', error);
       mostrarAlerta(error.message || 'Ocurrió un error al actualizar la actividad.', 'danger');
-    }
-  }
-
-  async function handleChangeActividadEstado(event) {
-    const actividadId = event.currentTarget.dataset.id;
-    const estadoActual = event.currentTarget.dataset.estado;
-    // Toggle entre 'pendiente' y 'calificada'
-    const nuevoEstado = estadoActual === 'pendiente' ? 'calificada' : 'pendiente';
-
-    const confirmacion = await mostrarConfirmacion(
-      `¿Estás seguro de que quieres marcar esta actividad como ${nuevoEstado}?`,
-      `Cambiar Estado de Actividad`
-    );
-
-    if (confirmacion) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/actividades/${actividadId}/estado`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado: nuevoEstado })
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Error al cambiar el estado de la actividad.');
-        }
-
-        const result = await response.json();
-        mostrarAlerta(result.message, 'success');
-        await fetchActividadesSummary(materiaId);
-        await fetchActividades(materiaId, currentPage); // Recargar la tabla
-      } catch (error) {
-        console.error('Error al cambiar estado de actividad:', error);
-        mostrarAlerta(error.message || 'Ocurrió un error al cambiar el estado de la actividad.', 'danger');
-      }
     }
   }
 
@@ -693,4 +707,131 @@ const materiaId = Astro.url.searchParams.get('materiaId');
       }
     }
   }
+
+  // Lógica mejorada para cargar cursos, periodos y materias y filtrar actividades
+  async function cargarFiltros() {
+    const selectCurso = document.getElementById('selectCurso');
+    const selectPeriodo = document.getElementById('selectPeriodo');
+    const selectMateria = document.getElementById('selectMateria');
+    // Mostrar mensajes de carga
+    selectCurso.innerHTML = '<option value="">Cargando cursos...</option>';
+    selectPeriodo.innerHTML = '<option value="">Cargando períodos...</option>';
+    selectMateria.innerHTML = '<option value="">Selecciona primero curso y período</option>';
+    selectCurso.disabled = true;
+    selectPeriodo.disabled = true;
+    selectMateria.disabled = true;
+    try {
+      // Cargar cursos
+      const cursos = await fetch(`${API_BASE_URL}/cursos`).then(r => r.json());
+      if (Array.isArray(cursos) && cursos.length > 0) {
+        selectCurso.innerHTML = '<option value="">Selecciona un curso</option>' + cursos.map(c => `<option value="${c.id_curso}">${c.nombre_curso || c.curso}</option>`).join('');
+        selectCurso.disabled = false;
+      } else {
+        selectCurso.innerHTML = '<option value="">No hay cursos disponibles</option>';
+      }
+      // Cargar periodos
+      const periodos = await fetch(`${API_BASE_URL}/periodos`).then(r => r.json());
+      if (Array.isArray(periodos) && periodos.length > 0) {
+        selectPeriodo.innerHTML = '<option value="">Selecciona un período</option>' + periodos.map(p => `<option value="${p.id_periodo}">${p.nombre_periodo || p.periodo}</option>`).join('');
+        selectPeriodo.disabled = false;
+      } else {
+        selectPeriodo.innerHTML = '<option value="">No hay períodos disponibles</option>';
+      }
+    } catch (err) {
+      selectCurso.innerHTML = '<option value="">Error al cargar cursos</option>';
+      selectPeriodo.innerHTML = '<option value="">Error al cargar períodos</option>';
+      selectCurso.disabled = true;
+      selectPeriodo.disabled = true;
+      selectMateria.innerHTML = '<option value="">Selecciona primero curso y período</option>';
+      selectMateria.disabled = true;
+      mostrarAlerta('Error al cargar cursos o períodos. Intenta recargar la página.', 'danger');
+      return;
+    }
+    // Cuando cambie curso o periodo, cargar materias
+    selectCurso.addEventListener('change', cargarMateriasFiltro);
+    selectPeriodo.addEventListener('change', cargarMateriasFiltro);
+    async function cargarMateriasFiltro() {
+      const idCurso = selectCurso.value;
+      const idPeriodo = selectPeriodo.value;
+      selectMateria.disabled = true;
+      selectMateria.innerHTML = '<option value="">Cargando materias...</option>';
+      if (!idCurso || !idPeriodo) {
+        selectMateria.innerHTML = '<option value="">Selecciona primero curso y período</option>';
+        return;
+      }
+      try {
+        const materias = await fetch(`${API_BASE_URL}/materias?curso=${idCurso}&periodo=${idPeriodo}`).then(r => r.json());
+        if (Array.isArray(materias) && materias.length > 0) {
+          selectMateria.innerHTML = '<option value="">Selecciona una materia</option>' + materias.map(m => `<option value="${m.id_materia}">${m.nombre_materia || m.materia}</option>`).join('');
+          selectMateria.disabled = false;
+        } else {
+          selectMateria.innerHTML = '<option value="">No hay materias para este curso y período</option>';
+          selectMateria.disabled = true;
+        }
+      } catch (err) {
+        selectMateria.innerHTML = '<option value="">Error al cargar materias</option>';
+        selectMateria.disabled = true;
+        mostrarAlerta('Error al cargar materias. Intenta recargar la página.', 'danger');
+      }
+    }
+    // Cuando cambie materia, mostrar actividades
+    selectMateria.addEventListener('change', () => {
+      const idMateria = selectMateria.value;
+      if (idMateria) {
+        document.getElementById('actividadesSection').style.display = '';
+        // Actualizar la URL para mantener el id de materia
+        const url = new URL(window.location);
+        url.searchParams.set('materiaId', idMateria);
+        window.history.replaceState({}, '', url);
+        fetchMateriaDetails(idMateria);
+        fetchActividadesSummary(idMateria);
+        fetchActividades(idMateria, 1);
+      } else {
+        document.getElementById('actividadesSection').style.display = 'none';
+      }
+    });
+  }
+
+  async function abrirModalCalificarEstudiantes(idActividad) {
+    // Obtener estudiantes de la materia
+    const estudiantes = await fetch(`${API_BASE_URL}/materias/${materiaId}/estudiantes`).then(r => r.json());
+    // Obtener notas existentes para la actividad
+    const notasResp = await fetch(`${API_BASE_URL}/notas/actividad/${idActividad}`).then(r => r.json());
+    const notasMap = {};
+    (notasResp.notas || []).forEach(n => { notasMap[n.id_estudiante] = n; });
+    // Renderizar inputs
+    const cont = document.getElementById('listaEstudiantesNotas');
+    cont.innerHTML = estudiantes.map(est => {
+      const nota = notasMap[est.id_usuario]?.nota ?? '';
+      const comentario = notasMap[est.id_usuario]?.comentarios ?? '';
+      return `<div class='row align-items-center mb-2'><div class='col-6'>${est.primer_nombre} ${est.primer_apellido} (${est.cedula})</div><div class='col-3'><input type='number' class='form-control' name='nota_${est.id_usuario}' value='${nota}' min='0' max='20' step='0.01'></div><div class='col-3'><input type='text' class='form-control' name='comentario_${est.id_usuario}' value='${comentario}' placeholder='Comentario (opcional)'></div></div>`;
+    }).join('');
+    // Guardar notas
+    const form = document.getElementById('formCalificarEstudiantes');
+    form.onsubmit = async function(ev) {
+      ev.preventDefault();
+      const notas = estudiantes.map(est => {
+        const nota = form[`nota_${est.id_usuario}`].value;
+        const comentarios = form[`comentario_${est.id_usuario}`].value;
+        return { id_estudiante: est.id_usuario, nota: nota === '' ? null : parseFloat(nota), fecha_registro: (new Date()).toISOString().slice(0,10), comentarios };
+      }).filter(n => n.nota !== null);
+      try {
+        const resp = await fetch(`${API_BASE_URL}/notas/actividad/${idActividad}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notas })
+        });
+        if (!resp.ok) throw new Error('Error al guardar notas');
+        mostrarAlerta('Notas guardadas correctamente', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('modalCalificarEstudiantes')).hide();
+        fetchActividadesSummary(materiaId);
+        fetchActividades(materiaId, currentPage);
+      } catch (err) {
+        mostrarAlerta('Error al guardar notas', 'danger');
+      }
+    };
+    new bootstrap.Modal(document.getElementById('modalCalificarEstudiantes')).show();
+  }
+
+  document.addEventListener('DOMContentLoaded', cargarFiltros);
 </script>

@@ -176,27 +176,106 @@ router.put('/estudiantes/:id', async (req, res) => { // Eliminado el '/api'
         telefono, id_direccion_a_usar, id
       ]);
 
-      if (periodoAcademico !== undefined) { 
-        await syncSingleRelationship(id, periodoAcademico, 'usuario_periodo', 'id_periodo', 'id_usuario');
+      if (periodoAcademico !== undefined && periodoAcademico !== '') { 
+        // Verificar si existe un registro para este usuario
+        const [existingPeriodo] = await db.promise().query('SELECT id_usuario_periodo FROM usuario_periodo WHERE id_usuario = ?', [id]);
+        
+        if (existingPeriodo.length > 0) {
+          // Si existe, actualizar solo el periodo
+          await db.promise().query('UPDATE usuario_periodo SET id_periodo = ? WHERE id_usuario = ?', [periodoAcademico, id]);
+        } else {
+          // Si no existe, crear uno nuevo
+          await db.promise().query('INSERT INTO usuario_periodo (id_usuario, id_periodo, fecha_inscripcion) VALUES (?, ?, CURDATE())', [id, periodoAcademico]);
+        }
       }
 
-      if (cursos !== undefined) { 
-        await syncRelationships(id, cursos, 'usuario_cursos', 'id_curso', 'id_usuario', ['fecha_inscripcion']);
+      if (cursos !== undefined && cursos !== '' && cursos !== null && !(Array.isArray(cursos) && cursos.length === 0)) { 
+        const [existingCurso] = await db.promise().query('SELECT id_usuario_cursos FROM usuario_cursos WHERE id_usuario = ?', [id]);
+        const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        if (existingCurso.length > 0) {
+          await db.promise().query('UPDATE usuario_cursos SET id_curso = ?, fecha_inscripcion = ? WHERE id_usuario = ?', [cursos, currentDateTime, id]);
+        } else {
+          await db.promise().query('INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES (?, ?, ?)', [id, cursos, currentDateTime]);
+        }
       }
 
-      if (materias !== undefined) { 
-        await syncRelationships(id, materias, 'usuario_materias', 'id_materia', 'id_usuario');
+      if (materias !== undefined && materias !== '' && materias !== null && !(Array.isArray(materias) && materias.length === 0)) { 
+        const [existingMateria] = await db.promise().query('SELECT id_usuario_materias FROM usuario_materias WHERE id_usuario = ?', [id]);
+        if (existingMateria.length > 0) {
+          await db.promise().query('UPDATE usuario_materias SET id_materia = ?, fecha_inscripcion = CURRENT_TIMESTAMP WHERE id_usuario = ?', [materias, id]);
+        } else {
+          await db.promise().query('INSERT INTO usuario_materias (id_usuario, id_materia, fecha_inscripcion) VALUES (?, ?, CURRENT_TIMESTAMP)', [id, materias]);
+        }
       }
 
-      if (secciones !== undefined) { 
-        await syncSingleRelationship(id, secciones, 'usuario_seccion', 'id_seccion', 'id_usuario');
+      if (secciones !== undefined && secciones !== '' && secciones !== null && !(Array.isArray(secciones) && secciones.length === 0)) { 
+        const [existingSeccion] = await db.promise().query('SELECT id_usuario_seccion FROM usuario_seccion WHERE id_usuario = ?', [id]);
+        if (existingSeccion.length > 0) {
+          await db.promise().query('UPDATE usuario_seccion SET id_seccion = ? WHERE id_usuario = ?', [secciones, id]);
+        } else {
+          await db.promise().query('INSERT INTO usuario_seccion (id_usuario, id_seccion) VALUES (?, ?)', [id, secciones]);
+        }
       }
 
-      res.json({ message: 'Estudiante actualizado exitosamente.' });
+      // Obtener los datos actualizados del estudiante
+      const [updatedStudent] = await db.promise().query(`
+        SELECT
+          u.id_usuario,
+          u.cedula,
+          u.primer_nombre,
+          u.segundo_nombre,
+          u.primer_apellido,
+          u.segundo_apellido,
+          u.correo,
+          u.telefono,
+          d.direccion AS direccion,
+          u.estado AS estado,
+          u.ultima_conexion,
+          IFNULL(GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC), 'N/A') AS periodoAcademicoNames,
+          IFNULL(GROUP_CONCAT(DISTINCT up.id_periodo ORDER BY up.id_periodo ASC), '') AS periodoAcademicoIds,
+          IFNULL(GROUP_CONCAT(DISTINCT c.curso ORDER BY c.curso ASC), '') AS cursosNames,
+          IFNULL(GROUP_CONCAT(DISTINCT uc.id_curso ORDER BY uc.id_curso ASC), '') AS cursosIds,
+          IFNULL(GROUP_CONCAT(DISTINCT m.materia ORDER BY m.materia ASC), '') AS materiasNames,
+          IFNULL(GROUP_CONCAT(DISTINCT um.id_materia ORDER BY um.id_materia ASC), '') AS materiasIds,
+          IFNULL(GROUP_CONCAT(DISTINCT s.seccion ORDER BY s.seccion ASC), '') AS seccionNames,
+          IFNULL(GROUP_CONCAT(DISTINCT us.id_seccion ORDER BY us.id_seccion ASC), '') AS seccionIds
+        FROM
+          usuarios u
+        LEFT JOIN
+          usuario_periodo up ON u.id_usuario = up.id_usuario
+        LEFT JOIN
+          periodo p ON up.id_periodo = p.id_periodo
+        LEFT JOIN
+          usuario_cursos uc ON u.id_usuario = uc.id_usuario
+        LEFT JOIN
+          cursos c ON uc.id_curso = c.id_curso
+        LEFT JOIN
+          usuario_materias um ON u.id_usuario = um.id_usuario
+        LEFT JOIN
+          materias m ON um.id_materia = m.id_materia
+        LEFT JOIN
+          usuario_seccion us ON u.id_usuario = us.id_usuario
+        LEFT JOIN
+          seccion s ON us.id_seccion = s.id_seccion
+        LEFT JOIN
+          direccion d ON u.id_direccion = d.id_direccion
+        WHERE
+          u.id_usuario = ?
+        GROUP BY
+          u.id_usuario;
+      `, [id]);
+
+      res.json({ 
+        message: 'Estudiante actualizado exitosamente',
+        estudiante: updatedStudent[0]
+      });
 
     } catch (error) {
       console.error("❌ Error al actualizar estudiante:", error);
-      res.status(500).json({ error: "Error al actualizar estudiante", detalle: error.message });
+      res.status(500).json({ 
+        error: "Error al actualizar estudiante", 
+        detalle: error.message 
+      });
     }
 }); 
 

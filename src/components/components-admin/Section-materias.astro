@@ -185,6 +185,42 @@ import "../../style/style-admin/materias.css";
   </div>
 </div>
 
+<!-- Modal para Asignar Estudiantes y Profesor -->
+<div class="modal fade" id="modalAsignarUsuarios" tabindex="-1" aria-labelledby="modalAsignarUsuariosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAsignarUsuariosLabel">Asignar Estudiantes y Profesor a la Materia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="formAsignarUsuarios">
+      <div class="modal-body">
+        <div class="row">
+          <!-- Sección de estudiantes -->
+          <div class="col-md-7 border-end">
+            <h6>Estudiantes</h6>
+            <input type="text" class="form-control mb-2" id="buscarEstudiante" placeholder="Buscar estudiante...">
+            <div class="lista-usuarios" id="listaEstudiantes"></div>
+          </div>
+          <!-- Sección de profesores -->
+          <div class="col-md-5">
+            <h6>Profesor</h6>
+            <input type="text" class="form-control mb-2" id="buscarProfesor" placeholder="Buscar profesor...">
+            <div class="lista-usuarios" id="listaProfesores"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btnGuardarAsignacion">Guardar Asignación</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
 <!-- Scripts de Bootstrap y JavaScript personalizado -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
@@ -327,8 +363,187 @@ import "../../style/style-admin/materias.css";
     if (formEditarMateria) {
       formEditarMateria.addEventListener('submit', editarMateria);
     }
+
+    // Agregar lógica para guardar la asignación de estudiantes y profesor
+    // Esperar a que el DOM esté listo
+    const modalAsignar = document.getElementById('modalAsignarUsuarios');
+    if (modalAsignar) {
+      const form = modalAsignar.querySelector('form');
+      if (form) {
+        form.addEventListener('submit', guardarAsignacionUsuarios);
+      } else {
+        // Si no hay <form>, agregar el evento al botón
+        const btnGuardar = modalAsignar.querySelector('button[type="submit"]');
+        if (btnGuardar) {
+          btnGuardar.addEventListener('click', guardarAsignacionUsuarios);
+        }
+      }
+    }
   });
 
+  let materiaIdAsignar = null;
+  let estudiantesAsignadosPrevios = [];
+  let profesorAsignadoPrevio = null;
+  let nombreProfesorPrevio = '';
+
+  async function handleAsignarUsuarios(event) {
+    event.preventDefault();
+    materiaIdAsignar = event.currentTarget.dataset.id;
+    // Obtener los datos actuales de la materia (estudiantes y profesor asignados)
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaIdAsignar}`);
+      if (!response.ok) throw new Error('No se pudo obtener la información de la materia.');
+      const materia = await response.json();
+      estudiantesAsignadosPrevios = materia.estudiantes_info.map(e => String(e.id_usuario));
+      // Solo permitimos un profesor (el primero si hay varios)
+      profesorAsignadoPrevio = materia.profesores_info.length > 0 ? String(materia.profesores_info[0].id_usuario) : null;
+      nombreProfesorPrevio = materia.profesores_info.length > 0 ? materia.profesores_info[0].nombre_completo : '';
+      // Cargar estudiantes y profesores activos
+      const estudiantes = await fetchEstudiantesActivos();
+      const profesores = await fetchProfesoresActivos();
+      renderListaEstudiantes(estudiantes, estudiantesAsignadosPrevios);
+      renderListaProfesores(profesores, profesorAsignadoPrevio);
+      // Mostrar el modal
+      const modalElement = document.getElementById('modalAsignarUsuarios');
+      const bootstrapModal = new bootstrap.Modal(modalElement);
+      bootstrapModal.show();
+    } catch (error) {
+      mostrarAlerta('No se pudo cargar la información de la materia.', 'danger');
+      return;
+    }
+  }
+
+  function renderListaEstudiantes(estudiantes, seleccionados = []) {
+    const cont = document.getElementById('listaEstudiantes');
+    cont.innerHTML = '';
+    estudiantes.forEach(est => {
+      const div = document.createElement('div');
+      div.className = 'usuario-item';
+      div.dataset.id = est.id_usuario;
+      div.innerHTML = `<span>${est.nombre_completo}</span><span class="check-icon" style="display:none;">✔️</span>`;
+      if (seleccionados.includes(String(est.id_usuario))) {
+        div.classList.add('selected');
+        div.querySelector('.check-icon').style.display = 'inline';
+      }
+      div.addEventListener('click', function() {
+        div.classList.toggle('selected');
+        div.querySelector('.check-icon').style.display = div.classList.contains('selected') ? 'inline' : 'none';
+      });
+      cont.appendChild(div);
+    });
+  }
+
+  function renderListaProfesores(profesores, seleccionado = null) {
+    const cont = document.getElementById('listaProfesores');
+    cont.innerHTML = '';
+    profesores.forEach(prof => {
+      const div = document.createElement('div');
+      div.className = 'usuario-item';
+      div.dataset.id = prof.id_usuario;
+      div.innerHTML = `<input type="radio" name="profesorSeleccionado" value="${prof.id_usuario}" ${seleccionado === String(prof.id_usuario) ? 'checked' : ''}> <span>${prof.nombre_completo}</span>`;
+      cont.appendChild(div);
+    });
+  }
+
+  async function guardarAsignacionUsuarios(event) {
+    try {
+      event.preventDefault();
+      console.log('[DEBUG] Se ejecuta guardarAsignacionUsuarios');
+      if (!materiaIdAsignar) {
+        mostrarAlerta('No se pudo identificar la materia.', 'danger');
+        return;
+      }
+
+      // Obtener estudiantes seleccionados
+      const estudiantesSeleccionados = Array.from(document.querySelectorAll('#listaEstudiantes .usuario-item.selected')).map(div => div.dataset.id);
+      // Obtener profesor seleccionado correctamente (radio button)
+      const profesorRadio = document.querySelector('#listaProfesores input[type="radio"]:checked');
+      const profesoresSeleccionados = profesorRadio ? [profesorRadio.value] : [];
+
+      // Validación básica
+      if (estudiantesSeleccionados.length === 0 && profesoresSeleccionados.length === 0) {
+        mostrarAlerta('Selecciona al menos un estudiante o un profesor.', 'danger');
+        return;
+      }
+
+      // Obtener nombre_materia e id_curso de la fila de la tabla
+      const fila = document.querySelector(`tr[data-id="${materiaIdAsignar}"]`);
+      let nombre_materia = '';
+      let id_curso = '';
+      if (fila) {
+        nombre_materia = fila.querySelector('td:nth-child(2)')?.textContent?.trim() || '';
+        id_curso = fila.dataset.cursoId || '';
+      }
+
+      if (!nombre_materia || !id_curso) {
+        mostrarAlerta('No se pudo obtener la información de la materia. Intenta recargar la página.', 'danger');
+        return;
+      }
+
+      // Confirmar si se va a cambiar el profesor asignado
+      if (
+        profesorAsignadoPrevio && 
+        profesoresSeleccionados.length > 0 && 
+        profesorAsignadoPrevio !== profesoresSeleccionados[0]
+      ) {
+        const confirmado = await mostrarConfirmacion(
+          `¿Estás seguro? Actualmente esta materia tiene asignado al profesor: <b>${nombreProfesorPrevio}</b>. Si continúas, se actualizará el profesor asignado.`,
+          'Confirmar cambio de profesor'
+        );
+        if (!confirmado) return;
+      }
+
+      // Log de depuración
+      console.log('[DEBUG] Datos a enviar:', {
+        estudiantes: estudiantesSeleccionados,
+        profesores: profesoresSeleccionados,
+        nombre_materia,
+        id_curso
+      });
+
+      // Usar POST para agregar asignaciones
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaIdAsignar}/asignar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          estudiantes: estudiantesSeleccionados.map(Number),
+          profesores: profesoresSeleccionados.map(Number)
+        })
+      });
+
+      // Log de depuración
+      console.log('[DEBUG] Respuesta del backend:', response);
+
+      let result = null;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error('Respuesta inesperada del servidor: ' + text);
+      }
+
+      if (!response.ok) {
+        console.error('[DEBUG] Error del backend:', result);
+        mostrarAlerta(result?.error || 'Error al asignar estudiantes/profesor.', 'danger');
+        // No cerrar el modal
+        return;
+      }
+
+      mostrarAlerta('¡Asignación guardada exitosamente!', 'success');
+      // Cerrar el modal solo si todo salió bien
+      const modalElement = document.getElementById('modalAsignarUsuarios');
+      const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+      if (bootstrapModal) bootstrapModal.hide();
+      // Actualizar la tabla
+      await fetchMateriasSummary();
+      await fetchMaterias(currentPage);
+    } catch (error) {
+      console.error('[DEBUG] Error inesperado en guardarAsignacionUsuarios:', error);
+      mostrarAlerta(error.message || 'Ocurrió un error inesperado al asignar.', 'danger');
+      // No cerrar el modal
+    }
+  }
 
   async function fetchMateriasSummary() {
     try {
@@ -347,40 +562,36 @@ import "../../style/style-admin/materias.css";
     }
   }
 
-  async function fetchMaterias(page) {
-    const tableBody = document.getElementById('materiasTableBody');
-    const paginationMaterias = document.getElementById('paginationMaterias');
-    tableBody.innerHTML = '<tr><td colspan="9" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Cargando materias...</td></tr>';
-    paginationMaterias.innerHTML = '';
-
+  async function fetchMaterias(page = 1) {
     try {
       const response = await fetch(`${API_BASE_URL}/materias-academicas?page=${page}&limit=${itemsPerPage}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-
-      tableBody.innerHTML = ''; // Limpiar el mensaje de carga
-
-      if (data.materias.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="9" class="text-center">No se encontraron materias.</td></tr>';
-        return;
-      }
-
+      
+      const tableBody = document.getElementById('materiasTableBody');
+      tableBody.innerHTML = '';
+      
       data.materias.forEach((materia, index) => {
+        const nombreProfesor = Array.isArray(materia.profesores_info) && materia.profesores_info.length > 0
+          ? (materia.profesores_info.length === 1
+              ? materia.profesores_info[0].nombre_completo
+              : `${materia.profesores_info[0].nombre_completo} y ${materia.profesores_info.length - 1} más...`)
+          : 'Sin asignar';
         const row = tableBody.insertRow();
+        row.dataset.id = materia.id_materia;
+        row.dataset.cursoId = materia.id_curso;
         row.innerHTML = `
           <td>${((page - 1) * itemsPerPage) + index + 1}</td>
           <td>${materia.nombre_materia}</td>
           <td>${materia.nombre_curso || 'N/A'}</td>
           <td>${materia.nombre_periodo || 'N/A'}</td>
           <td>${materia.nombre_seccion || 'N/A'}</td>
-          <td>${materia.total_profesores_materia}</td>
+          <td>${nombreProfesor}</td>
           <td>${materia.total_estudiantes_materia}</td>
           <td>
-            <span ${materia.estado === 1 ? 'bg-success' : (materia.estado === 0 ? 'bg-danger' : 'bg-warning')}">
-              ${materia.estado === 1 ? 'Activo' : (materia.estado === 0 ? 'Inactivo' : 'Desconocido')}
-            </span>
+            <span>${materia.estado === 1 ? 'Activo' : (materia.estado === 0 ? 'Inactivo' : 'Desconocido')}</span>
           </td>
           <td>
             <div class="dropdown">
@@ -388,7 +599,8 @@ import "../../style/style-admin/materias.css";
                 <i class='bx bx-dots-vertical-rounded'></i>
               </button>
               <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${materia.id_materia}">
-                <li><a class="dropdown-item edit-materia-btn" href="#" data-id="${materia.id_materia}"><i class='bx bx-edit-alt'></i> Editar</a></li>
+                <li><a class="dropdown-item asignar-usuarios-btn" href="#" data-id="${materia.id_materia}"><i class='bx bx-user-plus'></i> Agregar estudiantes y profesores</a></li>
+                <li><a class="dropdown-item editar-usuarios-btn" href="#" data-id="${materia.id_materia}"><i class='bx bx-edit-alt'></i> Editar estudiantes y profesores</a></li>
                 <li><a class="dropdown-item delete-materia-btn" href="#" data-id="${materia.id_materia}"><i class='bx bx-trash'></i> Eliminar</a></li>
                 <li><a class="dropdown-item gestionar-notas-btn" href="#"><i class='bx bx-spreadsheet'></i> Gestionar Actividades/Notas</a></li>
               </ul>
@@ -397,59 +609,81 @@ import "../../style/style-admin/materias.css";
         `;
       });
 
-      setupPagination(data.totalPages, page);
-      attachTableEventListeners(); // Attach event listeners after content is loaded
-
+      // Actualizar paginación
+      updatePagination(data.total, page);
+      
+      // Adjuntar event listeners
+      attachTableEventListeners();
     } catch (error) {
-      console.error('Error al cargar las materias:', error);
-      tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">Error al cargar las materias.</td></tr>';
-      mostrarAlerta('Error al cargar las materias.', 'danger');
+      console.error('Error al obtener materias:', error);
+      mostrarAlerta('No se pudieron cargar las materias.', 'danger');
     }
   }
 
-  function setupPagination(totalPages, currentPage) {
+  function updatePagination(totalItems, currentPage) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
     const paginationContainer = document.getElementById('paginationMaterias');
-    paginationContainer.innerHTML = ''; // Limpiar paginación existente
+    paginationContainer.innerHTML = '';
 
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, currentPage + 2);
+    if (totalPages <= 1) return;
 
-    if (currentPage <= 3) {
-        endPage = Math.min(totalPages, 5);
-    } else if (currentPage >= totalPages - 2) {
-        startPage = Math.max(1, totalPages - 4);
-    }
+    const ul = document.createElement('ul');
+    ul.className = 'pagination justify-content-center';
 
-    if (startPage > 1) {
-        paginationContainer.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
-        if (startPage > 2) {
-            paginationContainer.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-        }
-    }
+    // Botón Anterior
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `
+      <a class="page-link" href="#" aria-label="Anterior" data-page="${currentPage - 1}">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    `;
+    ul.appendChild(prevLi);
 
-    for (let i = startPage; i <= endPage; i++) {
-      paginationContainer.innerHTML += `
-        <li class="page-item ${i === currentPage ? 'active' : ''}">
+    // Números de página
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i === 1 || // Primera página
+        i === totalPages || // Última página
+        (i >= currentPage - 2 && i <= currentPage + 2) // Páginas alrededor de la actual
+      ) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        li.innerHTML = `
           <a class="page-link" href="#" data-page="${i}">${i}</a>
-        </li>
-      `;
+        `;
+        ul.appendChild(li);
+      } else if (
+        i === currentPage - 3 || // Antes del rango
+        i === currentPage + 3 // Después del rango
+      ) {
+        const li = document.createElement('li');
+        li.className = 'page-item disabled';
+        li.innerHTML = '<span class="page-link">...</span>';
+        ul.appendChild(li);
+      }
     }
 
-    if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-            paginationContainer.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-        }
-        paginationContainer.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
-    }
+    // Botón Siguiente
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.innerHTML = `
+      <a class="page-link" href="#" aria-label="Siguiente" data-page="${currentPage + 1}">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    `;
+    ul.appendChild(nextLi);
 
-    // Attach event listeners to new pagination links
+    paginationContainer.appendChild(ul);
+
+    // Agregar event listeners a los botones de paginación
     paginationContainer.querySelectorAll('.page-link').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        const page = parseInt(e.target.dataset.page);
-        if (page && page !== currentPage) {
+        const page = parseInt(e.target.closest('.page-link').dataset.page);
+        if (!isNaN(page) && page !== currentPage) {
           currentPage = page;
-          fetchMaterias(currentPage);
+          fetchMaterias(page);
         }
       });
     });
@@ -457,7 +691,6 @@ import "../../style/style-admin/materias.css";
 
   // Cargar opciones para los selects de cursos, estudiantes y profesores
   async function loadSelectOptions() {
-    const studentStatus = materia.estado === 1 ? 'Activo' : (materia.estado === 0 ? 'Inactivo' : 'Desconocido'); 
     const idCursoSelect = document.getElementById('idCurso');
     const editIdCursoSelect = document.getElementById('editIdCurso');
     const estudiantesMateriaSelect = document.getElementById('estudiantesMateria');
@@ -525,6 +758,12 @@ import "../../style/style-admin/materias.css";
     document.querySelectorAll('.delete-materia-btn').forEach(button => {
       button.removeEventListener('click', handleDeleteMateria); // Evitar duplicados
       button.addEventListener('click', handleDeleteMateria);
+    });
+
+    // Event listeners para el nuevo botón de asignar usuarios
+    document.querySelectorAll('.asignar-usuarios-btn, .editar-usuarios-btn').forEach(button => {
+      button.removeEventListener('click', handleAsignarUsuarios); // Evitar duplicados
+      button.addEventListener('click', handleAsignarUsuarios);
     });
   }
 
@@ -596,7 +835,7 @@ import "../../style/style-admin/materias.css";
 
       // Llenar el modal de edición con los datos de la materia
       document.getElementById('editMateriaId').value = materia.id_materia;
-      document.getElementById('editNombreMateria').value = materia.nombre_materia;
+      document.getElementById('editNombreMateria').value = materia.nombre_materia || materia.materia || '';
       document.getElementById('editIdCurso').value = materia.id_curso;
 
       // Seleccionar estudiantes asignados
@@ -735,6 +974,24 @@ import "../../style/style-admin/materias.css";
         mostrarAlerta(error.message || 'Ocurrió un error al eliminar la materia.', 'danger');
       }
     }
+  }
+
+  async function fetchEstudiantesActivos() {
+    const response = await fetch(`${API_BASE_URL}/estudiantes?estado=activo&limit=9999`);
+    const data = await response.json();
+    return data.estudiantes.map(est => ({
+      id_usuario: est.id_usuario,
+      nombre_completo: `${est.primer_nombre} ${est.primer_apellido} (${est.cedula})`
+    }));
+  }
+
+  async function fetchProfesoresActivos() {
+    const response = await fetch(`${API_BASE_URL}/profesores?estado=activo&limit=9999`);
+    const data = await response.json();
+    return data.profesores.map(prof => ({
+      id_usuario: prof.id_usuario,
+      nombre_completo: `${prof.primer_nombre} ${prof.primer_apellido} (${prof.cedula})`
+    }));
   }
 
 </script>

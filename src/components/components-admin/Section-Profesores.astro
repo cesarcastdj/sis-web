@@ -77,7 +77,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
       <div class="modal-body">
         <h6 class="section-title">Información Personal</h6>
         <p><strong>Cédula:</strong> <span id="detalleCedula"></span></p>
-        <p><strong>Nombre Completo:</strong> <span id="detalleNombreComplepleto"></span></p>
+        <p><strong>Nombre Completo:</strong> <span id="detalleNombreCompleto"></span></p>
         <p><strong>Correo:</strong> <span id="detalleCorreo"></span></p>
         <p><strong>Teléfono:</strong> <span id="detalleTelefono"></span></p>
         <p><strong>Dirección:</strong> <span id="detalleDireccion"></span></p>
@@ -341,35 +341,32 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
     }
 
     // Función para cargar materias por curso
-    async function cargarMateriasPorCurso(cursoId, prefix = '') {
-      const targetMateriasSelect = prefix === 'edit' ? editMaterias : null; 
+    async function cargarMateriasPorCurso(cursoId, periodoId) {
+      const targetMateriasSelect = editMaterias; 
       if (!targetMateriasSelect) return; 
 
       targetMateriasSelect.innerHTML = '<option value="" selected disabled>Cargando materias...</option>';
       targetMateriasSelect.disabled = true;
-      if (!cursoId) {
-        targetMateriasSelect.innerHTML = '<option value="" selected disabled>Primero seleccione un curso</option>';
+      if (!cursoId || !periodoId) {
+        targetMateriasSelect.innerHTML = '<option value="" selected disabled>Primero seleccione un curso y un periodo</option>';
         return;
       }
       try {
-        console.log(`DEBUG: Fetching subjects for course ID ${cursoId}...`);
-        const response = await fetch(`http://localhost:3001/api/cursos/${cursoId}/materias`);
+        const response = await fetch(`${API_BASE_URL}/materias?curso=${cursoId}&periodo=${periodoId}`);
         if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
         const materias = await response.json();
-        console.log("DEBUG: Subjects received:", materias);
-        targetMateriasSelect.innerHTML = ''; 
+        targetMateriasSelect.innerHTML = '';
         if (materias.length === 0) {
-          targetMateriasSelect.innerHTML = '<option value="" disabled>No hay materias para este curso</option>';
+          targetMateriasSelect.innerHTML = '<option value="" disabled>No hay materias para este curso y periodo</option>';
         } else {
           materias.forEach(materia => {
             const option = document.createElement('option');
             option.value = materia.id_materia;
-            option.textContent = materia.materia;
+            option.textContent = materia.nombre_materia || materia.materia;
             targetMateriasSelect.appendChild(option);
           });
-          targetMateriasSelect.disabled = false; 
+          targetMateriasSelect.disabled = false;
         }
-        console.log("DEBUG: Subjects dropdown loaded.");
       }
       catch (error) {
         console.error('❌ Error cargando materias:', error);
@@ -415,7 +412,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
     // Event listeners for Edit Professor Modal
     editCurso.addEventListener('change', async function() { 
         console.log("DEBUG: Edit Curso dropdown changed. Value:", this.value);
-        await cargarMateriasPorCurso(this.value, 'edit');
+        await cargarMateriasPorCurso(this.value, editPeriodoAcademico.value);
         const profesorBeingEdited = profesoresTableBody.querySelector(`[data-id="${editIdUsuario.value}"]`);
         if (profesorBeingEdited) {
             const profesorData = JSON.parse(profesorBeingEdited.dataset.profesorData); 
@@ -482,11 +479,10 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
           segundoApellido: document.getElementById('editSegundoApellido').value.trim(),
           telefono: telefonoCompleto,
           direccion: editDireccion.value.trim(), 
-          // Envía array vacío si no se selecciona o el valor es inválido
-          periodoAcademico: editPeriodoAcademico.value && editPeriodoAcademico.value !== '' ? [editPeriodoAcademico.value] : [],
-          materias: editMaterias.value && editMaterias.value !== '' ? [editMaterias.value] : [], 
-          cursos: editCurso.value && editCurso.value !== '' ? [editCurso.value] : [], 
-          secciones: editSeccion.value && editSeccion.value !== '' ? [editSeccion.value] : [], 
+          periodoAcademico: editPeriodoAcademico.value && editPeriodoAcademico.value !== '' ? editPeriodoAcademico.value : undefined,
+          materias: editMaterias.value && editMaterias.value !== '' ? editMaterias.value : undefined, 
+          cursos: editCurso.value && editCurso.value !== '' ? editCurso.value : undefined, 
+          secciones: editSeccion.value && editSeccion.value !== '' ? editSeccion.value : undefined, 
         };
 
         console.log("DEBUG: Datos a enviar (frontend - edición):", formData); 
@@ -500,17 +496,23 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || 'Error al actualizar el profesor');
+          // Si la respuesta tiene el mensaje de éxito, igual muestra éxito
+          if (data && data.message && data.message.includes('actualizado')) {
+            mostrarMensajeExito(data.message);
+            setTimeout(() => {
+              modalEditarProfesor.hide();
+              loadProfesores(currentPage);
+            }, 1500);
+            return;
+          }
+          throw new Error(data.detalle || data.error || 'Error al actualizar el profesor');
         }
 
-        console.log("DEBUG: Respuesta del backend (edición):", data);
         mostrarMensajeExito('Profesor actualizado correctamente');
         
-        // Retraso para asegurar que el modal se oculte antes de recargar, y que el usuario vea el mensaje.
         setTimeout(() => {
           modalEditarProfesor.hide();
-          console.log("DEBUG: Modal ocultado. Recargando profesores en la tabla...");
-          loadProfesores(currentPage); // Recarga la tabla para reflejar los cambios
+          loadProfesores(currentPage);
         }, 1500);
 
       } catch (error) {
@@ -613,13 +615,11 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
           return;
         }
 
-        const processedProfesores = profesor.map(profesor => ({
+        const processedProfesores = Array.isArray(profesores) ? profesores.map(profesor => ({
           ...profesor,
-          // Aseguramos que `periodoAcademicoNames` sea un array, incluso si viene vacío de la DB
-          // Si el backend envía "N/A", lo convertimos en un array que contiene "N/A"
           periodoAcademicoNames: (typeof profesor.periodoAcademicoNames === 'string' && profesor.periodoAcademicoNames && profesor.periodoAcademicoNames !== 'N/A') 
                                 ? profesor.periodoAcademicoNames.split(',').map(s => s.trim()).filter(Boolean) 
-                                : ['N/A'], // Si es N/A o vacío, lo dejamos como un array con 'N/A'
+                                : ['N/A'],
           periodoAcademicoIds: (typeof profesor.periodoAcademicoIds === 'string' && profesor.periodoAcademicoIds) ? profesor.periodoAcademicoIds.split(',').map(s => s.trim()).filter(Boolean) : [],
           cursosNames: (typeof profesor.cursosNames === 'string' && profesor.cursosNames) ? profesor.cursosNames.split(',').map(s => s.trim()).filter(Boolean) : [],
           cursosIds: (typeof profesor.cursosIds === 'string' && profesor.cursosIds) ? profesor.cursosIds.split(',').map(s => s.trim()).filter(Boolean) : [],
@@ -628,7 +628,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
           seccionNames: (typeof profesor.seccionNames === 'string' && profesor.seccionNames) ? profesor.seccionNames.split(',').map(s => s.trim()).filter(Boolean) : [],
           seccionIds: (typeof profesor.seccionIds === 'string' && profesor.seccionIds) ? profesor.seccionIds.split(',').map(s => s.trim()).filter(Boolean) : [],
           direccion: profesor.direccion || 'N/A' 
-        }));
+        })) : [];
         processedProfesores.forEach((profesor, index) => {
           console.log(`DEBUG: Renderizando profesor ${index + 1}:`, profesor);
           const profesorDataAttribute = JSON.stringify(profesor);
@@ -642,7 +642,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
 
           row.innerHTML = `
             <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
-            <td>${profesor.periodoAcademicoNames ? profesor.periodoAcademicoNames.split(',').join(', ') : 'N/A'}</td>
+            <td>${Array.isArray(profesor.periodoAcademicoNames) ? profesor.periodoAcademicoNames.join(', ') : 'N/A'}</td>
             <td>${profesor.cedula || ''}</td>
             <td>${profesor.primer_nombre || ''}</td>
             <td>${profesor.primer_apellido || ''}</td>
@@ -787,7 +787,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
             }
             
             if (editCurso.value && editCurso.value !== '') { 
-                await cargarMateriasPorCurso(editCurso.value, 'edit'); 
+                await cargarMateriasPorCurso(editCurso.value, editPeriodoAcademico.value); 
                 if (profesor.materiasIds && profesor.materiasIds.length > 0) {
                     setTimeout(() => {
                         editMaterias.value = profesor.materiasIds[0]; 
