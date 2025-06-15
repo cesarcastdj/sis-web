@@ -20,6 +20,8 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "mysql": "^2.18.1",
     "mysql2": "^3.14.1",
     "node": "^22.16.0",

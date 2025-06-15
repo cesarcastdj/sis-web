@@ -55,8 +55,32 @@ app.use('/api', rutaProfesores);
 app.use('/api', rutaAcademica); 
 app.use('/api', rutaNotas); 
 
+
+// Comentado para evitar conflictos durante pruebas
+// const TEMP_USER = 'admin@temporal.com';
+// const TEMP_PASSWORD = 'admin123';
+
+// app.post('/login-temporal', (req, res) => {
+//     const { email, password } = req.body;
+
+//     if (email === TEMP_USER && password === TEMP_PASSWORD) {
+//         req.session.user = { email };
+//         return res.status(200).json({ message: 'Login exitoso', user: req.session.user });
+//     }
+
+//     return res.status(401).json({ message: 'Credenciales inválidas' });
+// });
+
 // --- Inicio del Servidor ---
 const PORT = process.env.PORT || 3001; 
 app.listen(PORT, () => console.log(`🚀 Servidor backend en http://localhost:${PORT}`));
+
+//hala madrid
+
+
+
+// --- Inicio del Servidor ---
+//const PORT = process.env.PORT || 3001; 
+//app.listen(PORT, () => console.log(`🚀 Servidor backend en http://localhost:${PORT}`));
 
 //hala madrid

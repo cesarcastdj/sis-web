@@ -2,6 +2,65 @@
 import "../../style/style-students/notas.css";
 ---
 
+<script>
+  // Cargar jsPDF desde un CDN
+  const script = document.createElement("script");
+  script.src =
+    "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js";
+  script.onload = () => {
+    console.log("jsPDF cargado correctamente.");
+
+    // Asegurar que el código se ejecute en el navegador
+    if (typeof window !== "undefined" && window.jspdf) {
+      const descargarNotas = () => {
+        try {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          console.log("Generando PDF de notas...");
+
+          // Agregar encabezado
+          doc.setFontSize(16);
+          doc.text("Reporte de Notas", 10, 10);
+
+          // Obtener datos de la tabla
+          const notasTableBody = document.getElementById("notas-table-body");
+          if (notasTableBody) {
+            const rows = notasTableBody.querySelectorAll("tr");
+            let y = 20; // Posición inicial en el eje Y
+
+            rows.forEach((row) => {
+              const cells = row.querySelectorAll("td");
+              let rowText = "";
+
+              cells.forEach((cell) => {
+                rowText += `${cell.textContent} \t`; // Separar columnas con tabulación
+              });
+
+              doc.text(rowText.trim(), 10, y);
+              y += 10; // Incrementar posición Y para la siguiente fila
+            });
+          }
+
+          // Guardar el PDF
+          doc.save("notas-estudiante.pdf");
+        } catch (error) {
+          console.error("Error al generar el PDF:", error);
+        }
+      };
+
+      document
+        .getElementById("descargar-notas")
+        ?.addEventListener("click", descargarNotas);
+    } else {
+      console.error("jsPDF no está disponible en el objeto window.");
+    }
+  };
+  script.onerror = () => {
+    console.error("Error al cargar el script de jsPDF desde el CDN.");
+  };
+  document.head.appendChild(script);
+</script>
+
 <section class="notas-header-card">
   <div class="welcome-search-data">
     <h2 class="welcome-search-data__title">Mis Notas</h2>
@@ -13,7 +72,7 @@ import "../../style/style-students/notas.css";
     <section class="data-general-control grid-layout">
       <div class="registro-control consolidated-notas-card">
         <div class="card-icon-title">
-          <i class='bx bxs-graduation'></i>
+          <i class="bx bxs-graduation"></i>
           <h5 class="card-title">Resumen Académico.</h5>
         </div>
         <div class="notas-summary-grid">
@@ -32,7 +91,7 @@ import "../../style/style-students/notas.css";
         </div>
         <div class="mt-3 text-center">
           <button class="btn btn-primary" id="descargar-notas">
-            <i class='bx bx-download me-2'></i>Descargar Notas
+            <i class="bx bx-download me-2"></i>Descargar Notas
           </button>
         </div>
       </div>
@@ -54,7 +113,44 @@ import "../../style/style-students/notas.css";
         </thead>
         <tbody id="notas-table-body">
           <tr>
-            <td colspan="6" class="text-center">Cargando notas...</td>
+            <td>1</td>
+            <td>2025-1</td>
+            <td>Matemáticas</td>
+            <td>Examen Final</td>
+            <td>95</td>
+            <td>2025-06-01</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>2025-1</td>
+            <td>Historia</td>
+            <td>Proyecto</td>
+            <td>88</td>
+            <td>2025-06-05</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>2025-1</td>
+            <td>Química</td>
+            <td>Laboratorio</td>
+            <td>92</td>
+            <td>2025-06-10</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>2025-1</td>
+            <td>Física</td>
+            <td>Examen Parcial</td>
+            <td>85</td>
+            <td>2025-06-15</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>2025-1</td>
+            <td>Literatura</td>
+            <td>Ensayo</td>
+            <td>90</td>
+            <td>2025-06-20</td>
           </tr>
         </tbody>
       </table>
@@ -63,32 +159,46 @@ import "../../style/style-students/notas.css";
 </section>
 
 <script>
-  document.addEventListener('DOMContentLoaded', async function() {
+  document.addEventListener("DOMContentLoaded", async function () {
     // Obtener referencias a los elementos DOM
-    const promedioGeneralElement = document.getElementById('promedio-general');
-    const materiasAprobadasElement = document.getElementById('materias-aprobadas');
-    const materiasPendientesElement = document.getElementById('materias-pendientes');
-    const notasTableBody = document.getElementById('notas-table-body');
-    const descargarNotasBtn = document.getElementById('descargar-notas');
+    const promedioGeneralElement = document.getElementById("promedio-general");
+    const materiasAprobadasElement =
+      document.getElementById("materias-aprobadas");
+    const materiasPendientesElement = document.getElementById(
+      "materias-pendientes"
+    );
+    const notasTableBody = document.getElementById("notas-table-body");
+    const descargarNotasBtn = document.getElementById("descargar-notas");
 
     // Verificar que todos los elementos existen
-    if (!promedioGeneralElement || !materiasAprobadasElement || !materiasPendientesElement || !notasTableBody || !descargarNotasBtn) {
-      console.error('No se encontraron todos los elementos necesarios en el DOM');
+    if (
+      !promedioGeneralElement ||
+      !materiasAprobadasElement ||
+      !materiasPendientesElement ||
+      !notasTableBody ||
+      !descargarNotasBtn
+    ) {
+      console.error(
+        "No se encontraron todos los elementos necesarios en el DOM"
+      );
       return;
     }
 
     async function cargarNotas() {
       try {
-        const response = await fetch('http://localhost:3001/api/estudiante/notas', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json'
+        const response = await fetch(
+          "http://localhost:3001/api/estudiante/notas",
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              Accept: "application/json",
+            },
           }
-        });
+        );
 
         if (response.status === 401) {
-          throw new Error('No autorizado. Por favor, inicie sesión.');
+          throw new Error("No autorizado. Por favor, inicie sesión.");
         }
 
         if (!response.ok) {
@@ -96,18 +206,25 @@ import "../../style/style-students/notas.css";
         }
 
         const data = await response.json();
-        console.log('Datos recibidos:', data);
+        console.log("Datos recibidos:", data);
 
         // Actualizar estadísticas
-        if (promedioGeneralElement && materiasAprobadasElement && materiasPendientesElement) {
-          promedioGeneralElement.textContent = data.estadisticas.promedio_general || '0.00';
-          materiasAprobadasElement.textContent = data.estadisticas.materias_aprobadas || '0';
-          materiasPendientesElement.textContent = data.estadisticas.materias_pendientes || '0';
+        if (
+          promedioGeneralElement &&
+          materiasAprobadasElement &&
+          materiasPendientesElement
+        ) {
+          promedioGeneralElement.textContent =
+            data.estadisticas.promedio_general || "0.00";
+          materiasAprobadasElement.textContent =
+            data.estadisticas.materias_aprobadas || "0";
+          materiasPendientesElement.textContent =
+            data.estadisticas.materias_pendientes || "0";
         }
 
         // Limpiar tabla
         if (notasTableBody) {
-          notasTableBody.innerHTML = '';
+          notasTableBody.innerHTML = "";
 
           // Si no hay notas
           if (!data.notas || Object.keys(data.notas).length === 0) {
@@ -125,7 +242,7 @@ import "../../style/style-students/notas.css";
             const materiasEnPeriodo = data.notas[periodo];
             for (const materia in materiasEnPeriodo) {
               const notasMateria = materiasEnPeriodo[materia];
-              
+
               if (!notasMateria || notasMateria.length === 0) {
                 // Si la materia no tiene notas
                 notasTableBody.innerHTML += `
@@ -142,10 +259,10 @@ import "../../style/style-students/notas.css";
               } else {
                 // Si hay notas, mostrar cada una (evitando duplicados)
                 const notasProcesadas = new Set(); // Para evitar duplicados
-                notasMateria.forEach(nota => {
+                notasMateria.forEach((nota) => {
                   // Crear una clave única para cada nota
                   const notaClave = `${nota.id_nota}-${nota.nota}-${nota.fecha_registro}-${nota.nombre_actividad}`;
-                  
+
                   // Solo mostrar si no se ha procesado antes
                   if (!notasProcesadas.has(notaClave)) {
                     notasProcesadas.add(notaClave);
@@ -154,9 +271,9 @@ import "../../style/style-students/notas.css";
                         <td>${rowNumber}</td>
                         <td>${periodo}</td>
                         <td>${materia}</td>
-                        <td>${nota.nombre_actividad || 'Sin actividad'}</td>
-                        <td class="font-weight-bold">${nota.nota || 'Sin nota'}</td>
-                        <td>${nota.fecha_registro || '-'}</td>
+                        <td>${nota.nombre_actividad || "Sin actividad"}</td>
+                        <td class="font-weight-bold">${nota.nota || "Sin nota"}</td>
+                        <td>${nota.fecha_registro || "-"}</td>
                       </tr>
                     `;
                     rowNumber++;
@@ -166,13 +283,12 @@ import "../../style/style-students/notas.css";
             }
           }
         }
-
       } catch (error) {
         if (notasTableBody) {
           notasTableBody.innerHTML = `
             <tr>
               <td colspan="6" class="text-center text-danger">
-                ${error.message || 'Error al cargar las notas. Por favor, intente más tarde.'}
+                ${error.message || "Error al cargar las notas. Por favor, intente más tarde."}
               </td>
             </tr>
           `;
@@ -182,12 +298,5 @@ import "../../style/style-students/notas.css";
 
     // Cargar notas inicialmente
     await cargarNotas();
-
-    // Función para descargar notas
-    descargarNotasBtn.addEventListener('click', () => {
-      alert('Función de descarga en desarrollo');
-    });
   });
 </script>
-
-
