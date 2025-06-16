@@ -85,10 +85,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         <p><strong>Última Conexión:</strong> <span id="detalleUltimaConexion"></span></p>
 
         <h6 class="section-title mt-4">Información Académica</h6>
-        <p><strong>Periodo Académico:</strong> <span id="detallePeriodoAcademico"></span></p>
-        <p><strong>Sección:</strong> <span id="detalleSeccion"></span></p>
-        <p><strong>Cursos Asignados:</strong> <span id="detalleCursos"></span></p>
-        <p><strong>Materias Asignadas:</strong> <span id="detalleMaterias"></span></p>
+        <div id="tablaAcademicaProfesor"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -175,43 +172,6 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
             </div>
           </div>
 
-          <h6 class="section-title mt-4">Información Académica</h6>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editPeriodoAcademico" class="form-label">Periodo Académico</label>
-              <select class="form-select" id="editPeriodoAcademico"> 
-                <option value="" selected disabled>Seleccione un periodo</option>
-              </select>
-              <div class="invalid-feedback">Por favor seleccione un periodo académico</div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label for="editCurso" class="form-label">Curso</label>
-              <select class="form-select" id="editCurso"> 
-                <option value="" selected disabled>Seleccione un curso</option>
-              </select>
-              <div class="invalid-feedback">Por favor seleccione un curso</div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editMaterias" class="form-label">Materias</label>
-              <select class="form-select" id="editMaterias" disabled> 
-                <option value="" selected disabled>Primero seleccione un curso</option>
-              </select>
-              <div class="invalid-feedback">Seleccione una materia</div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label for="editSeccion" class="form-label">Sección</label>
-              <select class="form-select" id="editSeccion">
-                <option value="" selected disabled>Seleccione una sección</option>
-              </select>
-              <div class="invalid-feedback">Por favor seleccione una sección</div>
-            </div>
-          </div>
-          
           <div class="d-flex justify-content-between mt-4">
             <button type="reset" class="btn btn-secondary">Limpiar</button>
             <button type="submit" class="btn btn-primary" id="btnGuardarEdicion">Guardar Cambios</button>
@@ -340,41 +300,6 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
       }
     }
 
-    // Función para cargar materias por curso
-    async function cargarMateriasPorCurso(cursoId, periodoId) {
-      const targetMateriasSelect = editMaterias; 
-      if (!targetMateriasSelect) return; 
-
-      targetMateriasSelect.innerHTML = '<option value="" selected disabled>Cargando materias...</option>';
-      targetMateriasSelect.disabled = true;
-      if (!cursoId || !periodoId) {
-        targetMateriasSelect.innerHTML = '<option value="" selected disabled>Primero seleccione un curso y un periodo</option>';
-        return;
-      }
-      try {
-        const response = await fetch(`${API_BASE_URL}/materias?curso=${cursoId}&periodo=${periodoId}`);
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const materias = await response.json();
-        targetMateriasSelect.innerHTML = '';
-        if (materias.length === 0) {
-          targetMateriasSelect.innerHTML = '<option value="" disabled>No hay materias para este curso y periodo</option>';
-        } else {
-          materias.forEach(materia => {
-            const option = document.createElement('option');
-            option.value = materia.id_materia;
-            option.textContent = materia.nombre_materia || materia.materia;
-            targetMateriasSelect.appendChild(option);
-          });
-          targetMateriasSelect.disabled = false;
-        }
-      }
-      catch (error) {
-        console.error('❌ Error cargando materias:', error);
-        targetMateriasSelect.innerHTML = '<option value="" selected disabled>Error al cargar materias</option>';
-        mostrarErrorAlUsuario('Error al cargar materias. Intente nuevamente.');
-      }
-    }
-
     // Función para cargar secciones
     async function cargarSecciones(prefix = '') {
       const targetSeccionSelect = prefix === 'edit' ? editSeccion : null; 
@@ -408,29 +333,6 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         mostrarErrorAlUsuario('Error al cargar secciones. Intente nuevamente.');
       }
     }
-
-    // Event listeners for Edit Professor Modal
-    editCurso.addEventListener('change', async function() { 
-        console.log("DEBUG: Edit Curso dropdown changed. Value:", this.value);
-        await cargarMateriasPorCurso(this.value, editPeriodoAcademico.value);
-        const profesorBeingEdited = profesoresTableBody.querySelector(`[data-id="${editIdUsuario.value}"]`);
-        if (profesorBeingEdited) {
-            const profesorData = JSON.parse(profesorBeingEdited.dataset.profesorData); 
-            if (profesorData && profesorData.materiasIds && profesorData.materiasIds.length > 0) {
-                setTimeout(() => {
-                    editMaterias.value = profesorData.materiasIds[0];
-                    if (editMaterias.selectedIndex === -1) { 
-                        editMaterias.value = ''; 
-                    }
-                    console.log("DEBUG: Materia pre-seleccionada en edición:", editMaterias.value);
-                }, 100);
-            } else {
-                editMaterias.value = ''; 
-                editMaterias.disabled = false; 
-                console.log("DEBUG: No hay materias para pre-seleccionar o no se encontró profesorData.");
-            }
-        }
-    });
 
     // Validar número de teléfono para edición
     editNumeroTelefonoInput.addEventListener('input', function() {
@@ -479,10 +381,6 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
           segundoApellido: document.getElementById('editSegundoApellido').value.trim(),
           telefono: telefonoCompleto,
           direccion: editDireccion.value.trim(), 
-          periodoAcademico: editPeriodoAcademico.value && editPeriodoAcademico.value !== '' ? editPeriodoAcademico.value : undefined,
-          materias: editMaterias.value && editMaterias.value !== '' ? editMaterias.value : undefined, 
-          cursos: editCurso.value && editCurso.value !== '' ? editCurso.value : undefined, 
-          secciones: editSeccion.value && editSeccion.value !== '' ? editSeccion.value : undefined, 
         };
 
         console.log("DEBUG: Datos a enviar (frontend - edición):", formData); 
@@ -726,16 +624,32 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         detalleDireccion.textContent = profesor.direccion || 'N/A'; 
         detalleEstadoProfesor.textContent = profesorStatusModal;
         detalleUltimaConexion.textContent = profesor.ultima_conexion ? new Date(profesor.ultima_conexion).toLocaleDateString() : 'No ha ingresado a la pagina';
-        detallePeriodoAcademico.textContent = (profesor.periodoAcademicoNames && profesor.periodoAcademicoNames.length > 0) ? profesor.periodoAcademicoNames.join(', ') : 'N/A';        
-        detalleSeccion.textContent = Array.isArray(profesor.seccionNames) && profesor.seccionNames.length > 0
-            ? profesor.seccionNames.join(', ')
-            : 'N/A';
-        detalleCursos.textContent = Array.isArray(profesor.cursosNames) && profesor.cursosNames.length > 0
-            ? profesor.cursosNames.join(', ')
-            : 'Ninguno';
-        detalleMaterias.textContent = Array.isArray(profesor.materiasNames) && profesor.materiasNames.length > 0
-            ? profesor.materiasNames.join(', ')
-            : 'Ninguna';
+
+        // Tabla académica cruzada
+        let tablaAcademica = document.getElementById('tablaAcademicaProfesor');
+        if (!tablaAcademica) {
+          tablaAcademica = document.createElement('div');
+          tablaAcademica.id = 'tablaAcademicaProfesor';
+          detalleMaterias.parentElement.insertAdjacentElement('afterend', tablaAcademica);
+        }
+        tablaAcademica.innerHTML = '<div class="text-center text-muted">Cargando información académica detallada...</div>';
+        try {
+          const resp = await fetch(`http://localhost:3001/api/profesores/${profesor.id_usuario}/academico`);
+          if (!resp.ok) throw new Error('Error al obtener información académica cruzada');
+          const data = await resp.json();
+          if (Array.isArray(data.academico) && data.academico.length > 0) {
+            let tabla = `<div class="mt-3"><strong>Detalle Académico:</strong><div class="table-responsive"><table class="table table-bordered table-sm table-dark"><thead><tr><th>Período</th><th>Curso</th><th>Materia</th><th>Sección</th></tr></thead><tbody>`;
+            data.academico.forEach(row => {
+              tabla += `<tr><td>${row.nombre_periodo || 'N/A'}</td><td>${row.nombre_curso || 'N/A'}</td><td>${row.nombre_materia || 'N/A'}</td><td>${row.nombre_seccion || 'N/A'}</td></tr>`;
+            });
+            tabla += '</tbody></table></div></div>';
+            tablaAcademica.innerHTML = tabla;
+          } else {
+            tablaAcademica.innerHTML = '<div class="text-center text-muted">No hay información académica cruzada registrada.</div>';
+          }
+        } catch (err) {
+          tablaAcademica.innerHTML = '<div class="text-center text-danger">Error al cargar información académica cruzada.</div>';
+        }
 
         modalVerMasInformacionProfesor.show();
         console.log("DEBUG: Modal 'Ver más información' mostrado.");
@@ -766,62 +680,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         }
         console.log("DEBUG: Teléfono parseado. Codigo:", editCodigoAreaSelect.value, "Numero:", editNumeroTelefonoInput.value);
 
-        // Cargar periodos y pre-seleccionar
-        await cargarPeriodos('edit');
-        if (profesor.periodoAcademicoIds && profesor.periodoAcademicoIds.length > 0) {
-            editPeriodoAcademico.value = profesor.periodoAcademicoIds[0];
-            if (editPeriodoAcademico.selectedIndex === -1) {
-                editPeriodoAcademico.value = ''; 
-            }
-        } else {
-            editPeriodoAcademico.value = ''; 
-        }
-        console.log("DEBUG: Periodo académico pre-seleccionado:", editPeriodoAcademico.value);
-
-        // Cargar cursos y pre-seleccionar
-        await cargarCursos('edit'); 
-        if (profesor.cursosIds && profesor.cursosIds.length > 0) {
-            editCurso.value = profesor.cursosIds[0]; 
-            if (editCurso.selectedIndex === -1) { 
-                editCurso.value = ''; 
-            }
-            
-            if (editCurso.value && editCurso.value !== '') { 
-                await cargarMateriasPorCurso(editCurso.value, editPeriodoAcademico.value); 
-                if (profesor.materiasIds && profesor.materiasIds.length > 0) {
-                    setTimeout(() => {
-                        editMaterias.value = profesor.materiasIds[0]; 
-                        if (editMaterias.selectedIndex === -1) { 
-                            editMaterias.value = ''; 
-                        }
-                    }, 100); 
-                } else {
-                    editMaterias.innerHTML = '<option value="" selected disabled>No hay materias disponibles para pre-seleccionar</option>'; // Mejor mensaje
-                    editMaterias.disabled = false; 
-                }
-            } else { 
-                editMaterias.innerHTML = '<option value="" selected disabled>Primero seleccione un curso</option>';
-                editMaterias.disabled = true;
-                editCurso.value = ''; 
-            }
-        } else { 
-            editCurso.value = ''; 
-            editMaterias.innerHTML = '<option value="" selected disabled>Primero seleccione un curso</option>';
-            editMaterias.disabled = true;
-        }
-        console.log("DEBUG: Curso y Materias pre-seleccionadas.");
-
-        // Cargar secciones y pre-seleccionar
-        await cargarSecciones('edit');
-        if (profesor.seccionIds && profesor.seccionIds.length > 0) {
-            editSeccion.value = profesor.seccionIds[0]; 
-            if (editSeccion.selectedIndex === -1) { 
-                editSeccion.value = ''; 
-            }
-        } else {
-            editSeccion.value = ''; 
-        }
-        console.log("DEBUG: Sección pre-seleccionada:", editSeccion.value);
+        // Ya no se cargan ni seleccionan periodos, cursos, materias ni secciones
 
         modalEditarProfesor.show();
         console.log("DEBUG: Modal 'Editar Profesor' mostrado.");

@@ -632,3 +632,16 @@ body {
         font-size: 1.2rem;
     }
 }
+
+.btn-cambiar-busqueda {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    float: right;
+    font-size: 0.95rem;
+    padding: 0.3rem 1.2rem;
+    border-radius: 8px;
+    min-width: unset;
+    width: auto;
+    max-width: 200px;
+    box-shadow: none;
+}

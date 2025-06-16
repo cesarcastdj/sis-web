@@ -651,3 +651,55 @@ body {
         font-size: 1.2rem;
     }
 }
+
+/* Fondo gris claro y padding general para la sección de notas */
+.fondo-notas-admin {
+    background: #ededf7;
+    min-height: 100vh;
+    padding: 32px 0 0 0;
+}
+
+/* Tarjeta de filtros de notas igual a actividades */
+.card-filtros-notas {
+    border-radius: 16px;
+    background: var(--bs-card-bg, #fff);
+    box-shadow: 0 2px 16px rgba(140, 82, 255, 0.08);
+    margin-bottom: 2rem;
+    border: none;
+}
+
+/* Tarjeta de resumen de notas igual a actividades */
+.card-resumen-notas {
+    background: linear-gradient(90deg, #e0c3fc 0%, #8ec5fc 100%);
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(140, 82, 255, 0.08);
+    border: none;
+    padding: 1.5rem 2rem;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto 1.5rem auto;
+}
+
+.btn-anadir-nota {
+    background: #8f5cff;
+    color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #8f5cff33;
+    transition: background 0.2s;
+}
+.btn-anadir-nota:hover {
+    background: #a084ee;
+    color: #fff;
+}
+
+/* Tabla de notas igual a actividades */
+.tabla-notas-admin {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Ajuste para eliminar espacio extra arriba */
+.container-xl {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}

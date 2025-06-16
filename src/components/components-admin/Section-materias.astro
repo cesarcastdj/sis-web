@@ -116,16 +116,20 @@ import "../../style/style-admin/materias.css";
             <div class="invalid-feedback">Por favor, selecciona un curso.</div>
           </div>
           <div class="mb-3">
-            <label for="estudiantesMateria" class="form-label">Asignar Estudiantes a la Materia (Opcional)</label>
-            <select class="form-select" id="estudiantesMateria" multiple>
-              <!-- Opciones de estudiantes se cargarán aquí -->
+            <label for="idPeriodo" class="form-label">Período <span class="campo-obligatorio">*</span></label>
+            <select class="form-select" id="idPeriodo" required>
+              <option value="">Selecciona un período</option>
+              <!-- Opciones de períodos se cargarán aquí -->
             </select>
+            <div class="invalid-feedback">Por favor, selecciona un período.</div>
           </div>
           <div class="mb-3">
-            <label for="profesoresMateria" class="form-label">Asignar Profesores a la Materia (Opcional)</label>
-            <select class="form-select" id="profesoresMateria" multiple>
-              <!-- Opciones de profesores se cargarán aquí -->
+            <label for="idSeccion" class="form-label">Sección <span class="campo-obligatorio">*</span></label>
+            <select class="form-select" id="idSeccion" required>
+              <option value="">Selecciona una sección</option>
+              <!-- Opciones de secciones se cargarán aquí -->
             </select>
+            <div class="invalid-feedback">Por favor, selecciona una sección.</div>
           </div>
           <div class="d-flex justify-content-between mt-4">
             <button type="reset" class="btn btn-secondary">Limpiar</button>
@@ -162,18 +166,6 @@ import "../../style/style-admin/materias.css";
               <!-- Opciones de cursos se cargarán aquí -->
             </select>
             <div class="invalid-feedback">Por favor, selecciona un curso.</div>
-          </div>
-          <div class="mb-3">
-            <label for="editEstudiantesMateria" class="form-label">Estudiantes Asignados</label>
-            <select class="form-select" id="editEstudiantesMateria" multiple>
-              <!-- Opciones de estudiantes se cargarán aquí -->
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="editProfesoresMateria" class="form-label">Profesores Asignados</label>
-            <select class="form-select" id="editProfesoresMateria" multiple>
-              <!-- Opciones de profesores se cargarán aquí -->
-            </select>
           </div>
           <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -574,11 +566,19 @@ import "../../style/style-admin/materias.css";
       tableBody.innerHTML = '';
       
       data.materias.forEach((materia, index) => {
+        // Inicializar arrays si no existen
+        if (!Array.isArray(materia.estudiantes_info)) materia.estudiantes_info = [];
+        if (!Array.isArray(materia.profesores_info)) materia.profesores_info = [];
         const nombreProfesor = Array.isArray(materia.profesores_info) && materia.profesores_info.length > 0
           ? (materia.profesores_info.length === 1
               ? materia.profesores_info[0].nombre_completo
               : `${materia.profesores_info[0].nombre_completo} y ${materia.profesores_info.length - 1} más...`)
           : 'Sin asignar';
+        const estudiantesInscritos = Array.isArray(materia.estudiantes_info) && materia.estudiantes_info.length > 0
+          ? materia.estudiantes_info.length
+          : (typeof materia.total_estudiantes_materia === 'number' && materia.total_estudiantes_materia > 0
+              ? materia.total_estudiantes_materia
+              : 'Sin estudiantes');
         const row = tableBody.insertRow();
         row.dataset.id = materia.id_materia;
         row.dataset.cursoId = materia.id_curso;
@@ -589,7 +589,7 @@ import "../../style/style-admin/materias.css";
           <td>${materia.nombre_periodo || 'N/A'}</td>
           <td>${materia.nombre_seccion || 'N/A'}</td>
           <td>${nombreProfesor}</td>
-          <td>${materia.total_estudiantes_materia}</td>
+          <td>${estudiantesInscritos}</td>
           <td>
             <span>${materia.estado === 1 ? 'Activo' : (materia.estado === 0 ? 'Inactivo' : 'Desconocido')}</span>
           </td>
@@ -693,41 +693,34 @@ import "../../style/style-admin/materias.css";
   async function loadSelectOptions() {
     const idCursoSelect = document.getElementById('idCurso');
     const editIdCursoSelect = document.getElementById('editIdCurso');
-    const estudiantesMateriaSelect = document.getElementById('estudiantesMateria');
-    const editEstudiantesMateriaSelect = document.getElementById('editEstudiantesMateria');
-    const profesoresMateriaSelect = document.getElementById('profesoresMateria');
-    const editProfesoresMateriaSelect = document.getElementById('editProfesoresMateria');
+    const idPeriodoSelect = document.getElementById('idPeriodo');
+    const idSeccionSelect = document.getElementById('idSeccion');
 
     try {
-      // Obtener cursos (solo activos)
-      const cursosResponse = await fetch(`${API_BASE_URL}/cursos`); // Asegúrate de que esta ruta filtra por activo
-      const cursos = await cursosResponse.json();
-      populateSelect(idCursoSelect, cursos, 'id_curso', 'curso'); // 'curso' es el nombre de la columna en tu DB
-      populateSelect(editIdCursoSelect, cursos, 'id_curso', 'curso');
+      const cursos = await fetch(`${API_BASE_URL}/cursos`).then(r => r.json());
+      idCursoSelect.innerHTML = '<option value="">Selecciona una opción</option>';
+      cursos.forEach(curso => {
+        idCursoSelect.innerHTML += `<option value="${curso.id_curso}">${curso.nombre_curso} - ${curso.nombre_periodo}</option>`;
+      });
 
-      // Obtener estudiantes (solo activos para asignación)
-      const estudiantesResponse = await fetch(`${API_BASE_URL}/estudiantes?estado=activo&limit=9999`);
-      const estudiantesData = await estudiantesResponse.json();
-      const estudiantes = estudiantesData.estudiantes.map(est => ({
-        id_usuario: est.id_usuario,
-        nombre_completo: `${est.primer_nombre} ${est.primer_apellido} (${est.cedula})`
-      }));
-      populateSelect(estudiantesMateriaSelect, estudiantes, 'id_usuario', 'nombre_completo');
-      populateSelect(editEstudiantesMateriaSelect, estudiantes, 'id_usuario', 'nombre_completo');
+      // Obtener periodos (solo activos)
+      const periodosResponse = await fetch(`${API_BASE_URL}/periodos`);
+      const periodos = await periodosResponse.json();
+      periodos.forEach(periodo => {
+        idPeriodoSelect.innerHTML += `<option value="${periodo.id_periodo}">${periodo.periodo}</option>`;
+      });
 
-      // Obtener profesores (solo activos para asignación)
-      const profesoresResponse = await fetch(`${API_BASE_URL}/profesores?estado=activo&limit=9999`);
-      const profesoresData = await profesoresResponse.json();
-      const profesores = profesoresData.profesores.map(prof => ({
-        id_usuario: prof.id_usuario,
-        nombre_completo: `${prof.primer_nombre} ${prof.primer_apellido} (${prof.cedula})`
-      }));
-      populateSelect(profesoresMateriaSelect, profesores, 'id_usuario', 'nombre_completo');
-      populateSelect(editProfesoresMateriaSelect, profesores, 'id_usuario', 'nombre_completo');
+      // Obtener secciones
+      const seccionesResponse = await fetch(`${API_BASE_URL}/secciones`);
+      const secciones = await seccionesResponse.json();
+      idSeccionSelect.innerHTML = '<option value="">Selecciona una sección</option>';
+      secciones.forEach(seccion => {
+        idSeccionSelect.innerHTML += `<option value="${seccion.id_seccion}">${seccion.seccion}</option>`;
+      });
 
     } catch (error) {
       console.error('Error al cargar opciones de select:', error);
-      mostrarAlerta('Error al cargar opciones de cursos, estudiantes o profesores.', 'danger');
+      mostrarAlerta('Error al cargar opciones de cursos, periodos o secciones.', 'danger');
     }
   }
 
@@ -777,25 +770,25 @@ import "../../style/style-admin/materias.css";
     const form = event.target;
     const nombreMateria = form.elements['nombreMateria'].value.trim();
     const idCurso = form.elements['idCurso'].value;
-    const estudiantesAsignados = Array.from(form.elements['estudiantesMateria'].selectedOptions).map(option => option.value);
-    const profesoresAsignados = Array.from(form.elements['profesoresMateria'].selectedOptions).map(option => option.value);
+    const idPeriodo = form.elements['idPeriodo'].value;
+    const idSeccion = form.elements['idSeccion'].value;
 
     // Validación básica
-    if (!nombreMateria || !idCurso) {
+    if (!nombreMateria || !idCurso || !idPeriodo || !idSeccion) {
       form.classList.add('was-validated'); // Muestra feedback de Bootstrap
       mostrarAlerta('Por favor, completa todos los campos obligatorios.', 'danger');
       return;
     }
 
     const data = {
-      nombreMateria,
       id_curso: parseInt(idCurso),
-      estudiantesAsignados,
-      profesoresAsignados
+      nombreMateria,
+      id_periodo: parseInt(idPeriodo),
+      id_seccion: parseInt(idSeccion)
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/materias-academicas`, { // Ruta para añadir materia
+      const response = await fetch(`${API_BASE_URL}/register-materia`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -808,16 +801,20 @@ import "../../style/style-admin/materias.css";
 
       const result = await response.json();
       mostrarAlerta(result.message, 'success');
-      
-      const modalElement = document.getElementById('modalAnadirMateria');
-      const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
-      if (bootstrapModal) bootstrapModal.hide();
-
-      form.reset(); // Limpiar el formulario
-      form.classList.remove('was-validated'); // Quitar la validación visual
-
-      await fetchMateriasSummary();
-      await fetchMaterias(currentPage); // Recargar la tabla
+      // Cerrar el modal y limpiar backdrop tras 1.5 segundos
+      setTimeout(() => {
+        const modalElement = document.getElementById('modalAnadirMateria');
+        const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+        if (bootstrapModal) bootstrapModal.hide();
+        // Limpiar backdrop manualmente si persiste
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style = '';
+        form.reset();
+        form.classList.remove('was-validated');
+        fetchMateriasSummary();
+        fetchMaterias(currentPage);
+      }, 1500);
     } catch (error) {
       console.error('Error al añadir materia:', error);
       mostrarAlerta(error.message || 'Ocurrió un error al añadir la materia.', 'danger');
@@ -838,19 +835,6 @@ import "../../style/style-admin/materias.css";
       document.getElementById('editNombreMateria').value = materia.nombre_materia || materia.materia || '';
       document.getElementById('editIdCurso').value = materia.id_curso;
 
-      // Seleccionar estudiantes asignados
-      const editEstudiantesMateriaSelect = document.getElementById('editEstudiantesMateria');
-      Array.from(editEstudiantesMateriaSelect.options).forEach(option => {
-        option.selected = materia.estudiantes_info.some(est => String(est.id_usuario) === option.value);
-      });
-
-      // Seleccionar profesores asignados
-      const editProfesoresMateriaSelect = document.getElementById('editProfesoresMateria');
-      Array.from(editProfesoresMateriaSelect.options).forEach(option => {
-        option.selected = materia.profesores_info.some(prof => String(prof.id_usuario) === option.value);
-      });
-
-
       const modalElement = document.getElementById('modalEditarMateria');
       const bootstrapModal = new bootstrap.Modal(modalElement);
       bootstrapModal.show();
@@ -868,8 +852,6 @@ import "../../style/style-admin/materias.css";
     const materiaId = form.elements['editMateriaId'].value;
     const nombreMateria = form.elements['editNombreMateria'].value.trim();
     const idCurso = form.elements['editIdCurso'].value;
-    const estudiantesAsignados = Array.from(form.elements['editEstudiantesMateria'].selectedOptions).map(option => option.value);
-    const profesoresAsignados = Array.from(form.elements['editProfesoresMateria'].selectedOptions).map(option => option.value);
 
     if (!nombreMateria || !idCurso) {
       form.classList.add('was-validated');
@@ -879,9 +861,7 @@ import "../../style/style-admin/materias.css";
 
     const data = {
       nombre_materia: nombreMateria,
-      id_curso: parseInt(idCurso),
-      estudiantes: estudiantesAsignados,
-      profesores: profesoresAsignados
+      id_curso: parseInt(idCurso)
     };
 
     try {

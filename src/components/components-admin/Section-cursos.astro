@@ -395,6 +395,9 @@ import "../../style/style-admin/cursos.css";
       }
 
       data.cursos.forEach((curso, index) => {
+        // Mostrar cantidad de estudiantes y profesores si existen los arrays
+        const totalEstudiantes = Array.isArray(curso.estudiantes_info) ? curso.estudiantes_info.length : (curso.total_estudiantes_curso || 0);
+        const totalProfesores = Array.isArray(curso.profesores_info) ? curso.profesores_info.length : (curso.total_profesores_curso || 0);
         const row = tableBody.insertRow();
         row.innerHTML = `
           <td>${((page - 1) * itemsPerPage) + index + 1}</td>
@@ -402,10 +405,10 @@ import "../../style/style-admin/cursos.css";
           <td>${curso.nombre_curso}</td>
           <td>${curso.nombre_seccion}</td>
           <td>${curso.total_materias_curso}</td>
-          <td>${curso.total_estudiantes_curso}</td>
-          <td>${curso.total_profesores_curso}</td>
+          <td>${totalEstudiantes}</td>
+          <td>${totalProfesores}</td>
           <td>
-            <span ${curso.estado === 1 ? 'bg-success' : (curso.estado === 0 ? 'bg-danger' : 'bg-warning')}">
+            <span ${curso.estado === 1 ? 'bg-success' : (curso.estado === 0 ? 'bg-danger' : 'bg-warning')}>
               ${curso.estado === 1 ? 'Activo' : (curso.estado === 0 ? 'Inactivo' : 'Desconocido')}
             </span>
           </td>
@@ -617,17 +620,47 @@ import "../../style/style-admin/cursos.css";
       }
       const curso = await response.json();
 
-      // Llenar el modal de edición con los datos del curso
       document.getElementById('editCursoId').value = curso.id_curso;
       document.getElementById('editNombreCurso').value = curso.nombre_curso;
       document.getElementById('editIdPeriodo').value = curso.id_periodo;
       document.getElementById('editIdSeccion').value = curso.id_seccion;
 
-      // Seleccionar los estudiantes asignados actualmente al curso
+      // Mostrar estudiantes y profesores asignados (solo lectura)
+      let estudiantesHtml = '';
+      if (Array.isArray(curso.estudiantes_info) && curso.estudiantes_info.length > 0) {
+        estudiantesHtml = curso.estudiantes_info.map(e => `<li>${e.nombre_completo}</li>`).join('');
+      } else {
+        estudiantesHtml = '<li>No hay estudiantes asignados</li>';
+      }
+      let profesoresHtml = '';
+      if (Array.isArray(curso.profesores_info) && curso.profesores_info.length > 0) {
+        profesoresHtml = curso.profesores_info.map(p => `<li>${p.nombre_completo}</li>`).join('');
+      } else {
+        profesoresHtml = '<li>No hay profesores asignados</li>';
+      }
+      // Agrega o actualiza el área de solo lectura en el modal
+      let refArea = document.getElementById('infoAsignadosCurso');
+      if (!refArea) {
+        refArea = document.createElement('div');
+        refArea.id = 'infoAsignadosCurso';
+        refArea.innerHTML = `
+          <div class="mb-2"><strong>Estudiantes asignados:</strong><ul id="listEstudiantesCurso">${estudiantesHtml}</ul></div>
+          <div class="mb-2"><strong>Profesores asignados:</strong><ul id="listProfesoresCurso">${profesoresHtml}</ul></div>
+        `;
+        const modalBody = document.querySelector('#modalEditarCurso .modal-body');
+        modalBody.insertBefore(refArea, modalBody.firstChild);
+      } else {
+        refArea.querySelector('#listEstudiantesCurso').innerHTML = estudiantesHtml;
+        refArea.querySelector('#listProfesoresCurso').innerHTML = profesoresHtml;
+      }
+
+      // Seleccionar los estudiantes asignados actualmente al curso (si aplica para edición múltiple)
       const editEstudiantesCursoSelect = document.getElementById('editEstudiantesCurso');
-      Array.from(editEstudiantesCursoSelect.options).forEach(option => {
-        option.selected = curso.estudiantes_info.some(est => String(est.id_usuario) === option.value);
-      });
+      if (editEstudiantesCursoSelect && Array.isArray(curso.estudiantes_info)) {
+        Array.from(editEstudiantesCursoSelect.options).forEach(option => {
+          option.selected = curso.estudiantes_info.some(est => String(est.id_usuario) === option.value);
+        });
+      }
 
       const modalElement = document.getElementById('modalEditarCurso');
       const bootstrapModal = new bootstrap.Modal(modalElement);

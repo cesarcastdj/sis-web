@@ -59,4 +59,11 @@ app.use('/api', rutaNotas);
 const PORT = process.env.PORT || 3001; 
 app.listen(PORT, () => console.log(`🚀 Servidor backend en http://localhost:${PORT}`));
 
+process.on('uncaughtException', function (err) {
+  console.error('UNCAUGHT EXCEPTION:', err);
+});
+process.on('unhandledRejection', function (reason, promise) {
+  console.error('UNHANDLED REJECTION:', reason);
+});
+
 //hala madrid

@@ -268,4 +268,30 @@ router.put('/profesores/:id', async (req, res) => {
     }
 });
 
+router.get('/profesores/:id/academico', (req, res) => {
+  const { id } = req.params;
+  // Trae todas las relaciones cruzadas del profesor
+  const sql = `
+    SELECT
+      p.periodo AS nombre_periodo,
+      c.curso AS nombre_curso,
+      m.materia AS nombre_materia,
+      s.seccion AS nombre_seccion
+    FROM usuario_materias um
+    JOIN materias m ON um.id_materia = m.id_materia
+    LEFT JOIN cursos c ON m.id_curso = c.id_curso
+    LEFT JOIN materias_periodo mp ON m.id_materia = mp.id_materia
+    LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
+    LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia
+    LEFT JOIN seccion s ON ms.id_seccion = s.id_seccion
+    WHERE um.id_usuario = ?;
+  `;
+  db.query(sql, [id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error al obtener información académica del profesor', detalle: err.message });
+    }
+    res.json({ academico: results });
+  });
+});
+
 export default router;

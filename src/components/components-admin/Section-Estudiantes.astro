@@ -85,10 +85,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         <p><strong>Última Conexión:</strong> <span id="detalleUltimaConexion"></span></p>
 
         <h6 class="section-title mt-4">Información Académica</h6>
-        <p><strong>Periodo Académico:</strong> <span id="detallePeriodoAcademico"></span></p>
-        <p><strong>Sección:</strong> <span id="detalleSeccion"></span></p>
-        <p><strong>Cursos Asignados:</strong> <span id="detalleCursos"></span></p>
-        <p><strong>Materias Asignadas:</strong> <span id="detalleMaterias"></span></p>
+        <div id="tablaAcademicaEstudiante"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -175,43 +172,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
             </div>
           </div>
 
-          <h6 class="section-title mt-4">Información Académica</h6>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editPeriodoAcademico" class="form-label">Periodo Académico</label>
-              <select class="form-select" id="editPeriodoAcademico"> 
-                <option value="" selected disabled>Seleccione un periodo</option>
-              </select>
-              <div class="invalid-feedback">Por favor seleccione un periodo académico</div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label for="editCurso" class="form-label">Curso</label>
-              <select class="form-select" id="editCurso" style="color: var(--color-tertiary);"> 
-                <option value="" style="color: var(--color-tertiary);" selected disabled>Seleccione un curso</option>
-              </select>
-              <div class="invalid-feedback">Por favor seleccione un curso</div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editMaterias" class="form-label" >Materias</label>
-              <select class="form-select" id="editMaterias" disabled> 
-                <option value="" selected disabled>Primero seleccione un curso</option>
-              </select>
-              <div class="invalid-feedback">Seleccione una materia</div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label for="editSeccion" class="form-label">Sección</label>
-              <select class="form-select" id="editSeccion">
-                <option value="" selected disabled>Seleccione una sección</option>
-              </select>
-              <div class="invalid-feedback">Por favor seleccione una sección</div>
-            </div>
-          </div>
-          
           <div class="d-flex justify-content-between mt-4">
             <button type="reset" class="btn btn-secondary">Limpiar</button>
             <button type="submit" class="btn btn-primary" id="btnGuardarEdicion">Guardar Cambios</button>
@@ -330,41 +290,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       }
     }
 
-    // Función para cargar materias por curso
-    async function cargarMateriasPorCurso(cursoId, periodoId) {
-      const targetMateriasSelect = editMaterias; 
-      if (!targetMateriasSelect) return; 
-
-      targetMateriasSelect.innerHTML = '<option value="" selected disabled>Cargando materias...</option>';
-      targetMateriasSelect.disabled = true;
-      if (!cursoId || !periodoId) {
-        targetMateriasSelect.innerHTML = '<option value="" selected disabled>Primero seleccione un curso y un periodo</option>';
-        return;
-      }
-      try {
-        const response = await fetch(`${API_BASE_URL}/materias?curso=${cursoId}&periodo=${periodoId}`);
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const materias = await response.json();
-        targetMateriasSelect.innerHTML = '';
-        if (materias.length === 0) {
-          targetMateriasSelect.innerHTML = '<option value="" disabled>No hay materias para este curso y periodo</option>';
-        } else {
-          materias.forEach(materia => {
-            const option = document.createElement('option');
-            option.value = materia.id_materia;
-            option.textContent = materia.nombre_materia || materia.materia;
-            targetMateriasSelect.appendChild(option);
-          });
-          targetMateriasSelect.disabled = false;
-        }
-      }
-      catch (error) {
-        console.error('Error cargando materias:', error);
-        targetMateriasSelect.innerHTML = '<option value="" selected disabled>Error al cargar materias</option>';
-        mostrarErrorAlUsuario('Error al cargar materias. Intente nuevamente.');
-      }
-    }
-
     // Función para cargar secciones
     async function cargarSecciones(prefix = '') {
       const targetSeccionSelect = prefix === 'edit' ? editSeccion : null; 
@@ -395,26 +320,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         mostrarErrorAlUsuario('Error al cargar secciones. Intente nuevamente.');
       }
     }
-
-    // Event listeners for Edit Student Modal
-    editCurso.addEventListener('change', async function() { 
-        await cargarMateriasPorCurso(this.value, editPeriodoAcademico.value);
-        const studentBeingEdited = studentsTableBody.querySelector(`[data-id="${editIdUsuario.value}"]`);
-        if (studentBeingEdited) {
-            const studentData = JSON.parse(studentBeingEdited.dataset.studentData); 
-            if (studentData && studentData.materiasIds && studentData.materiasIds.length > 0) {
-                setTimeout(() => {
-                    editMaterias.value = studentData.materiasIds[0];
-                    if (editMaterias.selectedIndex === -1) { 
-                        editMaterias.value = ''; 
-                    }
-                }, 100);
-            } else {
-                editMaterias.value = ''; 
-                editMaterias.disabled = false; 
-            }
-        }
-    });
 
     // Validar número de teléfono para edición
     editNumeroTelefonoInput.addEventListener('input', function() {
@@ -697,101 +602,65 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 
     // Mostrar los detalles del estudiante en el modal
     async function mostrarDetallesEstudiante(estudiante) {
-
-        const studentStatusModal = estudiante.estado === 1 ? 'Activo' : (estudiante.estado === 0 ? 'Inactivo' : 'N/A');
-
-        detalleCedula.textContent = estudiante.cedula || 'N/A';
-        detalleNombreCompleto.textContent = `${estudiante.primer_nombre || ''} ${estudiante.segundo_nombre || ''} ${estudiante.primer_apellido || ''} ${estudiante.segundo_apellido || ''}`.trim() || 'N/A';
-        detalleCorreo.textContent = estudiante.correo || 'N/A';
-        detalleTelefono.textContent = estudiante.telefono || 'N/A';
-        detalleDireccion.textContent = estudiante.direccion || 'N/A'; 
-        detalleEstadoEstudiante.textContent = studentStatusModal;
-        detalleUltimaConexion.textContent = estudiante.ultima_conexion ? new Date(estudiante.ultima_conexion).toLocaleDateString() : 'No ha ingresado a la pagina';
-        detallePeriodoAcademico.textContent = (estudiante.periodoAcademicoNames && estudiante.periodoAcademicoNames.length > 0) ? estudiante.periodoAcademicoNames.join(', ') : 'N/A';
-        detalleSeccion.textContent = (estudiante.seccionNames && estudiante.seccionNames.length > 0) ? estudiante.seccionNames.join(', ') : 'N/A';
-        detalleCursos.textContent = (estudiante.cursosNames && estudiante.cursosNames.length > 0) ? estudiante.cursosNames.join(', ') : 'Ninguno';
-        detalleMaterias.textContent = (estudiante.materiasNames && estudiante.materiasNames.length > 0) ? estudiante.materiasNames.join(', ') : 'Ninguna';
-
+        // Robustez: solo asigno si el elemento existe
+        if (detalleCedula) detalleCedula.textContent = estudiante.cedula || 'N/A';
+        if (detalleNombreCompleto) detalleNombreCompleto.textContent = `${estudiante.primer_nombre || ''} ${estudiante.segundo_nombre || ''} ${estudiante.primer_apellido || ''} ${estudiante.segundo_apellido || ''}`.trim() || 'N/A';
+        if (detalleCorreo) detalleCorreo.textContent = estudiante.correo || 'N/A';
+        if (detalleTelefono) detalleTelefono.textContent = estudiante.telefono || 'N/A';
+        if (detalleDireccion) detalleDireccion.textContent = estudiante.direccion || 'N/A';
+        if (detalleEstadoEstudiante) detalleEstadoEstudiante.textContent = estudiante.estado === 1 ? 'Activo' : (estudiante.estado === 0 ? 'Inactivo' : 'N/A');
+        if (detalleUltimaConexion) detalleUltimaConexion.textContent = estudiante.ultima_conexion ? new Date(estudiante.ultima_conexion).toLocaleDateString() : 'No ha ingresado a la pagina';
+        if (detallePeriodoAcademico) detallePeriodoAcademico.textContent = (estudiante.periodoAcademicoNames && estudiante.periodoAcademicoNames.length > 0) ? estudiante.periodoAcademicoNames.join(', ') : 'N/A';
+        if (detalleSeccion) detalleSeccion.textContent = (estudiante.seccionNames && estudiante.seccionNames.length > 0) ? estudiante.seccionNames.join(', ') : 'N/A';
+        if (detalleCursos) detalleCursos.textContent = (estudiante.cursosNames && estudiante.cursosNames.length > 0) ? estudiante.cursosNames.join(', ') : 'Ninguno';
+        if (detalleMaterias) detalleMaterias.textContent = (estudiante.materiasNames && estudiante.materiasNames.length > 0) ? estudiante.materiasNames.join(', ') : 'Ninguna';
+        // Tabla académica cruzada
+        let tablaAcademica = document.getElementById('tablaAcademicaEstudiante');
+        if (tablaAcademica) {
+          tablaAcademica.innerHTML = '<div class="text-center text-muted">Cargando información académica detallada...</div>';
+          try {
+            const resp = await fetch(`http://localhost:3001/api/estudiantes/${estudiante.id_usuario}/academico`);
+            if (!resp.ok) throw new Error('Error al obtener información académica cruzada');
+            const data = await resp.json();
+            if (Array.isArray(data.academico) && data.academico.length > 0) {
+              let tabla = `<div class=\"mt-3\"><strong>Detalle Académico:</strong><div class=\"table-responsive\"><table class=\"table table-bordered table-sm table-dark\"><thead><tr><th>Período</th><th>Curso</th><th>Materia</th><th>Sección</th></tr></thead><tbody>`;
+              data.academico.forEach(row => {
+                tabla += `<tr><td>${row.nombre_periodo || 'N/A'}</td><td>${row.nombre_curso || 'N/A'}</td><td>${row.nombre_materia || 'N/A'}</td><td>${row.nombre_seccion || 'N/A'}</td></tr>`;
+              });
+              tabla += '</tbody></table></div></div>';
+              tablaAcademica.innerHTML = tabla;
+            } else {
+              tablaAcademica.innerHTML = '<div class="text-center text-muted">No hay información académica cruzada registrada.</div>';
+            }
+          } catch (err) {
+            tablaAcademica.innerHTML = '<div class="text-center text-danger">Error al cargar información académica cruzada.</div>';
+          }
+        }
         modalVerMasInformacionEstudiante.show();
     }
 
 
     // Función para Editar Estudiante
     async function editarEstudiante(estudiante) {
-
-        editIdUsuario.value = estudiante.id_usuario;
-        editCedula.value = estudiante.cedula || '';
-        editCorreo.value = estudiante.correo || '';
-        editPrimerNombre.value = estudiante.primer_nombre || '';
-        editSegundoNombre.value = estudiante.segundo_nombre || '';
-        editPrimerApellido.value = estudiante.primer_apellido || '';
-        editSegundoApellido.value = estudiante.segundo_apellido || '';
-        editDireccion.value = estudiante.direccion || ''; 
-
-        // Separar teléfono en código de área y número
-        if (estudiante.telefono) {
-            const [codigo, numero] = estudiante.telefono.split('-');
-            editCodigoAreaSelect.value = codigo || '';
-            editNumeroTelefonoInput.value = numero || '';
-        } else {
-            editCodigoAreaSelect.value = '';
-            editNumeroTelefonoInput.value = '';
-        }
-
-        // Cargar periodos y pre-seleccionar
-        await cargarPeriodos('edit');
-        if (estudiante.periodoAcademicoIds && estudiante.periodoAcademicoIds.length > 0) {
-            editPeriodoAcademico.value = estudiante.periodoAcademicoIds[0];
-            if (editPeriodoAcademico.selectedIndex === -1) {
-                editPeriodoAcademico.value = ''; 
+        if (editIdUsuario) editIdUsuario.value = estudiante.id_usuario;
+        if (editCedula) editCedula.value = estudiante.cedula || '';
+        if (editCorreo) editCorreo.value = estudiante.correo || '';
+        if (editPrimerNombre) editPrimerNombre.value = estudiante.primer_nombre || '';
+        if (editSegundoNombre) editSegundoNombre.value = estudiante.segundo_nombre || '';
+        if (editPrimerApellido) editPrimerApellido.value = estudiante.primer_apellido || '';
+        if (editSegundoApellido) editSegundoApellido.value = estudiante.segundo_apellido || '';
+        if (editDireccion) editDireccion.value = estudiante.direccion || '';
+        if (editCodigoAreaSelect && editNumeroTelefonoInput) {
+            if (estudiante.telefono) {
+                const [codigo, numero] = estudiante.telefono.split('-');
+                editCodigoAreaSelect.value = codigo || '';
+                editNumeroTelefonoInput.value = numero || '';
+            } else {
+                editCodigoAreaSelect.value = '';
+                editNumeroTelefonoInput.value = '';
             }
-        } else {
-            editPeriodoAcademico.value = ''; 
         }
-
-        // Cargar cursos y pre-seleccionar
-        await cargarCursos('edit'); 
-        if (estudiante.cursosIds && estudiante.cursosIds.length > 0) {
-            editCurso.value = estudiante.cursosIds[0]; 
-            if (editCurso.selectedIndex === -1) { 
-                editCurso.value = ''; 
-            }
-            
-            if (editCurso.value && editCurso.value !== '') { 
-                await cargarMateriasPorCurso(editCurso.value, editPeriodoAcademico.value); 
-                if (estudiante.materiasIds && estudiante.materiasIds.length > 0) {
-                    setTimeout(() => {
-                        editMaterias.value = estudiante.materiasIds[0]; 
-                        if (editMaterias.selectedIndex === -1) { 
-                            editMaterias.value = ''; 
-                        }
-                    }, 100); 
-                } else {
-                    editMaterias.value = ''; 
-                    editMaterias.disabled = false; 
-                }
-            } else { 
-                editMaterias.innerHTML = '<option value="" selected disabled>Primero seleccione un curso</option>';
-                editMaterias.disabled = true;
-                editCurso.value = ''; 
-            }
-        } else { 
-            editCurso.value = ''; 
-            editMaterias.innerHTML = '<option value="" selected disabled>Primero seleccione un curso</option>';
-            editMaterias.disabled = true;
-        }
-
-        // Cargar secciones y pre-seleccionar
-        await cargarSecciones('edit');
-        if (estudiante.seccionIds && estudiante.seccionIds.length > 0) {
-            editSeccion.value = estudiante.seccionIds[0]; 
-            if (editSeccion.selectedIndex === -1) { 
-                editSeccion.value = ''; 
-            }
-        } else {
-            editSeccion.value = ''; 
-        }
-
+        // No referencias a campos académicos eliminados
         modalEditarEstudiante.show();
     }
 
