@@ -1,0 +1,252 @@
+@import "../variables.css";
+@import "../global.css";
+
+body {
+    overflow: hidden;
+}
+
+.data-content-section {
+    background: var(--color-GRIS);
+    height: calc(100vh - 2rem);
+    margin-right: 24px;
+    border-top-right-radius: var(--border-radius-16);
+    border-top-left-radius: var(--border-radius-16);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.search-content-data {
+    background: var(--color-tertiary);
+    padding: var(--spacing-24) var(--spacing-60);
+    border-radius: var(--border-radius-16);
+    box-shadow: var(--box-shadow-button1);
+    margin-bottom: var(--spacing-24);
+}
+
+.welcome-search-data h2,
+.welcome-search-data p {
+    text-align: center;
+}
+
+.welcome-search-data h2 {
+    font-family: var(--font-family-titlesub);
+    font-size: clamp(2.5rem, 5vmin, 5vmax);
+    color: var(--color-quaternary);
+    font-weight: var(--font-weight-500);
+}
+
+.welcome-search-data p {
+    font-family: var(--font-family-Paragraph);
+    font-size: var(--font-size-medium);
+    color: var(--color-quaternary);
+    font-weight: var(--font-weight-300);
+    opacity: var(--ocpacity-50);
+    margin: 0;
+}
+
+.info-cards-section {
+    display: grid;
+    /* Un diseño de cuadrícula más compacto y responsivo */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Min-width 200px */
+    gap: var(--spacing-16); /* Espaciado reducido entre tarjetas */
+    padding: 0 var(--spacing-60) var(--spacing-24) var(--spacing-60);
+    justify-content: center;
+    align-items: flex-start;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* Estilos base para las tarjetas de materia */
+.card-item {
+    background: var(--color-tertiary);
+    border: 1px solid var(--color-secondary);
+    border-radius: var(--border-radius-16);
+    box-shadow: var(--box-shadow-button1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-16); /* Padding interno más compacto */
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    min-height: 200px; /* Altura mínima ajustada */
+    max-width: 300px; /* Limita el ancho máximo para mantener uniformidad */
+    justify-content: space-between; /* Distribuye el contenido verticalmente */
+}
+
+.card-item:hover {
+    transform: translateY(-5px); /* Efecto de elevación sutil */
+    box-shadow: var(--box-shadow-button2);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: var(--color-tertiary);
+}
+
+.card-icon-wrapper {
+    background: var(--color-primary);
+    border-radius: 50%;
+    padding: var(--spacing-12); /* Padding más pequeño para el icono */
+    margin-bottom: var(--spacing-12); /* Margen más pequeño */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra más suave */
+    transition: background 0.3s ease;
+}
+
+.card-item:hover .card-icon-wrapper {
+    background: var(--color-tertiary);
+}
+
+.card-icon {
+    font-size: 3rem; /* Tamaño de icono ligeramente reducido */
+    color: var(--color-tertiary);
+    transition: color 0.3s ease;
+}
+
+.card-item:hover .card-icon {
+    color: var(--color-primary);
+}
+
+.card-title {
+    font-family: var(--font-family-titlesub);
+    font-size: var(--font-size-large); /* Mantener el tamaño para la legibilidad del título */
+    color: var(--color-quaternary);
+    font-weight: var(--font-weight-600);
+    margin: 0 0 var(--spacing-8) 0; /* Espacio reducido debajo del título */
+    transition: color 0.3s ease;
+    line-height: 1.2; /* Ajustar la altura de línea */
+}
+
+.card-item:hover .card-title {
+    color: var(--color-tertiary);
+}
+
+.materia-details {
+    width: 100%;
+    text-align: left;
+    margin-top: var(--spacing-8);
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-2); /* Margen muy pequeño entre los detalles */
+    font-family: var(--font-family-Paragraph);
+    font-size: var(--font-size-small); /* Tamaño de fuente más pequeño para los detalles */
+    color: var(--color-text-secondary);
+    line-height: 1.3; /* Ajustar altura de línea para los detalles */
+}
+
+.card-item:hover .detail-item {
+    color: var(--color-tertiary);
+}
+
+.detail-icon {
+    margin-right: var(--spacing-4); /* Margen más pequeño para el icono de detalle */
+    font-size: var(--font-size-small); /* Icono de detalle más pequeño */
+    color: var(--color-primary);
+    transition: color 0.3s ease;
+}
+
+.card-item:hover .detail-icon {
+    color: var(--color-tertiary);
+}
+
+.detail-value {
+    font-weight: var(--font-weight-500);
+    color: var(--color-quaternary);
+    transition: color 0.3s ease;
+}
+
+.card-item:hover .detail-value {
+    color: var(--color-tertiary);
+}
+
+.students-count {
+    font-weight: var(--font-weight-bold);
+    margin-top: var(--spacing-4); /* Espacio extra reducido arriba */
+}
+
+.students-count .detail-value {
+    color: var(--color-accent);
+}
+
+.card-item:hover .students-count .detail-value {
+    color: var(--color-tertiary);
+}
+
+/* Mensajes de estado */
+.loading-message, .error-message, .no-results-message {
+    text-align: center;
+    grid-column: 1 / -1; /* Ocupa todo el ancho del grid */
+    font-family: var(--font-family-Paragraph);
+    font-size: var(--font-size-medium);
+    padding: var(--spacing-24);
+    color: var(--color-quaternary);
+}
+
+.error-message {
+    color: var(--color-danger); /* Rojo para mensajes de error */
+}
+
+.hidden { display: none; }
+
+/* Media Queries para responsividad */
+@media (max-width: 1024px) {
+    .info-cards-section {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Reducir min-width */
+        padding: 0 var(--spacing-40) var(--spacing-24) var(--spacing-40);
+        gap: var(--spacing-12); /* Reducir gap */
+    }
+    .search-content-data {
+        padding: var(--spacing-16) var(--spacing-40);
+    }
+    .card-item {
+        min-height: 180px; /* Ajustar altura mínima */
+        padding: var(--spacing-12); /* Reducir padding */
+    }
+    .card-icon {
+        font-size: 2.5rem; /* Reducir tamaño de icono */
+    }
+    .card-icon-wrapper {
+        padding: var(--spacing-10); /* Reducir padding de wrapper */
+        margin-bottom: var(--spacing-8);
+    }
+    .card-title {
+        font-size: var(--font-size-medium); /* Ajustar tamaño de título */
+    }
+    .detail-item {
+        font-size: var(--font-size-x-small); /* Ajustar tamaño de detalle */
+    }
+}
+
+@media (max-width: 768px) {
+    .info-cards-section {
+        grid-template-columns: 1fr; /* Una columna en pantallas pequeñas */
+        padding: 0 var(--spacing-24) var(--spacing-24) var(--spacing-24);
+        gap: var(--spacing-16);
+    }
+    .search-content-data {
+        padding: var(--spacing-16) var(--spacing-24);
+    }
+    .card-item {
+        min-height: 160px; /* Reducir altura mínima en móviles */
+        max-width: 100%; /* Ocupar todo el ancho disponible */
+    }
+    .card-icon {
+        font-size: 2rem;
+    }
+    .card-icon-wrapper {
+        padding: var(--spacing-8);
+        margin-bottom: var(--spacing-8);
+    }
+    .card-title {
+        font-size: var(--font-size-small);
+    }
+    .detail-item {
+        font-size: var(--font-size-x-small);
+    }
+}

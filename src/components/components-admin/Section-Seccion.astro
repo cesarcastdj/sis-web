@@ -1,0 +1,782 @@
+---
+import "../../style/style-admin/secciones.css";
+---
+
+<section class="data-content-section">  
+  <!-- Sección del Título "Secciones" con el estilo de la tarjeta de bienvenida -->
+  <section class="secciones-header-card">
+    <div class="welcome-search-data">
+      <h2 class="welcome-search-data__title">Secciones</h2>
+      <p>Gestiona las secciones académicas del sistema</p>
+    </div>
+  </section>
+
+  <!-- Sección de Tarjeta Consolidada de Resumen de Secciones -->
+  <section class="content-info-data">
+    <section class="data-general-control">
+      <!-- Tarjeta Consolidada de Secciones -->
+      <div class="registro-control consolidated-sections-card">
+        <div class="card-icon-title">
+          <i class="bx bxs-grid-alt"></i>
+          <h5 class="card-title">Resumen de Secciones</h5>
+        </div>
+        <div class="sections-summary-grid">
+          <div class="summary-item">
+            <span class="summary-count" id="totalSeccionesCount">0</span>
+            <span class="summary-label">Total</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="seccionesActivasCount">0</span>
+            <span class="summary-label">Activas</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="estudiantesEnSeccionesCount">0</span>
+            <span class="summary-label">Estudiantes</span>
+          </div>
+        </div>
+        <div class="btn-accion-control">
+          <button class="btn-card" data-bs-toggle="modal" data-bs-target="#modalAgregarSeccion">
+            <i class="bx bx-plus"></i> Agregar Sección
+          </button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <!-- La tabla de Secciones -->
+  <div class="display-table" id="tableSecciones">
+    <div class="tabla-info-person">
+      <table class="table table-dark table-hover table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Sección</th>
+            <th scope="col">Descripción</th>
+            <th scope="col">Cursos Asociados</th>
+            <th scope="col">Total Estudiantes</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="seccionesTableBody">
+          <tr>
+            <td colspan="7" class="text-center">Cargando secciones...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="paginationControls" class="pagination text-center mt-3"></div>
+  </div>
+</section>
+
+<!-- Modal para Agregar Nueva Sección -->
+<div class="modal fade" id="modalAgregarSeccion" tabindex="-1" aria-labelledby="modalAgregarSeccionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAgregarSeccionLabel">Agregar Nueva Sección</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formAgregarSeccion">
+          <h6 class="section-title">Información de la Sección</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="nombreSeccion" class="form-label">Nombre de la Sección <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="nombreSeccion" placeholder="Ej: A, B, C, 1A, 2B" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="descripcionSeccion" class="form-label">Descripción</label>
+              <input type="text" class="form-control" id="descripcionSeccion" placeholder="Descripción opcional de la sección" />
+            </div>
+          </div>
+
+          <h6 class="section-title mt-4">Asignaciones de Cursos</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="cursosAsignados" class="form-label">Cursos a Asignar</label>
+              <select class="form-control" id="cursosAsignados" multiple>
+                <option value="" disabled>Cargando cursos...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mt-4">
+            <button type="reset" class="btn btn-secondary">Limpiar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardarSeccion">Guardar Sección</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Ver Más Información de la Sección -->
+<div class="modal fade" id="modalVerMasInformacionSeccion" tabindex="-1" aria-labelledby="modalVerMasInformacionSeccionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalVerMasInformacionSeccionLabel">Detalles de la Sección</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h6 class="section-title">Información General</h6>
+        <p><strong>Nombre de la Sección:</strong> <span id="detalleNombreSeccion"></span></p>
+        <p><strong>Descripción:</strong> <span id="detalleDescripcionSeccion"></span></p>
+        <p><strong>Estado:</strong> <span id="detalleEstadoSeccion"></span></p>
+        <p><strong>Fecha de Creación:</strong> <span id="detalleFechaCreacion"></span></p>
+
+        <h6 class="section-title mt-4">Cursos Asociados</h6>
+        <div id="detalleCursosAsociados">
+          <p class="text-muted">Cargando información de cursos...</p>
+        </div>
+
+        <h6 class="section-title mt-4">Estudiantes Asignados</h6>
+        <div id="detalleEstudiantesAsignados">
+          <p class="text-muted">Cargando información de estudiantes...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Editar Sección -->
+<div class="modal fade" id="modalEditarSeccion" tabindex="-1" aria-labelledby="modalEditarSeccionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarSeccionLabel">Editar Sección</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarSeccion">
+          <input type="hidden" id="editIdSeccion" />
+          <h6 class="section-title">Información de la Sección</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="editNombreSeccion" class="form-label">Nombre de la Sección <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="editNombreSeccion" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="editDescripcionSeccion" class="form-label">Descripción</label>
+              <input type="text" class="form-control" id="editDescripcionSeccion" />
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mt-4">
+            <button type="reset" class="btn btn-secondary">Limpiar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardarEdicionSeccion">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log("DEBUG: DOMContentLoaded - Script principal de Secciones cargado.");
+
+    let currentPage = 1;
+    const itemsPerPage = 5;
+    const seccionesTableBody = document.getElementById('seccionesTableBody');
+    const paginationControls = document.getElementById('paginationControls');
+
+    // Contadores de secciones
+    const totalSeccionesCount = document.getElementById('totalSeccionesCount');
+    const seccionesActivasCount = document.getElementById('seccionesActivasCount');
+    const estudiantesEnSeccionesCount = document.getElementById('estudiantesEnSeccionesCount');
+
+    // Modales
+    const modalAgregarSeccion = new bootstrap.Modal(document.getElementById('modalAgregarSeccion'));
+    const modalVerMasInformacionSeccion = new bootstrap.Modal(document.getElementById('modalVerMasInformacionSeccion'));
+    const modalEditarSeccion = new bootstrap.Modal(document.getElementById('modalEditarSeccion'));
+
+    // Formularios
+    const formAgregarSeccion = document.getElementById('formAgregarSeccion');
+    const formEditarSeccion = document.getElementById('formEditarSeccion');
+
+    // Elementos del formulario de agregar
+    const nombreSeccion = document.getElementById('nombreSeccion');
+    const descripcionSeccion = document.getElementById('descripcionSeccion');
+    const cursosAsignados = document.getElementById('cursosAsignados');
+    const estudiantesAsignados = document.getElementById('estudiantesAsignados');
+    const btnGuardarSeccion = document.getElementById('btnGuardarSeccion');
+
+    // Elementos del formulario de editar
+    const editIdSeccion = document.getElementById('editIdSeccion');
+    const editNombreSeccion = document.getElementById('editNombreSeccion');
+    const editDescripcionSeccion = document.getElementById('editDescripcionSeccion');
+    const btnGuardarEdicionSeccion = document.getElementById('btnGuardarEdicionSeccion');
+
+    // Elementos del modal de detalles
+    const detalleNombreSeccion = document.getElementById('detalleNombreSeccion');
+    const detalleDescripcionSeccion = document.getElementById('detalleDescripcionSeccion');
+    const detalleEstadoSeccion = document.getElementById('detalleEstadoSeccion');
+    const detalleFechaCreacion = document.getElementById('detalleFechaCreacion');
+    const detalleCursosAsociados = document.getElementById('detalleCursosAsociados');
+    const detalleEstudiantesAsignados = document.getElementById('detalleEstudiantesAsignados');
+
+    // Cargar datos cuando se abra el modal de agregar
+    modalAgregarSeccion._element.addEventListener('shown.bs.modal', async function() {
+      console.log("DEBUG: Modal de agregar sección abierto. Cargando dropdowns...");
+      await cargarCursos();
+      await cargarEstudiantes();
+    });
+
+    // Función para cargar cursos
+    async function cargarCursos() {
+      cursosAsignados.disabled = true;
+      cursosAsignados.innerHTML = '<option value="" disabled>Cargando cursos...</option>';
+      try {
+        const response = await fetch('http://localhost:3001/api/cursos');
+        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+        const cursos = await response.json();
+        
+        cursosAsignados.innerHTML = '';
+        cursos.forEach(curso => {
+          const option = document.createElement('option');
+          option.value = curso.id_curso;
+          option.textContent = curso.nombre_curso || curso.curso;
+          cursosAsignados.appendChild(option);
+        });
+        cursosAsignados.disabled = false;
+      } catch (error) {
+        console.error('❌ Error cargando cursos:', error);
+        cursosAsignados.innerHTML = '<option value="" disabled>Error al cargar cursos</option>';
+        mostrarErrorAlUsuario('Error al cargar cursos. Intente recargar la página.');
+      }
+    }
+
+    // Función para cargar estudiantes
+    async function cargarEstudiantes() {
+      estudiantesAsignados.disabled = true;
+      estudiantesAsignados.innerHTML = '<option value="" disabled>Cargando estudiantes...</option>';
+      try {
+        const response = await fetch('http://localhost:3001/api/estudiantes');
+        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+        const data = await response.json();
+        const estudiantes = data.estudiantes || data;
+        
+        estudiantesAsignados.innerHTML = '';
+        estudiantes.forEach(estudiante => {
+          const option = document.createElement('option');
+          option.value = estudiante.id_usuario;
+          option.textContent = `${estudiante.primer_nombre} ${estudiante.primer_apellido} (${estudiante.cedula})`;
+          estudiantesAsignados.appendChild(option);
+        });
+        estudiantesAsignados.disabled = false;
+      } catch (error) {
+        console.error('❌ Error cargando estudiantes:', error);
+        estudiantesAsignados.innerHTML = '<option value="" disabled>Error al cargar estudiantes</option>';
+        mostrarErrorAlUsuario('Error al cargar estudiantes. Intente recargar la página.');
+      }
+    }
+
+    // Manejar envío del formulario de agregar sección
+    formAgregarSeccion.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      console.log("DEBUG: Formulario de agregar sección enviado.");
+
+      const cursosSeleccionados = Array.from(cursosAsignados.selectedOptions).map(option => parseInt(option.value));
+      const estudiantesSeleccionados = Array.from(estudiantesAsignados.selectedOptions).map(option => parseInt(option.value));
+
+      btnGuardarSeccion.disabled = true;
+      btnGuardarSeccion.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Guardando...
+      `;
+
+      try {
+        const formData = {
+          nombreSeccion: nombreSeccion.value.trim(),
+          descripcion: descripcionSeccion.value.trim(),
+          cursosAsignados: cursosSeleccionados,
+          estudiantesAsignados: estudiantesSeleccionados
+        };
+
+        console.log("DEBUG: Datos a enviar:", formData);
+
+        const response = await fetch('http://localhost:3001/api/secciones-academicas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al crear la sección');
+        }
+
+        mostrarMensajeExito('Sección creada exitosamente');
+        formAgregarSeccion.reset();
+        
+        setTimeout(() => {
+          modalAgregarSeccion.hide();
+          loadSecciones(currentPage);
+        }, 1500);
+
+      } catch (error) {
+        console.error('❌ Error al crear sección:', error);
+        mostrarErrorAlUsuario(error.message);
+      } finally {
+        btnGuardarSeccion.disabled = false;
+        btnGuardarSeccion.textContent = 'Guardar Sección';
+      }
+    });
+
+    // Manejar envío del formulario de editar sección
+    formEditarSeccion.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      console.log("DEBUG: Formulario de editar sección enviado.");
+
+      const confirmResult = await mostrarConfirmacion(
+        `¿Estás seguro de guardar los cambios para esta sección?`
+      );
+      if (!confirmResult) return;
+
+      const id_seccion = editIdSeccion.value;
+
+      btnGuardarEdicionSeccion.disabled = true;
+      btnGuardarEdicionSeccion.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Guardando...
+      `;
+
+      try {
+        const formData = {
+          nombreSeccion: editNombreSeccion.value.trim(),
+          descripcion: editDescripcionSeccion.value.trim()
+        };
+
+        const response = await fetch(`http://localhost:3001/api/secciones-academicas/${id_seccion}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al actualizar la sección');
+        }
+
+        mostrarMensajeExito('Sección actualizada correctamente');
+        
+        setTimeout(() => {
+          modalEditarSeccion.hide();
+          loadSecciones(currentPage);
+        }, 1500);
+
+      } catch (error) {
+        console.error('❌ Error al actualizar sección:', error);
+        mostrarErrorAlUsuario(error.message);
+      } finally {
+        btnGuardarEdicionSeccion.disabled = false;
+        btnGuardarEdicionSeccion.textContent = 'Guardar Cambios';
+      }
+    });
+
+    // Función para inicializar los dropdowns de Bootstrap
+    function initializeDropdowns() {
+      console.log('DEBUG: initializeDropdowns called.');
+      if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
+        const dropdownToggles = seccionesTableBody.querySelectorAll('.dropdown-toggle');
+        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Dropdowns...');
+        dropdownToggles.forEach(button => {
+          const existingDropdown = bootstrap.Dropdown.getInstance(button);
+          if (existingDropdown) {
+            existingDropdown.dispose();
+          }
+          new bootstrap.Dropdown(button, {
+            popperConfig: function (defaultBsPopperConfig) {
+              return {
+                ...defaultBsPopperConfig,
+                placement: 'bottom-end',
+                strategy: 'fixed',
+                modifiers: [
+                  ...(defaultBsPopperConfig.modifiers || []),
+                  {
+                    name: 'offset',
+                    options: {
+                      offset: [0, 8]
+                    }
+                  },
+                ],
+              };
+            }
+          });
+        });
+      }
+    }
+
+    // Función principal para cargar secciones
+    async function loadSecciones(page) {
+      console.log(`DEBUG: loadSecciones called for page ${page}.`);
+      seccionesTableBody.innerHTML = `<tr><td colspan="7" class="text-center">Cargando secciones...</td></tr>`;
+      paginationControls.innerHTML = '';
+      totalSeccionesCount.textContent = '...';
+      seccionesActivasCount.textContent = '...';
+      estudiantesEnSeccionesCount.textContent = '...';
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/secciones-academicas?page=${page}&limit=${itemsPerPage}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            seccionesTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No se encontraron secciones.</td></tr>`;
+            totalSeccionesCount.textContent = '0';
+            seccionesActivasCount.textContent = '0';
+            estudiantesEnSeccionesCount.textContent = '0';
+            return;
+          }
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const secciones = data.secciones;
+        const totalPages = data.totalPages;
+        currentPage = data.currentPage;
+
+        console.log("DEBUG: Datos de secciones recibidos:", data);
+
+        // Actualizar contadores
+        totalSeccionesCount.textContent = data.totalCount || '0';
+        seccionesActivasCount.textContent = data.activeCount || '0';
+        estudiantesEnSeccionesCount.textContent = data.studentsCount || '0';
+
+        seccionesTableBody.innerHTML = '';
+
+        if (secciones.length === 0) {
+          seccionesTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No se encontraron secciones.</td></tr>`;
+          return;
+        }
+
+        secciones.forEach((seccion, index) => {
+          const seccionDataAttribute = JSON.stringify(seccion);
+          const estadoSeccion = seccion.activo === 1 ? 'Activa' : 'Inactiva';
+          const cursosAsociados = seccion.cursos_asociados || 'N/A';
+          const totalEstudiantes = seccion.total_estudiantes || 0;
+
+          const row = document.createElement('tr');
+          row.dataset.id = seccion.id_seccion;
+          row.dataset.seccionData = seccionDataAttribute;
+
+          row.innerHTML = `
+            <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td>${seccion.seccion || ''}</td>
+            <td>${seccion.descripcion || 'Sin descripción'}</td>
+            <td>${cursosAsociados}</td>
+            <td>${totalEstudiantes}</td>
+            <td>${estadoSeccion}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton${seccion.id_seccion}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${seccion.id_seccion}">
+                  <li><a class="dropdown-item" href="#" data-action="ver-mas" data-id="${seccion.id_seccion}"><i class='bx bx-info-circle me-2'></i>Ver más información</a></li>
+                  <li><a class="dropdown-item" href="#" data-action="editar" data-id="${seccion.id_seccion}"><i class='bx bxs-edit-alt me-2'></i>Editar</a></li>
+                  <li><a class="dropdown-item" href="#" data-action="eliminar" data-id="${seccion.id_seccion}"><i class='bx bx-trash me-2'></i>Desactivar Sección</a></li>
+                </ul>
+              </div>
+            </td>
+          `;
+          seccionesTableBody.appendChild(row);
+        });
+
+        initializeDropdowns();
+        setupPagination(totalPages, currentPage);
+        setupActionListeners(secciones);
+
+      } catch (error) {
+        console.error('❌ Error al cargar secciones:', error);
+        seccionesTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Error al cargar secciones. Intente nuevamente.</td></tr>`;
+        totalSeccionesCount.textContent = '0';
+        seccionesActivasCount.textContent = '0';
+        estudiantesEnSeccionesCount.textContent = '0';
+      }
+    }
+
+    // Configurar listeners para los botones de acción
+    function setupActionListeners(seccionesData) {
+      seccionesTableBody.querySelectorAll('.dropdown-item').forEach(item => {
+        item.removeEventListener('click', handleActionClick);
+        item.addEventListener('click', handleActionClick);
+
+        function handleActionClick(e) {
+          e.preventDefault();
+          const action = e.currentTarget.dataset.action;
+          const seccionId = e.currentTarget.dataset.id;
+          const seccion = seccionesData.find(s => s.id_seccion.toString() === seccionId);
+
+          if (!seccion) {
+            console.error('Error: Sección no encontrada para ID:', seccionId);
+            return;
+          }
+
+          switch (action) {
+            case 'ver-mas':
+              mostrarDetallesSeccion(seccion);
+              break;
+            case 'editar':
+              editarSeccion(seccion);
+              break;
+            case 'eliminar':
+              desactivarSeccion(seccion);
+              break;
+          }
+        }
+      });
+    }
+
+    // Mostrar detalles de la sección
+    async function mostrarDetallesSeccion(seccion) {
+      console.log("DEBUG: Datos de la sección para 'Ver más información':", seccion);
+
+      detalleNombreSeccion.textContent = seccion.seccion || 'N/A';
+      detalleDescripcionSeccion.textContent = seccion.descripcion || 'Sin descripción';
+      detalleEstadoSeccion.textContent = seccion.activo === 1 ? 'Activa' : 'Inactiva';
+      detalleFechaCreacion.textContent = seccion.fecha_creacion ? new Date(seccion.fecha_creacion).toLocaleDateString() : 'N/A';
+
+      // Cargar información detallada
+      detalleCursosAsociados.innerHTML = '<div class="text-center text-muted">Cargando información de cursos...</div>';
+      detalleEstudiantesAsignados.innerHTML = '<div class="text-center text-muted">Cargando información de estudiantes...</div>';
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/secciones-academicas/${seccion.id_seccion}/detalles`);
+        if (!response.ok) throw new Error('Error al obtener detalles de la sección');
+        
+        const detalles = await response.json();
+        
+        // Mostrar cursos asociados
+        if (detalles.cursos && detalles.cursos.length > 0) {
+          let cursosHtml = '<div class="table-responsive"><table class="table table-bordered table-sm table-dark"><thead><tr><th>Curso</th><th>Periodo</th></tr></thead><tbody>';
+          detalles.cursos.forEach(curso => {
+            cursosHtml += `<tr><td>${curso.nombre_curso || 'N/A'}</td><td>${curso.nombre_periodo || 'N/A'}</td></tr>`;
+          });
+          cursosHtml += '</tbody></table></div>';
+          detalleCursosAsociados.innerHTML = cursosHtml;
+        } else {
+          detalleCursosAsociados.innerHTML = '<div class="text-center text-muted">No hay cursos asociados a esta sección.</div>';
+        }
+
+        // Mostrar estudiantes asignados
+        if (detalles.estudiantes && detalles.estudiantes.length > 0) {
+          let estudiantesHtml = '<div class="table-responsive"><table class="table table-bordered table-sm table-dark"><thead><tr><th>Nombre</th><th>Cédula</th><th>Curso</th></tr></thead><tbody>';
+          detalles.estudiantes.forEach(estudiante => {
+            estudiantesHtml += `<tr><td>${estudiante.nombre_completo || 'N/A'}</td><td>${estudiante.cedula || 'N/A'}</td><td>${estudiante.curso || 'N/A'}</td></tr>`;
+          });
+          estudiantesHtml += '</tbody></table></div>';
+          detalleEstudiantesAsignados.innerHTML = estudiantesHtml;
+        } else {
+          detalleEstudiantesAsignados.innerHTML = '<div class="text-center text-muted">No hay estudiantes asignados a esta sección.</div>';
+        }
+
+      } catch (error) {
+        console.error('❌ Error al cargar detalles:', error);
+        detalleCursosAsociados.innerHTML = '<div class="text-center text-danger">Error al cargar información de cursos.</div>';
+        detalleEstudiantesAsignados.innerHTML = '<div class="text-center text-danger">Error al cargar información de estudiantes.</div>';
+      }
+
+      modalVerMasInformacionSeccion.show();
+    }
+
+    // Editar sección
+    function editarSeccion(seccion) {
+      console.log("DEBUG: Sección para editar:", seccion);
+
+      editIdSeccion.value = seccion.id_seccion;
+      editNombreSeccion.value = seccion.seccion || '';
+      editDescripcionSeccion.value = seccion.descripcion || '';
+
+      modalEditarSeccion.show();
+    }
+
+    // Desactivar sección
+    async function desactivarSeccion(seccion) {
+      const confirmResult = await mostrarConfirmacion(
+        `¿Estás seguro de que quieres desactivar la sección "${seccion.seccion}"? Esto cambiará su estado a "Inactiva".`
+      );
+
+      if (!confirmResult) return;
+
+      try {
+        const response = await fetch(`http://localhost:3001/api/secciones/${seccion.id_seccion}/estado`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: 0 })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al desactivar la sección');
+        }
+
+        mostrarMensajeExito(`Sección "${seccion.seccion}" ha sido desactivada exitosamente.`);
+        loadSecciones(currentPage);
+      } catch (error) {
+        console.error('❌ Error al desactivar sección:', error);
+        mostrarErrorAlUsuario(`Error al desactivar la sección: ${error.message}`);
+      }
+    }
+
+    // Función de paginación
+    function setupPagination(totalPages, currentPage) {
+      paginationControls.innerHTML = '';
+      if (totalPages <= 1) return;
+
+      const ul = document.createElement('ul');
+      ul.className = 'pagination-list flex justify-center items-center gap-2';
+
+      // Botón anterior
+      const prevLi = document.createElement('li');
+      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+      const prevLink = document.createElement('a');
+      prevLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+      prevLink.href = '#';
+      prevLink.textContent = 'Anterior';
+      prevLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage > 1) {
+          loadSecciones(currentPage - 1);
+        }
+      });
+      prevLi.appendChild(prevLink);
+      ul.appendChild(prevLi);
+
+      // Páginas
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, currentPage + 2);
+
+      for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        const link = document.createElement('a');
+        link.className = `page-link rounded-lg px-3 py-1 ${i === currentPage ? 'bg-purple-800' : 'bg-gray-700'} text-white hover:bg-purple-600`;
+        link.href = '#';
+        link.textContent = i;
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          loadSecciones(i);
+        });
+        li.appendChild(link);
+        ul.appendChild(li);
+      }
+
+      // Botón siguiente
+      const nextLi = document.createElement('li');
+      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+      const nextLink = document.createElement('a');
+      nextLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+      nextLink.href = '#';
+      nextLink.textContent = 'Siguiente';
+      nextLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentPage < totalPages) {
+          loadSecciones(currentPage + 1);
+        }
+      });
+      nextLi.appendChild(nextLink);
+      ul.appendChild(nextLi);
+
+      paginationControls.appendChild(ul);
+    }
+
+    // Funciones auxiliares
+    function mostrarMensajeExito(mensaje) {
+      const alerta = document.createElement('div');
+      alerta.className = 'alert alert-success position-fixed top-0 end-0 m-3';
+      alerta.style.zIndex = '1100';
+      alerta.textContent = mensaje;
+      document.body.appendChild(alerta);
+      
+      setTimeout(() => {
+        alerta.remove();
+      }, 3000);
+    }
+
+    function mostrarErrorAlUsuario(mensaje) {
+      const alerta = document.createElement('div');
+      alerta.className = 'alert alert-danger position-fixed top-0 end-0 m-3';
+      alerta.style.zIndex = '1100';
+      alerta.textContent = mensaje;
+      document.body.appendChild(alerta);
+      
+      setTimeout(() => {
+        alerta.remove();
+      }, 5000);
+    }
+
+    function mostrarConfirmacion(mensaje) {
+      return new Promise((resolve) => {
+        const confirmModalHtml = `
+          <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="customConfirmModalLabel">Confirmación</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                  ${mensaje}
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelActionBtnModal">Cancelar</button>
+                  <button type="button" class="btn btn-danger" id="confirmActionBtnModal">Confirmar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
+        const confirmModalElement = document.getElementById('customConfirmModal');
+        
+        const customConfirmModal = new bootstrap.Modal(confirmModalElement);
+        let isPromiseResolved = false;
+
+        const cleanupAndResolve = (result) => {
+          if (!isPromiseResolved) {
+            isPromiseResolved = true;
+            customConfirmModal.hide();
+            confirmModalElement.addEventListener('hidden.bs.modal', () => {
+              confirmModalElement.remove();
+            }, { once: true });
+            resolve(result);
+          }
+        };
+
+        document.getElementById('confirmActionBtnModal').addEventListener('click', () => {
+          cleanupAndResolve(true);
+        }, { once: true });
+
+        document.getElementById('cancelActionBtnModal').addEventListener('click', () => {
+          cleanupAndResolve(false);
+        }, { once: true });
+
+        confirmModalElement.addEventListener('hidden.bs.modal', () => {
+          cleanupAndResolve(false);
+        }, { once: true });
+
+        customConfirmModal.show();
+      });
+    }
+
+    // Carga inicial
+    loadSecciones(1);
+  });
+</script>

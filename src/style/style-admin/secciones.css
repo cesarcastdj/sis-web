@@ -2,10 +2,10 @@
 @import "../global.css";
 
 body {
-    overflow-y: auto; /* Permite el desplazamiento vertical para toda la página */
+    overflow-y: auto;
 }
 
-/* Sección principal de contenido para la página de periodos - Contiene la tarjeta de resumen y la tabla */
+/* Sección principal de contenido para la página de secciones */
 .data-content-section {
     background-color: var(--color-GRIS);
     height: auto;
@@ -19,8 +19,8 @@ body {
     padding: 0;
 }
 
-/* Estilos para el título "Periodos Académicos" como una tarjeta de encabezado */
-.periodos-header-card {
+/* Estilos para el título "Secciones" como una tarjeta prominente */
+.secciones-header-card {
     background-color: var(--color-tertiary);
     padding: var(--spacing-24) var(--spacing-60);
     border-radius: var(--border-radius-16);
@@ -38,8 +38,7 @@ body {
     padding-bottom: var(--spacing-24) !important;
 }
 
-/* Añadir un efecto de "glow" o borde inferior estilizado al encabezado */
-.periodos-header-card::after {
+.secciones-header-card::after {
     content: '';
     position: absolute;
     bottom: 0;
@@ -53,19 +52,28 @@ body {
     z-index: 1;
 }
 
-.periodos-header-card .welcome-search-data {
+.secciones-header-card .welcome-search-data {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
 
-.periodos-header-card .welcome-search-data__title {
+.secciones-header-card .welcome-search-data__title {
     font-size: 2.5rem;
     color: var(--color-quaternary);
     margin-bottom: 0.5rem;
     font-family: var(--font-family-titleSub);
     text-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.secciones-header-card .welcome-search-data p {
+    font-family: var(--font-family-Paragraph);
+    font-size: var(--font-size-medium);
+    color: var(--color-quaternary);
+    font-weight: var(--font-weight-300);
+    opacity: var(--ocpacity-50);
+    margin: 0;
 }
 
 /* Estilos para la sección de la tarjeta consolidada de resumen */
@@ -82,13 +90,13 @@ body {
 }
 
 .data-content-section .data-general-control {
-    display: flex; 
+    display: flex;
     justify-content: center;
-    width: 100%; 
+    width: 100%;
 }
 
-/* Estilos para la tarjeta consolidada de periodos - Basado en consolidated-students-card */
-.registro-control.consolidated-periodos-card {
+/* Estilos para la tarjeta consolidada de secciones */
+.registro-control.consolidated-sections-card {
     background: linear-gradient(to bottom, var(--color-secondary) 5%, transparent 95%);
     padding: 1.5rem 2rem;
     border-radius: var(--border-radius-12);
@@ -96,7 +104,7 @@ body {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    min-height: auto; 
+    min-height: auto;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     border: 1px solid var(--color-primary);
     width: 50%;
@@ -104,107 +112,115 @@ body {
     margin-bottom: 1.5rem;
 }
 
-.consolidated-periodos-card .card-icon-title {
+.consolidated-sections-card .card-icon-title {
     flex-direction: column;
     margin-bottom: 1.5rem;
 }
 
-.consolidated-periodos-card .card-icon-title i {
+.consolidated-sections-card .card-icon-title i {
     font-size: 3.5rem;
     color: var(--color-pink-hover);
     background: var(--color-tertiary);
     padding: 0.7rem;
-    box-shadow: 0 0 10px rgba(255, 105, 180, 0.7);
     border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 105, 180, 0.7);
 }
 
-.consolidated-periodos-card .card-title {
-    font-size: 1.5rem; 
+.consolidated-sections-card .card-title {
+    font-size: 1.5rem;
     color: var(--color-quaternary);
     margin-top: 0.8rem;
     font-weight: var(--font-weight-700);
 }
 
-.periodos-summary-grid {
+.sections-summary-grid {
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     width: 100%;
     margin-bottom: 1.5rem;
-    gap: 1rem; 
-    flex-wrap: wrap; 
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
-.periodos-summary-grid .summary-item {
+.summary-item {
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex: 1;
+    min-width: 80px;
     padding: 0.5rem;
-    border-right: none; 
-    border-bottom: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.summary-item:last-child {
+    border-right: none;
 }
 
 .summary-count {
-    font-size: 2.2rem; 
+    font-size: 2.2rem;
     font-weight: var(--font-weight-700);
-    color: var(--color-pink-hover); 
+    color: var(--color-pink-hover);
     margin-bottom: 0.3rem;
 }
 
 .summary-label {
     font-size: 0.9rem;
-    color: var(--color-black); 
+    color: var(--color-black);
     text-transform: uppercase;
     opacity: 0.8;
 }
 
-/* Estilos de botones dentro de la tarjeta de resumen */
-.consolidated-periodos-card .btn-primary {
-    background: var(--color-primary); 
-    color: var(--color-quaternary); 
+.consolidated-sections-card .btn-accion-control {
+    width: 80%;
+    max-width: 250px;
+}
+
+.consolidated-sections-card .btn-accion-control .btn-card {
+    background: var(--color-primary);
+    color: var(--color-quaternary);
     box-shadow: var(--box-shadow-button-gradient);
     border: none;
     font-size: 1rem;
     padding: 0.7rem 1.5rem;
+    border-radius: var(--border-radius-12);
     transition: all 0.3s ease;
-    width: 80%; 
-    max-width: 250px;
-    margin: 0 auto; 
+    cursor: pointer;
 }
-.consolidated-periodos-card .btn-primary:hover {
+
+.consolidated-sections-card .btn-accion-control .btn-card:hover {
     background: var(--color-pink-hover);
     transform: translateY(-2px);
     box-shadow: 0 0 10px var(--color-pink-hover);
 }
 
-
 /* Estilos de la tabla */
 .display-table {
-    padding: 0 24px; 
-    margin-top: 4rem; /* Margen superior para la tabla */
-    margin-bottom: 24px; 
-    max-height: calc(100vh - 400px); 
-    overflow-y: auto; 
+    padding: 0 24px;
+    margin-top: 1.5rem;
+    margin-bottom: 24px;
+    max-height: calc(100vh - 400px);
+    overflow-y: auto;
     border-radius: var(--border-radius-16);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .tabla-info-person {
     width: 100%;
-    overflow-x: auto; 
+    overflow-x: auto;
 }
 
 .table-dark {
-    --bs-table-bg: #191919; 
-    --bs-table-color: var(--color-tertiary); 
-    --bs-table-border-color: var(--color-secondary); 
-    --bs-table-striped-bg: #2a2a2a; 
-    --bs-table-hover-bg: #3a3a3a; 
+    --bs-table-bg: #191919;
+    --bs-table-color: var(--color-tertiary);
+    --bs-table-border-color: var(--color-secondary);
+    --bs-table-striped-bg: #2a2a2a;
+    --bs-table-hover-bg: #3a3a3a;
 }
 
 .table-dark thead th {
-    background: var(--color-primary); 
-    color: var(--color-quaternary); 
-    border-bottom: 2px solid var(--color-pink-hover); 
+    background: var(--color-primary);
+    color: var(--color-quaternary);
+    border-bottom: 2px solid var(--color-pink-hover);
     font-weight: var(--font-weight-700);
     padding: var(--spacing-12);
     text-align: left;
@@ -217,17 +233,17 @@ body {
     padding: var(--spacing-12);
     text-align: left;
     font-size: var(--font-size-medium);
-    color: var(--color-tertiary); 
-    border-bottom: 1px solid var(--color-secondary); 
+    color: var(--color-tertiary);
+    border-bottom: 1px solid var(--color-secondary);
 }
 
 .table-dark tr:hover {
-    background: var(--color-secondary); 
-    color: var(--color-quaternary); 
+    background: var(--color-secondary);
+    color: var(--color-quaternary);
     transition: background 0.3s ease;
 }
 
-/* Estilos para el Dropdown de Acciones (3 puntos) en la tabla */
+/* Estilos para el Dropdown de Acciones */
 .dropdown-toggle::after {
     display: none;
 }
@@ -296,13 +312,15 @@ body {
     cursor: not-allowed;
 }
 
-/* Estilos de modal (reutilizando los de gestion-academica.css) */
+/* Estilos de modal */
 .modal-dialog-custom-width {
     max-width: 750px;
 }
+
 .modal-dialog.modal-lg {
     max-width: 80% !important;
 }
+
 .modal-content {
     border-radius: var(--border-radius-24);
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
@@ -414,37 +432,29 @@ body {
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* Estilo para las opciones del select (dropdown) */
 .modal-body select option {
     background: #191919;
     color: var(--color-tertiary);
 }
 
-/* Asegurar que el texto visible en el select sea blanco cuando no está abierto */
 .modal-body select {
     color: var(--color-tertiary);
 }
-/* Asegurar que el color del texto del placeholder en el select sea consistente */
+
 .modal-body select:invalid {
     color: rgba(255, 255, 255, 0.7);
 }
 
-
-/* Estilo para el select multiple de Materias en el modal de edición */
-/* No aplicable directamente a periodos, pero se mantiene para coherencia si se reutiliza */
-/* NOTA: En este contexto, este estilo no se usa ya que periodos no tiene materias asignadas directamente */
-#modalEditarEstudiante #editMaterias,
-#modalAgregar #materias { 
-    min-height: 120px; 
-    overflow-y: auto; 
-    height: auto; 
-    display: block; 
-    -webkit-appearance: none; 
+.modal-body select[multiple] {
+    min-height: 120px;
+    overflow-y: auto;
+    height: auto;
+    display: block;
+    -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    background-image: none; 
+    background-image: none;
 }
-
 
 .modal-body input:hover,
 .modal-body input:focus,
@@ -480,7 +490,6 @@ body {
     border-color: #dc3545 !important;
     box-shadow: 0 0 0 0.25rem rgba(220,53,69,.25) !important;
 }
-
 
 .modal-body form button {
     width: 45%;
@@ -536,18 +545,18 @@ body {
     font-size: 1rem;
 }
 
-.separador-telefono {
-    color: var(--color-tertiary);
-    font-size: var(--font-size-base);
+.form-text {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.8rem;
 }
 
 /* Responsive adjustments */
 @media (max-width: 991.98px) {
     .modal-dialog-custom-width {
-        max-width: 95%; 
+        max-width: 95%;
     }
     .modal-dialog.modal-lg {
-        max-width: 95% !important; 
+        max-width: 95% !important;
     }
 }
 
@@ -557,39 +566,38 @@ body {
         border-radius: 0;
         padding: 1rem;
     }
-    .periodos-header-card {
-        /* Ajustes para que cubra todo el ancho en pantallas pequeñas */
-        width: calc(100% + (1rem * 2)); /* Ajusta para padding de 1rem en el padre */
+    .secciones-header-card {
+        width: calc(100% + (1rem * 2));
         margin-left: -1rem;
         margin-right: -1rem;
         padding: var(--spacing-16) var(--spacing-24);
         margin-bottom: var(--spacing-16);
     }
-    .periodos-header-card .welcome-search-data__title {
+    .secciones-header-card .welcome-search-data__title {
         font-size: 2rem;
     }
-    .consolidated-periodos-card { /* Adaptado de students-card */
+    .consolidated-sections-card {
         padding: 1rem 1.5rem;
-        width: 100%; /* Ocupa todo el ancho en móviles */
+        width: 100%;
     }
-    .periodos-summary-grid { /* Apilar los ítems en pantallas muy pequeñas */
-        flex-direction: column; 
+    .sections-summary-grid {
+        flex-direction: column;
         gap: 0.5rem;
     }
-    .periodos-summary-grid .summary-item {
+    .summary-item {
         min-width: auto;
-        border-right: none; 
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         padding-bottom: 0.5rem;
     }
-    .periodos-summary-grid .summary-item:last-child {
+    .summary-item:last-child {
         border-bottom: none;
     }
     .summary-count {
         font-size: 1.8rem;
     }
     .summary-label {
-        color: var(--color-black); 
+        color: var(--color-black);
         font-size: 0.8rem;
     }
     .table-dark thead th, .table-dark tbody td {
@@ -598,12 +606,6 @@ body {
     }
     .dropdown-item {
         font-size: 0.8rem;
-    }
-    .data-content-section .data-general-control.grid-layout {
-        grid-template-columns: 1fr;
-    }
-    .data-content-section .registro-control {
-        min-height: auto;
     }
 }
 

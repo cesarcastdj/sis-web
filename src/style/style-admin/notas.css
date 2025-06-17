@@ -8,37 +8,36 @@ body {
 
 /* Sección principal de contenido para la página de notas */
 .data-content-section {
-    background-color: var(--color-GRIS); /* Color de fondo gris para coincidir con la imagen */
-    height: auto; /* Permite que el contenido dicte la altura */
-    min-height: auto; /* Eliminado el min-height fijo para que no se extienda con espacio vacío */
+    background-color: var(--color-GRIS);
+    height: auto;
+    min-height: calc(100vh - 2rem);
     margin-right: 24px;
-    /* Los bordes superiores se eliminan para que se fusione con la tarjeta del encabezado */
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
-    overflow-y: auto; /* Permite el desplazamiento vertical dentro de esta sección si el contenido se desborda */
+    border-top-right-radius: var(--border-radius-16);
+    border-top-left-radius: var(--border-radius-16);
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    padding: 0; /* Cambiado a 0 para que las secciones internas gestionen el padding */
-    margin-top: -1px; /* Pequeño ajuste para asegurar que se pegue al elemento de arriba */
+    padding: 0;
+    margin-top: 0;
 }
 
 /* Estilos para el título "Notas Académicas" como una tarjeta prominente y de ancho completo */
 .notas-header-card {
-    background-color: var(--color-tertiary); /* Fondo blanco para la tarjeta */
+    background-color: var(--color-tertiary);
     padding: var(--spacing-24) var(--spacing-60);
-    border-radius: var(--border-radius-16); /* Bordes redondeados */
-    box-shadow: var(--box-shadow-button1); /* Sombra sutil */
-    margin-bottom: 0; /* MUY IMPORTANTE: Elimina el margen inferior para que se pegue a la sección de contenido */
+    border-radius: var(--border-radius-16);
+    box-shadow: var(--box-shadow-button1);
+    margin-bottom: var(--spacing-24);
     text-align: center;
-    border: 1px solid rgba(0, 0, 0, 0.1); /* Borde sutil */
+    border: 1px solid rgba(0, 0, 0, 0.1);
     position: relative;
     overflow: hidden;
     width: 100%;
-    border-top-left-radius: var(--border-radius-16); /* Mantener esquinas redondeadas superiores */
+    border-top-left-radius: var(--border-radius-16);
     border-top-right-radius: var(--border-radius-16);
-    border-bottom-left-radius: 0; /* Eliminar redondeo inferior para unirse al contenido */
+    border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    padding-bottom: var(--spacing-24) !important; /* Asegurar padding inferior adecuado */
+    padding-bottom: var(--spacing-24) !important;
 }
 
 /* Añadir un efecto de "glow" o borde inferior estilizado al encabezado */
@@ -48,12 +47,12 @@ body {
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 5px; /* Altura del "glow" */
-    background: linear-gradient(to right, var(--color-primary), var(--color-pink-hover)); /* Gradiente de glow */
-    box-shadow: 0 0 15px var(--color-primary), 0 0 15px var(--color-pink-hover); /* Sombra de glow */
-    border-bottom-left-radius: var(--border-radius-16); /* Mantener el redondeo del glow */
+    height: 5px;
+    background: linear-gradient(to right, var(--color-primary), var(--color-pink-hover));
+    box-shadow: 0 0 15px var(--color-primary), 0 0 15px var(--color-pink-hover);
+    border-bottom-left-radius: var(--border-radius-16);
     border-bottom-right-radius: var(--border-radius-16);
-    z-index: 1; /* Asegura que esté por encima de la tarjeta */
+    z-index: 1;
 }
 
 .notas-header-card .welcome-search-data {

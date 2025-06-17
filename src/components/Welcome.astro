@@ -286,7 +286,7 @@ import '../style/welcome.css';
                 const data = await response.json();
 
                 if (data.id && (window.location.pathname === "/" || window.location.pathname === "/welcome")) {
-                    window.location.href = data.rol === 'admin' ? "/Admin-Control/Admin-home" : "/Students/Students-Control" || data.rol === 'pendiente' ? "/" : "/welcome";
+                    window.location.href = data.rol === 'admin' ? "/Admin-Control/Admin-home" : "/Students/Students-Control" || data.rol === 'pendiente' ? "/" : "/welcome" || data.rol === 'profesor' ? "/Profesor-Control/Profesor-Control" : "/welcome";
                 }
                 } catch (error) {
                 console.error('❌ Error verificando sesión:', error);
@@ -337,6 +337,8 @@ import '../style/welcome.css';
                                 window.location.href = '/Admin-Control/Admin-home';
                             } else if (data.rol === 'estudiante') {
                                 window.location.href = '/Students-Control/Students-Control';
+                            } else if (data.rol === 'profesor') {
+                                window.location.href = '/Profesor-Control/Profesor-Control';
                             }
                         }, 200);    
                     });

@@ -1,15 +1,297 @@
 import express from 'express';
-import db from '../db/db.js'; // Ajusta esta ruta si es necesario
-import { isAuthenticated } from '../middleware/protegerRutas.js'; // Ajusta esta ruta si es necesario (comentado para pruebas)
-import { hashPassword, comparePassword } from '../f(x)/contrasenias.js'; // Ajusta esta ruta si es necesario
-import { syncRelationships, syncSingleRelationship } from '../f(x)/relaciones.js'; // Ajusta esta ruta si es necesario
-
+import db from '../db/db.js';
+import { isAuthenticated } from '../middleware/protegerRutas.js';
+import { hashPassword, comparePassword } from '../f(x)/contrasenias.js';
+import { syncRelationships, syncSingleRelationship } from '../f(x)/relaciones.js';
 
 const router = express.Router();
 
 // ==========================================================
-// Rutas ya existentes (Mantenidas y verificadas)
+// RUTAS PARA SECCIONES (Nueva funcionalidad completa)
 // ==========================================================
+
+// Obtener todas las secciones con paginación y estadísticas
+router.get('/secciones-academicas', /*isAuthenticated,*/ async (req, res) => {
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+
+    try {
+        // Obtener el conteo total de secciones
+        const [totalSeccionesResult] = await db.promise().query('SELECT COUNT(*) AS total FROM seccion;');
+        const totalCount = totalSeccionesResult[0].total;
+        const totalPages = Math.ceil(totalCount / limit);
+
+
+        // Obtener total de estudiantes en secciones (a través de cursos)
+        const [estudiantesEnSeccionesResult] = await db.promise().query(`
+            SELECT COUNT(DISTINCT uc.id_usuario) AS total_estudiantes
+            FROM usuario_cursos uc
+            JOIN usuarios u ON uc.id_usuario = u.id_usuario
+            JOIN cursos_seccion cs ON uc.id_curso = cs.id_curso
+            JOIN cursos c ON cs.id_curso = c.id_curso
+            WHERE u.rol = 'estudiante' AND cs.id_seccion IS NOT NULL;
+        `);
+        const studentsCount = estudiantesEnSeccionesResult[0].total_estudiantes || 0;
+
+        // Consulta principal para obtener las secciones con información adicional
+        const seccionesQuery = `
+            SELECT
+                s.id_seccion,
+                s.seccion,
+                COUNT(DISTINCT uc.id_usuario) AS total_estudiantes,
+                COUNT(DISTINCT c.id_curso) AS total_cursos,
+                GROUP_CONCAT(DISTINCT c.curso ORDER BY c.curso SEPARATOR ', ') AS cursos_asociados
+            FROM seccion s
+            LEFT JOIN cursos_seccion cs ON s.id_seccion = cs.id_seccion
+            LEFT JOIN cursos c ON cs.id_curso = c.id_curso
+            LEFT JOIN usuario_cursos uc ON c.id_curso = uc.id_curso
+            LEFT JOIN usuarios u ON uc.id_usuario = u.id_usuario AND u.rol = 'estudiante'
+            GROUP BY s.id_seccion
+            ORDER BY s.seccion ASC
+            LIMIT ?, ?;
+        `;
+        const [secciones] = await db.promise().query(seccionesQuery, [offset, parseInt(limit)]);
+
+        res.json({
+            secciones: secciones,
+            totalCount,
+            studentsCount,
+            totalPages,
+            currentPage: parseInt(page),
+        });
+
+    } catch (error) {
+        console.error("❌ Error al obtener secciones:", error);
+        res.status(500).json({ error: "Error al obtener secciones", detalle: error.message });
+    }
+});
+
+// Obtener detalles específicos de una sección
+router.get('/secciones-academicas/:id/detalles', /*isAuthenticated,*/ async (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        // Obtener cursos asociados a la sección
+        const [cursosResult] = await db.promise().query(`
+            SELECT 
+                c.id_curso,
+                c.curso AS nombre_curso,
+                p.periodo AS nombre_periodo
+            FROM cursos c
+            LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+            LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
+            WHERE c.id_seccion = ?;
+        `, [id]);
+
+        // Obtener estudiantes asignados a la sección (a través de cursos)
+        const [estudiantesResult] = await db.promise().query(`
+            SELECT DISTINCT
+                u.id_usuario,
+                CONCAT(u.primer_nombre, ' ', u.primer_apellido) AS nombre_completo,
+                u.cedula,
+                c.curso
+            FROM usuarios u
+            JOIN usuario_cursos uc ON u.id_usuario = uc.id_usuario
+            JOIN cursos c ON uc.id_curso = c.id_curso
+            WHERE u.rol = 'estudiante' AND c.id_seccion = ?
+            ORDER BY u.primer_nombre, u.primer_apellido;
+        `, [id]);
+
+        res.json({
+            cursos: cursosResult,
+            estudiantes: estudiantesResult
+        });
+
+    } catch (error) {
+        console.error("❌ Error al obtener detalles de la sección:", error);
+        res.status(500).json({ error: "Error al obtener detalles de la sección", detalle: error.message });
+    }
+});
+
+// Crear una nueva sección
+router.post('/secciones-academicas', /*isAuthenticated,*/ async (req, res) => {
+    const { nombreSeccion, descripcion = '', cursosAsignados = [], estudiantesAsignados = [] } = req.body;
+
+    if (!nombreSeccion) {
+        return res.status(400).json({ error: 'El nombre de la sección es obligatorio.' });
+    }
+
+    let connection;
+    try {
+        connection = await db.promise().getConnection();
+        await connection.beginTransaction();
+
+        // Verificar si ya existe una sección con el mismo nombre
+        const [existingSection] = await connection.query(
+            'SELECT id_seccion FROM seccion WHERE seccion = ?',
+            [nombreSeccion]
+        );
+
+        if (existingSection.length > 0) {
+            await connection.rollback();
+            return res.status(400).json({ error: 'Ya existe una sección con ese nombre.' });
+        }
+
+        // Insertar la nueva sección
+        const [seccionResult] = await connection.query(
+            'INSERT INTO seccion (seccion, descripcion, activo, fecha_creacion) VALUES (?, ?, 1, NOW())',
+            [nombreSeccion, descripcion]
+        );
+        const id_seccion = seccionResult.insertId;
+
+        // Asignar cursos a la sección si se proporcionaron
+        if (cursosAsignados.length > 0) {
+            for (const id_curso of cursosAsignados) {
+                await connection.query(
+                    'UPDATE cursos SET id_seccion = ? WHERE id_curso = ?',
+                    [id_seccion, id_curso]
+                );
+            }
+        }
+
+        // Asignar estudiantes a los cursos de la sección si se proporcionaron
+        if (estudiantesAsignados.length > 0 && cursosAsignados.length > 0) {
+            const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+            for (const id_curso of cursosAsignados) {
+                for (const id_estudiante of estudiantesAsignados) {
+                    // Verificar si el estudiante ya está asignado al curso
+                    const [existingAssignment] = await connection.query(
+                        'SELECT 1 FROM usuario_cursos WHERE id_usuario = ? AND id_curso = ?',
+                        [id_estudiante, id_curso]
+                    );
+                    
+                    if (existingAssignment.length === 0) {
+                        await connection.query(
+                            'INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES (?, ?, ?)',
+                            [id_estudiante, id_curso, currentDateTime]
+                        );
+                    }
+                }
+            }
+        }
+
+        await connection.commit();
+        res.status(201).json({ message: 'Sección creada exitosamente.', id_seccion });
+
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error("❌ Error al crear sección:", error);
+        res.status(500).json({ error: "Error al crear sección", detalle: error.message });
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+// Actualizar una sección existente
+router.put('/secciones-academicas/:id', /*isAuthenticated,*/ async (req, res) => {
+    const { id } = req.params;
+    const { nombreSeccion, descripcion } = req.body;
+
+    if (!nombreSeccion) {
+        return res.status(400).json({ error: 'El nombre de la sección es obligatorio.' });
+    }
+
+    try {
+        // Verificar si existe otra sección con el mismo nombre (excluyendo la actual)
+        const [existingSection] = await db.promise().query(
+            'SELECT id_seccion FROM seccion WHERE seccion = ? AND id_seccion != ?',
+            [nombreSeccion, id]
+        );
+
+        if (existingSection.length > 0) {
+            return res.status(400).json({ error: 'Ya existe otra sección con ese nombre.' });
+        }
+
+        // Actualizar la sección
+        const updateQuery = `
+            UPDATE seccion 
+            SET seccion = ?, descripcion = ?
+            WHERE id_seccion = ?;
+        `;
+        const [result] = await db.promise().query(updateQuery, [nombreSeccion, descripcion || '', id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Sección no encontrada.' });
+        }
+
+        res.json({ message: 'Sección actualizada exitosamente.' });
+
+    } catch (error) {
+        console.error("❌ Error al actualizar sección:", error);
+        res.status(500).json({ error: "Error al actualizar sección", detalle: error.message });
+    }
+});
+
+// Cambiar el estado de una sección (activo/inactivo)
+router.put('/secciones-academicas/:id/estado', /*isAuthenticated,*/ async (req, res) => {
+    const { id } = req.params;
+    const { estado } = req.body; // 1 o 0
+
+    if (estado === undefined || (estado !== 0 && estado !== 1)) {
+        return res.status(400).json({ error: 'El estado es inválido. Debe ser 0 o 1.' });
+    }
+
+    try {
+        const [result] = await db.promise().query(
+            'UPDATE seccion SET activo = ? WHERE id_seccion = ?',
+            [estado, id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Sección no encontrada.' });
+        }
+
+        const estadoTexto = estado === 1 ? 'activada' : 'desactivada';
+        res.json({ message: `Sección ${estadoTexto} exitosamente.` });
+    } catch (error) {
+        console.error("❌ Error al cambiar estado de sección:", error);
+        res.status(500).json({ error: "Error al cambiar estado de sección", detalle: error.message });
+    }
+});
+
+// Eliminar una sección (eliminación lógica)
+router.delete('/secciones-academicas/:id', /*isAuthenticated,*/ async (req, res) => {
+    const { id } = req.params;
+    let connection;
+    
+    try {
+        connection = await db.promise().getConnection();
+        await connection.beginTransaction();
+
+        // Verificar si la sección tiene cursos asociados
+        const [cursosAsociados] = await connection.query(
+            'SELECT COUNT(*) as total FROM cursos WHERE id_seccion = ?',
+            [id]
+        );
+
+        if (cursosAsociados[0].total > 0) {
+            await connection.rollback();
+            return res.status(400).json({ 
+                error: 'No se puede eliminar la sección porque tiene cursos asociados. Primero desasocie los cursos.' 
+            });
+        }
+
+        // Eliminar la sección
+        const [result] = await connection.query('DELETE FROM seccion WHERE id_seccion = ?', [id]);
+
+        if (result.affectedRows === 0) {
+            await connection.rollback();
+            return res.status(404).json({ error: 'Sección no encontrada.' });
+        }
+
+        await connection.commit();
+        res.json({ message: 'Sección eliminada exitosamente.' });
+
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error("❌ Error al eliminar sección:", error);
+        res.status(500).json({ error: "Error al eliminar sección", detalle: error.message });
+    } finally {
+        if (connection) connection.release();
+    }
+});
+
+
 
 // Obtener cursos disponibles
 router.get('/cursos', (req, res) => {
@@ -418,7 +700,8 @@ router.get('/cursos-academicos', (req, res) => {
       FROM cursos c
       LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
       LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
-      LEFT JOIN seccion s ON c.id_seccion = s.id_seccion
+      LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
+      LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
       WHERE c.curso LIKE ?;
   `;
   db.query(countQuery, [searchTerm], (errCount, totalCursosResult) => {
@@ -444,7 +727,8 @@ router.get('/cursos-academicos', (req, res) => {
         FROM cursos c
         LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
         LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
-        LEFT JOIN seccion s ON c.id_seccion = s.id_seccion
+        LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
+        LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
         WHERE c.curso LIKE ?
         GROUP BY c.id_curso
         LIMIT ?, ?;
@@ -559,7 +843,8 @@ router.get('/cursos-academicos/:id', (req, res) => {
       s.seccion AS nombre_seccion
     FROM cursos c
     LEFT JOIN periodo p ON p.id_periodo = c.id_periodo
-    LEFT JOIN seccion s ON s.id_seccion = c.id_seccion
+    LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
+    LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
     WHERE c.id_curso = ?;
   `;
   db.query(cursoQuery, [id], (err, cursoRows) => {
@@ -1172,4 +1457,3 @@ router.post('/materias-academicas/:id/asignar', (req, res) => {
 });
 
 export default router;
-
