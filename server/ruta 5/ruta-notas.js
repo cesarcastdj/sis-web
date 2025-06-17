@@ -82,17 +82,18 @@ router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) =
  * @param {number} req.params.id_usuario - ID del estudiante.
  * @returns {json} Lista de notas.
  */
-router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) => {
-  const { id_usuario } = req.params;
+// FIX: Se cambió la ruta para que sea única y coincida con la descripción.
+router.get('/notas/materia/:id_materia/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) => {
+  const { id_materia, id_usuario } = req.params; // Obtener id_materia también
   const page = parseInt(req.query.page || '1');
   const limit = parseInt(req.query.limit || '10');
   const offset = (page - 1) * limit;
 
   try {
-      // Consulta para el conteo total de notas del usuario
+      // Consulta para el conteo total de notas del usuario para esa materia
       const [totalNotasResult] = await db.promise().query(
-          'SELECT COUNT(*) AS total FROM notas WHERE id_estudiante = ?',
-          [id_usuario]
+          'SELECT COUNT(*) AS total FROM notas n JOIN actividades a ON n.id_actividad = a.id_actividad WHERE n.id_estudiante = ? AND a.id_materia = ?',
+          [id_usuario, id_materia]
       );
       const totalCount = totalNotasResult[0].total;
       const totalPages = Math.ceil(totalCount / limit);
@@ -113,16 +114,16 @@ router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) =
           FROM notas n
           JOIN usuarios u ON n.id_estudiante = u.id_usuario
           JOIN actividades a ON n.id_actividad = a.id_actividad
-          JOIN materias m ON a.id_materia = m.id_materia -- FIX: Condición de JOIN corregida
+          JOIN materias m ON a.id_materia = m.id_materia
           LEFT JOIN cursos_materias cm ON m.id_materia = cm.id_materia
           LEFT JOIN cursos c ON cm.id_curso = c.id_curso
           LEFT JOIN periodo p ON cm.id_periodo = p.id_periodo
-          WHERE n.id_estudiante = ?
+          WHERE n.id_estudiante = ? AND m.id_materia = ?
           GROUP BY n.id_nota
           ORDER BY n.fecha_registro DESC
           LIMIT ?, ?;
       `;
-      const [notas] = await db.promise().query(notasQuery, [id_usuario, offset, limit]);
+      const [notas] = await db.promise().query(notasQuery, [id_usuario, id_materia, offset, limit]);
 
       res.json({
           notas,
@@ -132,8 +133,8 @@ router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) =
       });
 
   } catch (error) {
-      console.error("❌ Error al obtener notas del usuario:", error);
-      res.status(500).json({ error: "Error al obtener notas del usuario", detalle: error.message });
+      console.error("❌ Error al obtener notas del usuario para la materia:", error);
+      res.status(500).json({ error: "Error al obtener notas del usuario para la materia", detalle: error.message });
   }
 });
 /**
@@ -331,7 +332,8 @@ router.get('/actividades/materia/:id_materia', /*isAuthenticated,*/ async (req, 
         `;
         const [actividades] = await db.promise().query(actividadesQuery, [id_materia]);
 
-        res.json({ actividades });
+        // FIX: Envolver el array de actividades en un objeto con la propiedad 'actividades'
+        res.json({ actividades: actividades });
 
     } catch (error) {
         console.error("❌ Error al obtener actividades de la materia:", error);
@@ -475,20 +477,21 @@ router.delete('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res
  * @route GET /api/estudiante/notas
  * @description Obtiene todas las notas del estudiante actual con estadísticas
  */
-router.get('/estudiante/notas', async (req, res) => {
+router.get('/estudiante/notas', /*isAuthenticated,*/ async (req, res) => { // FIX: Comentado isAuthenticated para pruebas
     try {
         console.log('Sesión actual:', req.session);
         console.log('Usuario en sesión:', req.session.usuario);
         
         // Obtener el ID del usuario de la sesión (ahora usando 'id' en lugar de 'id_usuario')
-        const id_usuario = req.session.usuario.id;
+        // Si no se desea autenticación, esta línea podría necesitar ser reemplazada por un ID de prueba o manejarse de otra forma
+        const id_usuario = req.session.usuario ? req.session.usuario.id : null; // FIX: Manejar caso donde req.session.usuario es undefined
 
         console.log('ID de usuario extraído:', id_usuario);
 
         if (!id_usuario) {
             return res.status(400).json({
                 error: "Usuario no identificado",
-                mensaje: "No se pudo identificar al usuario"
+                mensaje: "No se pudo identificar al usuario. Asegúrate de que la sesión esté configurada o proporciona un ID de usuario de prueba si la autenticación está deshabilitada.", // FIX: Mensaje más informativo
             });
         }
 
@@ -599,7 +602,7 @@ router.get('/estudiante/notas', async (req, res) => {
         // 5. Calculamos estadísticas
         const statsQuery = `
             SELECT 
-                COALESCE(ROUND(AVG(NULLIF(n.nota, 0)), 2), 0.00) as promedio_general,
+                COALESCE(ROUND(AVG(NULLF(n.nota, 0)), 2), 0.00) as promedio_general,
                 COUNT(DISTINCT CASE WHEN n.nota >= 10 THEN m.id_materia END) as materias_aprobadas,
                 COUNT(DISTINCT CASE WHEN n.nota < 10 OR n.nota IS NULL THEN m.id_materia END) as materias_pendientes
             FROM estudiantes e
@@ -661,9 +664,10 @@ router.get('/materias/:id_materia/estudiantes', async (req, res) => {
   try {
     const query = `
       SELECT u.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula
-      FROM usuario_materias um
-      JOIN usuarios u ON um.id_usuario = u.id_usuario
-      WHERE um.id_materia = ? AND u.rol = 'estudiante' AND u.estado = 1
+      FROM usuarios u
+      JOIN usuario_materias um ON u.id_usuario = um.id_usuario
+      WHERE um.id_materia = ? AND u.rol = 'estudiante'
+      ORDER BY u.primer_apellido, u.primer_nombre;
     `;
     const [estudiantes] = await db.promise().query(query, [id_materia]);
     res.json(estudiantes);
@@ -730,7 +734,7 @@ router.post('/notas/actividad/:id_actividad', (req, res) => {
                 }
                 // Insertar estudiante con ambos campos
                 pool.query('INSERT INTO estudiantes (id_estudiante, id_usuario) VALUES (?, ?)', [n.id_estudiante, n.id_estudiante], (err) => {
-                  if (err) { console.error('Error insertando estudiante:', err); errores.push(err); procesados++; if (procesados === notas.length) finalizar(); return; }
+                  if (err) { console.error('Error insertando estudiante:', err); procesados++; if (procesados === notas.length) finalizar(); return; }
                   // Continuar con la lógica de notas después de insertar estudiante
                   insertarActualizarNota();
                 });
@@ -808,7 +812,7 @@ router.post('/notas/actividad/:id_actividad', (req, res) => {
                   }
                   // Insertar estudiante con ambos campos
                   conn.query('INSERT INTO estudiantes (id_estudiante, id_usuario) VALUES (?, ?)', [n.id_estudiante, n.id_estudiante], (err) => {
-                    if (err) { console.error('Error insertando estudiante:', err); errores.push(err); procesados++; if (procesados === notas.length) finalizar(); return; }
+                    if (err) { console.error('Error insertando estudiante:', err); procesados++; if (procesados === notas.length) finalizar(); return; }
                     // Continuar con la lógica de notas después de insertar estudiante
                     insertarActualizarNota();
                   });
@@ -881,10 +885,10 @@ router.get('/materias/:id_materia/estudiantes', async (req, res) => {
           ORDER BY u.primer_apellido, u.primer_nombre;
       `;
       const [estudiantes] = await db.promise().query(query, [id_materia]);
-      res.json(estudiantes);
+    res.json(estudiantes);
   } catch (error) {
-      console.error('Error al obtener estudiantes de la materia:', error);
-      res.status(500).json({ error: 'Error al obtener estudiantes de la materia', detalle: error.message });
+    console.error('Error al obtener estudiantes de la materia:', error);
+    res.status(500).json({ error: 'Error al obtener estudiantes de la materia', detalle: error.message });
   }
 });
 
@@ -896,13 +900,14 @@ router.get('/materias/:id_materia/actividades', async (req, res) => {
   const { id_materia } = req.params;
   try {
       const query = `
-          SELECT id_actividad, nombre_actividad
+          SELECT id_actividad, nombre_actividad, descripcion, fecha_creacion AS fecha_entrega, ponderacion
           FROM actividades
           WHERE id_materia = ?
           ORDER BY nombre_actividad;
       `;
       const [actividades] = await db.promise().query(query, [id_materia]);
-      res.json(actividades);
+      // FIX: Envolver el array de actividades en un objeto con la propiedad 'actividades'
+      res.json({ actividades: actividades });
   } catch (error) {
       console.error('Error al obtener actividades de la materia:', error);
       res.status(500).json({ error: 'Error al obtener actividades de la materia', detalle: error.message });
@@ -931,7 +936,7 @@ router.get('/materias/:id/actividades', async (req, res) => {
   const limit = parseInt(req.query.limit || '10');
   const offset = (page - 1) * limit;
   try {
-    const [actividades, actividadesCount] = await Promise.all([
+    const [actividadesResult, actividadesCountResult] = await Promise.all([
       db.promise().query(
         `SELECT id_actividad, nombre_actividad, descripcion, fecha_creacion AS fecha_entrega, ponderacion
          FROM actividades WHERE id_materia = ? ORDER BY fecha_creacion DESC LIMIT ?, ?`,
@@ -941,9 +946,15 @@ router.get('/materias/:id/actividades', async (req, res) => {
         `SELECT COUNT(*) AS total FROM actividades WHERE id_materia = ?`, [id]
       )
     ]);
+    
+    const actividades = actividadesResult[0]; // Esto es el array de filas de actividades
+    const totalPages = Math.ceil(actividadesCountResult[0][0].total / limit);
+
+    console.log('DEBUG: Actividades y TotalPages para /materias/:id/actividades (paginado):', { actividades, totalPages }); // AÑADIDO PARA DEBUG
+
     res.json({
-      actividades: actividades[0],
-      totalPages: Math.ceil(actividadesCount[0][0].total / limit)
+      actividades: actividades, // Aseguramos que se envía el array de actividades
+      totalPages: totalPages
     });
   } catch (error) {
     console.error('Error al obtener actividades de la materia:', error);

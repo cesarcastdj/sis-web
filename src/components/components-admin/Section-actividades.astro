@@ -438,10 +438,14 @@ const materiaId = Astro.url.searchParams.get('materiaId');
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
+      console.log('DEBUG: Datos recibidos para resumen de actividades:', data); // Añadido para depuración
       if(document.getElementById('totalActividadesCount'))
         document.getElementById('totalActividadesCount').textContent = data.totalActividades || '0';
-      if(document.getElementById('promedioGeneralMateria'))
-        document.getElementById('promedioGeneralMateria').textContent = (typeof data.promedioGeneralMateria === 'number' && !isNaN(data.promedioGeneralMateria)) ? data.promedioGeneralMateria.toFixed(2) : 'N/A';
+      if(document.getElementById('promedioGeneralMateria')) {
+        // Asegurarse de que promedioGeneralMateria sea un número antes de formatear
+        const promedio = parseFloat(data.promedioGeneralMateria);
+        document.getElementById('promedioGeneralMateria').textContent = (typeof promedio === 'number' && !isNaN(promedio)) ? promedio.toFixed(2) : 'N/A';
+      }
     } catch (error) {
       console.error('Error al obtener resumen de actividades:', error);
       mostrarAlerta('No se pudo cargar el resumen de actividades.', 'danger');
@@ -455,6 +459,7 @@ const materiaId = Astro.url.searchParams.get('materiaId');
     paginationActividades.innerHTML = '';
 
     try {
+      // Esta es la ruta que tu frontend usa para obtener las actividades paginadas
       const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/actividades?page=${page}&limit=${itemsPerPage}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -463,8 +468,15 @@ const materiaId = Astro.url.searchParams.get('materiaId');
 
       tableBody.innerHTML = ''; // Limpiar el mensaje de carga
 
-      if (data.actividades.length === 0) {
+      // Validar que data.actividades es un array antes de intentar acceder a su length
+      // La respuesta esperada del backend es { actividades: [...], totalPages: X }
+      if (!data || !Array.isArray(data.actividades) || data.actividades.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No se encontraron actividades para esta materia.</td></tr>';
+        if (data && data.message) { 
+             mostrarAlerta(data.message, 'info');
+        } else if (currentMateriaId) { 
+             mostrarAlerta('No se encontraron actividades para esta materia o hubo un problema al cargarlas.', 'info');
+        }
         return;
       }
 
@@ -492,13 +504,14 @@ const materiaId = Astro.url.searchParams.get('materiaId');
         `;
       });
 
+      // La función setupPagination utiliza data.totalPages
       setupPagination(data.totalPages, page);
       attachTableEventListeners(); // Attach event listeners after content is loaded
 
     } catch (error) {
       console.error('Error al cargar las actividades:', error);
       tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar las actividades.</td></tr>';
-      mostrarAlerta('Error al cargar las actividades.', 'danger');
+      mostrarAlerta('Error al cargar las actividades. Por favor, verifica la conexión con el servidor o los datos de la materia.', 'danger');
     }
   }
 
@@ -826,6 +839,16 @@ const materiaId = Astro.url.searchParams.get('materiaId');
     };
     new bootstrap.Modal(document.getElementById('modalCalificarEstudiantes')).show();
   }
+
+  // --- COMENTARIO IMPORTANTE: SOLUCIÓN A ERRORES 401 ---
+  // Los errores "401 Unauthorized" en las llamadas a la API (ej. /api/usuario, /api/notificaciones)
+  // indican que el middleware de autenticación en el backend (`isAuthenticated` en actapi.txt)
+  // no está permitiendo el acceso. Asegúrate de que:
+  // 1. El usuario esté correctamente autenticado antes de hacer estas llamadas.
+  // 2. Si estás en desarrollo y quieres saltarte la autenticación temporalmente,
+  //    descomenta las líneas `//isAuthenticated,` en actapi.txt para las rutas que lo requieran.
+  //    Una vez resuelto el problema de autenticación, vuelve a comentarlas para mayor seguridad.
+  // ----------------------------------------------------
 
   document.addEventListener('DOMContentLoaded', cargarFiltros);
 </script>
