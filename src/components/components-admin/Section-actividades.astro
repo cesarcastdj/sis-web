@@ -335,6 +335,13 @@ const materiaId = Astro.url.searchParams.get('materiaId');
       window.history.replaceState({}, '', url);
       currentMateriaId = null;
     });
+
+    // Enlazar el formulario de añadir actividad
+    const formAnadirActividad = document.getElementById('formAnadirActividad');
+    if (formAnadirActividad) {
+      formAnadirActividad.removeEventListener('submit', anadirActividad); // Evitar duplicados
+      formAnadirActividad.addEventListener('submit', anadirActividad);
+    }
   });
 
   // Lógica para cargar cursos, periodos y materias
@@ -592,7 +599,7 @@ const materiaId = Astro.url.searchParams.get('materiaId');
       id_materia: parseInt(currentMateriaId),
       nombre_actividad: nombreActividad,
       descripcion: descripcionActividad,
-      fecha_entrega: fechaEntrega,
+      fecha_creacion: fechaEntrega,
       ponderacion: parseFloat(ponderacion)
     };
 
@@ -609,14 +616,21 @@ const materiaId = Astro.url.searchParams.get('materiaId');
       }
 
       const result = await response.json();
-      mostrarAlerta(result.message, 'success');
+      mostrarAlerta(result.message || 'Actividad creada exitosamente', 'success');
       
       const modalElement = document.getElementById('modalAnadirActividad');
       const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
       if (bootstrapModal) bootstrapModal.hide();
+      // Limpiar backdrop manualmente si persiste
+      document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+      document.body.classList.remove('modal-open');
+      document.body.style = '';
 
       form.reset(); // Limpiar el formulario
       form.classList.remove('was-validated'); // Quitar la validación visual
+
+      // Recargar la página tras un breve retraso para mostrar el mensaje
+      setTimeout(() => { window.location.reload(); }, 1000);
 
       await fetchActividadesSummary(currentMateriaId);
       await fetchActividades(currentMateriaId, currentPage); // Recargar la tabla

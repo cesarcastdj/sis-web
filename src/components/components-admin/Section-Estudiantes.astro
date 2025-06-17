@@ -171,7 +171,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
               <input type="text" class="form-control" id="editDireccion" placeholder="Ingrese su dirección" />
             </div>
           </div>
-
+          
           <div class="d-flex justify-content-between mt-4">
             <button type="reset" class="btn btn-secondary">Limpiar</button>
             <button type="submit" class="btn btn-primary" id="btnGuardarEdicion">Guardar Cambios</button>
@@ -651,14 +651,14 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         if (editSegundoApellido) editSegundoApellido.value = estudiante.segundo_apellido || '';
         if (editDireccion) editDireccion.value = estudiante.direccion || '';
         if (editCodigoAreaSelect && editNumeroTelefonoInput) {
-            if (estudiante.telefono) {
-                const [codigo, numero] = estudiante.telefono.split('-');
-                editCodigoAreaSelect.value = codigo || '';
-                editNumeroTelefonoInput.value = numero || '';
-            } else {
-                editCodigoAreaSelect.value = '';
-                editNumeroTelefonoInput.value = '';
-            }
+        if (estudiante.telefono) {
+            const [codigo, numero] = estudiante.telefono.split('-');
+            editCodigoAreaSelect.value = codigo || '';
+            editNumeroTelefonoInput.value = numero || '';
+        } else {
+            editCodigoAreaSelect.value = '';
+            editNumeroTelefonoInput.value = '';
+        }
         }
         // No referencias a campos académicos eliminados
         modalEditarEstudiante.show();

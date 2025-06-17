@@ -260,68 +260,90 @@ router.get('/periodos-academicos/resumen', /*isAuthenticated,*/ async (req, res)
 router.get('/periodos-academicos/:id', /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     try {
-      const query = `
+      // 1. Obtener los detalles básicos del periodo
+      const [periodoRows] = await db.promise().query(`
         SELECT
           p.id_periodo,
           p.periodo AS nombre_periodo,
           p.fechaInicio,
           p.fechaFinal
+          -- Si tu tabla 'periodo' tuviera un campo 'estado', lo incluirías aquí
+          -- p.estado AS estado_periodo
         FROM periodo p
         WHERE p.id_periodo = ?;
-      `;
-      const [rows] = await db.promise().query(query, [id]);
+      `, [id]);
 
-      if (rows.length === 0) {
+      if (periodoRows.length === 0) {
         return res.status(404).json({ error: 'Periodo académico no encontrado.' });
       }
 
-      const periodo = rows[0];
+      const periodo = periodoRows[0];
 
-      // Obtener cursos de este periodo usando cursos_periodo
+      // 2. Obtener cursos asociados a este periodo
       const [cursosResult] = await db.promise().query(`
-        SELECT c.id_curso, c.curso AS curso
+        SELECT c.id_curso, c.curso AS nombre_curso
         FROM cursos c
         JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
         WHERE cp.id_periodo = ?;
       `, [id]);
-      const cursos_info = cursosResult.map(c => ({ id_curso: c.id_curso, curso: c.curso }));
+      const cursos_info = cursosResult.map(c => ({ id_curso: c.id_curso, nombre_curso: c.nombre_curso }));
 
+      // 3. Obtener secciones asociadas a los cursos de este periodo
+      // Asumiendo que la tabla 'cursos' tiene un 'id_seccion' (como en tu SQL)
+      const [seccionesResult] = await db.promise().query(`
+        SELECT DISTINCT s.id_seccion, s.seccion AS nombre_seccion
+        FROM seccion s
+        JOIN cursos c ON s.id_seccion = c.id_seccion
+        JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+        WHERE cp.id_periodo = ?;
+      `, [id]);
+      const secciones_info = seccionesResult.map(s => ({ id_seccion: s.id_seccion, nombre_seccion: s.nombre_seccion }));
+
+
+      // 4. Obtener materias ofrecidas en los cursos de este periodo
       const [materiasResult] = await db.promise().query(`
-        SELECT DISTINCT m.id_materia, m.materia AS materia
+        SELECT DISTINCT m.id_materia, m.materia AS nombre_materia
         FROM materias m
         JOIN cursos c ON m.id_curso = c.id_curso
-        WHERE p.id_periodo = ?;
+        JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+        WHERE cp.id_periodo = ?;
       `, [id]);
       const materias_info = materiasResult.map(m => ({ id_materia: m.id_materia, nombre_materia: m.nombre_materia }));
       
+      // 5. Conteo de estudiantes inscritos en cursos de este periodo
       const [totalEstudiantesResult] = await db.promise().query(`
-        SELECT COUNT(DISTINCT u.id_usuario) AS total_estudiantes
-        FROM usuarios u
-        JOIN usuario_cursos uc ON u.id_usuario = uc.id_usuario
+        SELECT COUNT(DISTINCT uc.id_usuario) AS total_estudiantes
+        FROM usuario_cursos uc
+        JOIN usuarios u ON uc.id_usuario = u.id_usuario
         JOIN cursos c ON uc.id_curso = c.id_curso
-        WHERE u.rol = 'estudiante' AND p.id_periodo = ?;
+        JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+        WHERE u.rol = 'estudiante' AND cp.id_periodo = ?;
       `, [id]);
       const totalEstudiantes = totalEstudiantesResult[0]?.total_estudiantes || 0;
 
+      // 6. Conteo de profesores asignados a materias de los cursos de este periodo
       const [totalProfesoresResult] = await db.promise().query(`
-        SELECT COUNT(DISTINCT u.id_usuario) AS total_profesores
-        FROM usuarios u
-        JOIN usuario_materias um ON u.id_usuario = um.id_usuario
+        SELECT COUNT(DISTINCT um.id_usuario) AS total_profesores
+        FROM usuario_materias um
+        JOIN usuarios u ON um.id_usuario = u.id_usuario
         JOIN materias m ON um.id_materia = m.id_materia
         JOIN cursos c ON m.id_curso = c.id_curso
-        WHERE u.rol = 'profesor' AND p.id_periodo = ?;
+        JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+        WHERE u.rol = 'profesor' AND cp.id_periodo = ?;
       `, [id]);
       const totalProfesores = totalProfesoresResult[0]?.total_profesores || 0;
 
       const periodoFormateado = {
         id_periodo: periodo.id_periodo,
-        nombre_periodo: periodo.periodo,
+        nombre_periodo: periodo.nombre_periodo,
         fechaInicio: periodo.fechaInicio,
         fechaFinal: periodo.fechaFinal,
+        // estado: periodo.estado_periodo, // Descomentar si implementas el campo 'estado' en la tabla 'periodo'
         cursos_info,
+        secciones_info, 
         materias_info,
-        total_estudiantes: totalEstudiantes,
-        total_profesores: totalProfesores
+        totalEstudiantes, 
+        totalProfesores 
       };
 
       res.json(periodoFormateado);
@@ -396,7 +418,7 @@ router.get('/cursos-academicos', (req, res) => {
       FROM cursos c
       LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
       LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
-      LEFT JOIN seccion s ON s.id_seccion = s.id_seccion
+      LEFT JOIN seccion s ON c.id_seccion = s.id_seccion
       WHERE c.curso LIKE ?;
   `;
   db.query(countQuery, [searchTerm], (errCount, totalCursosResult) => {
@@ -422,7 +444,7 @@ router.get('/cursos-academicos', (req, res) => {
         FROM cursos c
         LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
         LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
-        LEFT JOIN seccion s ON s.id_seccion = s.id_seccion
+        LEFT JOIN seccion s ON c.id_seccion = s.id_seccion
         WHERE c.curso LIKE ?
         GROUP BY c.id_curso
         LIMIT ?, ?;
@@ -1150,3 +1172,4 @@ router.post('/materias-academicas/:id/asignar', (req, res) => {
 });
 
 export default router;
+

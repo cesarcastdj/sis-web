@@ -20,59 +20,60 @@ const router = express.Router();
  * @returns {json} Lista de notas paginadas.
  */
 router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) => {
-    const { id_usuario } = req.params;
-    const page = parseInt(req.query.page || '1');
-    const limit = parseInt(req.query.limit || '10');
-    const offset = (page - 1) * limit;
+  const { id_usuario } = req.params;
+  const page = parseInt(req.query.page || '1');
+  const limit = parseInt(req.query.limit || '10');
+  const offset = (page - 1) * limit;
 
-    try {
-        // Consulta para el conteo total de notas del usuario
-        const [totalNotasResult] = await db.promise().query(
-            'SELECT COUNT(*) AS total FROM notas WHERE id_estudiante = ?', // id_estudiante en tabla notas
-            [id_usuario]
-        );
-        const totalCount = totalNotasResult[0].total;
-        const totalPages = Math.ceil(totalCount / limit);
+  try {
+      // Consulta para el conteo total de notas del usuario
+      const [totalNotasResult] = await db.promise().query(
+          'SELECT COUNT(*) AS total FROM notas WHERE id_estudiante = ?',
+          [id_usuario]
+      );
+      const totalCount = totalNotasResult[0].total;
+      const totalPages = Math.ceil(totalCount / limit);
 
-        // Consulta principal para obtener las notas con sus detalles
-        const notasQuery = `
-            SELECT
-                n.id_nota,
-                n.nota,
-                n.fecha_registro,
-                u.primer_nombre AS nombre_estudiante,
-                u.primer_apellido AS apellido_estudiante,
-                m.materia AS nombre_materia,
-                c.curso AS nombre_curso,
-                IFNULL(GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC), 'N/A') AS nombre_periodo,
-                a.nombre_actividad,
-                a.descripcion AS descripcion_actividad
-            FROM notas n
-            JOIN usuarios u ON n.id_estudiante = u.id_usuario             -- id_estudiante en tabla notas
-            JOIN actividades a ON n.id_actividad = a.id_actividad         -- Unir notas con actividades
-            JOIN materias m ON m.id_materia = m.id_materia                -- Unir actividades con materias
-            LEFT JOIN cursos_materias cm ON m.id_materia = cm.id_materia  -- Unir materias con cursos_materias
-            LEFT JOIN cursos c ON cm.id_curso = c.id_curso                -- Obtener curso desde cursos_materias
-            LEFT JOIN periodo p ON cm.id_periodo = p.id_periodo           -- Obtener periodo desde cursos_materias           -- Obtener seccion desde cursos_materias
-            WHERE n.id_estudiante = ?                                     -- id_estudiante en tabla notas
-            GROUP BY n.id_nota, n.nota, n.fecha_registro, u.primer_nombre, u.primer_apellido, m.materia, c.curso, a.nombre_actividad, a.descripcion
-            ORDER BY n.fecha_registro DESC
-            LIMIT ?, ?;
-        `;
-        const [notas] = await db.promise().query(notasQuery, [id_usuario, offset, limit]);
+      // FIX: Consulta principal mejorada para obtener los detalles de manera más precisa
+      const notasQuery = `
+          SELECT
+              n.id_nota,
+              n.nota,
+              n.fecha_registro,
+              u.primer_nombre AS nombre_estudiante,
+              u.primer_apellido AS apellido_estudiante,
+              m.materia AS nombre_materia,
+              c.curso AS nombre_curso,
+              p.periodo AS nombre_periodo,
+              a.nombre_actividad,
+              a.descripcion AS descripcion_actividad
+          FROM notas n
+          JOIN usuarios u ON n.id_estudiante = u.id_usuario
+          JOIN actividades a ON n.id_actividad = a.id_actividad
+          JOIN materias m ON a.id_materia = m.id_materia
+          LEFT JOIN cursos_materias cm ON m.id_materia = cm.id_materia AND n.id_estudiante = cm.id_estudiante
+          LEFT JOIN cursos c ON cm.id_curso = c.id_curso
+          LEFT JOIN periodo p ON cm.id_periodo = p.id_periodo
+          WHERE n.id_estudiante = ?
+          GROUP BY n.id_nota
+          ORDER BY n.fecha_registro DESC
+          LIMIT ?, ?;
+      `;
+      const [notas] = await db.promise().query(notasQuery, [id_usuario, offset, limit]);
 
-        res.json({
-            notas,
-            totalCount,
-            totalPages,
-            currentPage: page
-        });
+      res.json({
+          notas,
+          totalCount,
+          totalPages,
+          currentPage: page
+      });
 
-    } catch (error) {
-        console.error("❌ Error al obtener notas del usuario:", error);
-        res.status(500).json({ error: "Error al obtener notas del usuario", detalle: error.message });
-    }
+  } catch (error) {
+      console.error("❌ Error al obtener notas del usuario:", error);
+      res.status(500).json({ error: "Error al obtener notas del usuario", detalle: error.message });
+  }
 });
+
 
 /**
  * @route GET /api/notas/materia/:id_materia/usuario/:id_usuario
@@ -81,94 +82,126 @@ router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) =
  * @param {number} req.params.id_usuario - ID del estudiante.
  * @returns {json} Lista de notas.
  */
-router.get('/notas/materia/:id_materia/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) => {
-    const { id_materia, id_usuario } = req.params;
+router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) => {
+  const { id_usuario } = req.params;
+  const page = parseInt(req.query.page || '1');
+  const limit = parseInt(req.query.limit || '10');
+  const offset = (page - 1) * limit;
 
-    try {
-        const notasQuery = `
-            SELECT
-                n.id_nota,
-                n.nota,
-                n.fecha_registro,
-            
-                u.primer_nombre AS nombre_estudiante,
-                u.primer_apellido AS apellido_estudiante,
-                m.materia AS nombre_materia,
-                c.curso AS nombre_curso,
-                IFNULL(GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC), 'N/A') AS nombre_periodo,
-                a.nombre_actividad,
-                a.descripcion AS descripcion_actividad
-            FROM notas n
-            JOIN usuarios u ON n.id_estudiante = u.id_usuario             -- id_estudiante en tabla notas
-            JOIN actividades a ON n.id_actividad = a.id_actividad         -- Unir notas con actividades
-            JOIN materias m ON m.id_materia = m.id_materia                -- Unir actividades con materias
-            LEFT JOIN cursos_materias cm ON m.id_materia = cm.id_materia  -- Unir materias con cursos_materias
-            LEFT JOIN cursos c ON cm.id_curso = c.id_curso                -- Obtener curso desde cursos_materias
-            LEFT JOIN periodo p ON cm.id_periodo = p.id_periodo           -- Obtener periodo desde cursos_materias
-            WHERE m.id_materia = ? AND n.id_estudiante = ?                -- Filtrar por id_materia de actividad y id_estudiante de nota
-            GROUP BY n.id_nota, n.nota, n.fecha_registro, u.primer_nombre, u.primer_apellido, m.materia, c.curso, a.nombre_actividad, a.descripcion
-            ORDER BY n.fecha_registro DESC;
-        `;
-        const [notas] = await db.promise().query(notasQuery, [id_materia, id_usuario]);
+  try {
+      // Consulta para el conteo total de notas del usuario
+      const [totalNotasResult] = await db.promise().query(
+          'SELECT COUNT(*) AS total FROM notas WHERE id_estudiante = ?',
+          [id_usuario]
+      );
+      const totalCount = totalNotasResult[0].total;
+      const totalPages = Math.ceil(totalCount / limit);
 
-        res.json({ notas });
+      // Consulta principal para obtener las notas con sus detalles
+      const notasQuery = `
+          SELECT
+              n.id_nota,
+              n.nota,
+              n.fecha_registro,
+              u.primer_nombre AS nombre_estudiante,
+              u.primer_apellido AS apellido_estudiante,
+              m.materia AS nombre_materia,
+              c.curso AS nombre_curso,
+              p.periodo AS nombre_periodo,
+              a.nombre_actividad,
+              a.descripcion AS descripcion_actividad
+          FROM notas n
+          JOIN usuarios u ON n.id_estudiante = u.id_usuario
+          JOIN actividades a ON n.id_actividad = a.id_actividad
+          JOIN materias m ON a.id_materia = m.id_materia -- FIX: Condición de JOIN corregida
+          LEFT JOIN cursos_materias cm ON m.id_materia = cm.id_materia
+          LEFT JOIN cursos c ON cm.id_curso = c.id_curso
+          LEFT JOIN periodo p ON cm.id_periodo = p.id_periodo
+          WHERE n.id_estudiante = ?
+          GROUP BY n.id_nota
+          ORDER BY n.fecha_registro DESC
+          LIMIT ?, ?;
+      `;
+      const [notas] = await db.promise().query(notasQuery, [id_usuario, offset, limit]);
 
-    } catch (error) {
-        console.error("❌ Error al obtener notas de la materia para el usuario:", error);
-        res.status(500).json({ error: "Error al obtener notas", detalle: error.message });
-    }
+      res.json({
+          notas,
+          totalCount,
+          totalPages,
+          currentPage: page
+      });
+
+  } catch (error) {
+      console.error("❌ Error al obtener notas del usuario:", error);
+      res.status(500).json({ error: "Error al obtener notas del usuario", detalle: error.message });
+  }
 });
-
 /**
  * @route GET /api/notas/:id_nota
  * @description Obtiene los detalles de una nota específica por su ID, incluyendo detalles de curso, periodo y sección.
  * @param {number} req.params.id_nota - ID de la nota.
  * @returns {json} Detalles de la nota.
  */
-router.get('/notas', /*isAuthenticated,*/ async (req, res) => {
-    const { id_nota } = req.params;
+router.get('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
+  const { id_nota } = req.params;
 
-    try {
-        const notaQuery = `
-            SELECT
-                n.id_nota,
-                n.nota,
-                n.fecha_registro,
-                u.id_usuario,
-                u.primer_nombre AS nombre_estudiante,
-                u.primer_apellido AS apellido_estudiante,
-                m.id_materia,
-                m.materia AS nombre_materia,
-                c.id_curso,
-                c.curso AS nombre_curso,
-                IFNULL(GROUP_CONCAT(DISTINCT p.id_periodo ORDER BY p.id_periodo ASC), '') AS id_periodo,
-                IFNULL(GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC), 'N/A') AS nombre_periodo,
-                a.id_actividad,
-                a.nombre_actividad,
-                a.descripcion AS descripcion_actividad
-            FROM notas n
-            JOIN usuarios u ON n.id_estudiante = u.id_usuario             -- id_estudiante en tabla notas
-            JOIN actividades a ON n.id_actividad = a.id_actividad         -- Unir notas con actividades
-            JOIN materias m ON m.id_materia = m.id_materia                -- Unir actividades con materias
-            LEFT JOIN cursos_materias cm ON m.id_materia = cm.id_materia  -- Unir materias con cursos_materias
-            LEFT JOIN cursos c ON cm.id_curso = c.id_curso                -- Obtener curso desde cursos_materias
-            LEFT JOIN periodo p ON cm.id_periodo = p.id_periodo           -- Obtener periodo desde cursos_materias          -- Obtener seccion desde cursos_materias
-            WHERE n.id_nota = ?
-            GROUP BY n.id_nota, n.nota, n.fecha_registro, u.id_usuario, u.primer_nombre, u.primer_apellido, m.id_materia, m.materia, c.id_curso, c.curso, a.id_actividad, a.nombre_actividad, a.descripcion;
-        `;
-        const [notaRows] = await db.promise().query(notaQuery, [id_nota]);
+  if (!id_nota) {
+      return res.status(400).json({ error: 'ID de nota no proporcionado.' });
+  }
 
-        if (notaRows.length === 0) {
-            return res.status(404).json({ error: 'Nota no encontrada.' });
-        }
+  try {
+      // FIX: Consulta SQL reescrita para que coincida con la estructura real de la BD.
+      // Utiliza LEFT JOINs para evitar errores si faltan datos de contexto.
+      const notaQuery = `
+          SELECT
+              n.id_nota,
+              n.nota,
+              n.fecha_registro,
+              (SELECT com.mensaje FROM comentarios com WHERE com.id_estudiante = u.id_usuario ORDER BY com.fecha_hora DESC LIMIT 1) AS comentarios,
+              u.id_usuario,
+              u.cedula,
+              u.primer_nombre AS nombre_estudiante,
+              u.primer_apellido AS apellido_estudiante,
+              a.id_actividad,
+              a.nombre_actividad,
+              a.descripcion AS descripcion_actividad,
+              m.id_materia,
+              m.materia AS nombre_materia,
+              c.id_curso,
+              c.curso AS nombre_curso,
+              p.id_periodo,
+              p.periodo AS nombre_periodo,
+              sec.id_seccion,
+              sec.seccion AS nombre_seccion
+          FROM notas AS n
+          JOIN usuarios AS u ON n.id_estudiante = u.id_usuario
+          JOIN actividades AS a ON n.id_actividad = a.id_actividad
+          JOIN materias AS m ON a.id_materia = m.id_materia
+          LEFT JOIN cursos AS c ON m.id_curso = c.id_curso
+          LEFT JOIN cursos_materias AS cm ON n.id_nota = cm.id_nota
+          LEFT JOIN periodo AS p ON cm.id_periodo = p.id_periodo
+          LEFT JOIN matricula AS mat ON u.id_usuario = mat.id_estudiante AND cm.id_periodo = mat.id_periodo
+          LEFT JOIN seccion AS sec ON mat.id_seccion = sec.id_seccion
+          WHERE n.id_nota = ?
+          GROUP BY n.id_nota;
+      `;
+      const [notaRows] = await db.promise().query(notaQuery, [id_nota]);
 
-        res.json(notaRows[0]);
+      if (notaRows.length === 0) {
+          return res.status(404).json({ error: 'Nota no encontrada.' });
+      }
+      
+      // El frontend espera un objeto 'nota' que contenga los detalles
+      res.json({ nota: notaRows[0] });
 
-    } catch (error) {
-        console.error("❌ Error al obtener nota por ID:", error);
-        res.status(500).json({ error: "Error al obtener nota", detalle: error.message });
-    }
+  } catch (error) {
+      console.error("❌ Error al obtener nota por ID:", error);
+      res.status(500).json({ error: "Error interno del servidor al obtener la nota", detalle: error.message });
+  }
 });
+
+
+
 
 /**
  * @route POST /api/notas
@@ -180,34 +213,31 @@ router.get('/notas', /*isAuthenticated,*/ async (req, res) => {
  * @param {string} [req.body.comentarios] - Comentarios (opcional).
  * @returns {json} Mensaje de éxito e ID de la nueva nota.
  */
-router.post('/notas', /*isAuthenticated,*/ async (req, res) => {
-    // Ya no se recibe id_materia directamente para la tabla notas, ya que no existe esa columna.
-    // La materia se infiere a través de id_actividad.
-    const { id_estudiante, id_actividad, nota, fecha_registro, comentarios = null } = req.body; 
+router.post('/notas', /*isAuthenticated,*/ (req, res) => {
+  const { id_estudiante, id_actividad, nota, fecha_registro, comentarios = null } = req.body;
 
-    try {
-        if (!id_estudiante || !id_actividad || !nota || !fecha_registro) {
-            return res.status(400).json({ error: 'ID de estudiante, actividad, nota y fecha de registro son obligatorios.' });
-        }
+  if (!id_estudiante || !id_actividad || !nota) {
+      return res.status(400).json({ error: 'ID de estudiante, actividad y nota son obligatorios.' });
+  }
 
-        const formattedFechaRegistro = new Date(fecha_registro).toISOString().slice(0, 10);
+  let fechaFinal = fecha_registro || new Date().toISOString().slice(0, 10);
 
-        const insertNotaQuery = `
-            INSERT INTO notas (id_estudiante, id_actividad, nota, fecha_registro, comentarios)
-            VALUES (?, ?, ?, ?, ?);
-        `;
-        const [result] = await db.promise().query(
-            insertNotaQuery,
-            [id_estudiante, id_actividad, nota, formattedFechaRegistro, comentarios]
-        );
-        const nuevaNotaId = result.insertId;
-
-        res.status(201).json({ message: 'Nota registrada exitosamente.', id: nuevaNotaId });
-
-    } catch (error) {
-        console.error("❌ Error al registrar nota:", error);
-        res.status(500).json({ error: "Error al registrar nota", detalle: error.message });
-    }
+  const insertNotaQuery = `
+      INSERT INTO notas (id_estudiante, id_actividad, nota, fecha_registro, comentarios)
+      VALUES (?, ?, ?, ?, ?);
+  `;
+  db.query(
+      insertNotaQuery,
+      [id_estudiante, id_actividad, nota, fechaFinal, comentarios],
+      (err, result) => {
+          if (err) {
+              console.error("❌ Error al registrar nota:", err);
+              return res.status(500).json({ error: "Error al registrar nota", detalle: err.message });
+          }
+          const nuevaNotaId = result.insertId;
+          res.status(201).json({ message: 'Nota registrada exitosamente.', id: nuevaNotaId });
+      }
+  );
 });
 
 /**
@@ -218,31 +248,35 @@ router.post('/notas', /*isAuthenticated,*/ async (req, res) => {
  * @returns {json} Mensaje de éxito.
  */
 router.put('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
-    const { id_nota } = req.params;
-    const { nota, id_actividad = undefined, comentarios = undefined, fecha_registro = undefined } = req.body; 
+  const { id_nota } = req.params;
+  const { nota, id_actividad, comentarios, fecha_registro } = req.body; 
 
-    try {
-        let updateFields = {};
-        if (nota !== undefined) updateFields.nota = nota;
-        // Solo actualizar id_actividad si se proporciona y es diferente (opcional)
-        if (id_actividad !== undefined) updateFields.id_actividad = id_actividad; 
-        if (comentarios !== undefined) updateFields.comentarios = comentarios;
-        if (fecha_registro !== undefined) updateFields.fecha_registro = new Date(fecha_registro).toISOString().slice(0, 10);
+  try {
+      let updateFields = {};
+      if (nota !== undefined) updateFields.nota = nota;
+      if (id_actividad !== undefined) updateFields.id_actividad = id_actividad; 
+      if (comentarios !== undefined) updateFields.comentarios = comentarios;
+      if (fecha_registro !== undefined) updateFields.fecha_registro = new Date(fecha_registro).toISOString().slice(0, 10);
 
-        if (Object.keys(updateFields).length === 0) {
-            return res.status(400).json({ error: "No hay campos para actualizar." });
-        }
+      if (Object.keys(updateFields).length === 0) {
+          return res.status(400).json({ error: "No hay campos para actualizar." });
+      }
 
-        const updateQuery = 'UPDATE notas SET ? WHERE id_nota = ?';
-        await db.promise().query(updateQuery, [updateFields, id_nota]);
+      const updateQuery = 'UPDATE notas SET ? WHERE id_nota = ?';
+      const [result] = await db.promise().query(updateQuery, [updateFields, id_nota]);
 
-        res.json({ message: 'Nota actualizada exitosamente.' });
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ error: 'Nota no encontrada para actualizar.' });
+      }
 
-    } catch (error) {
-        console.error("❌ Error al actualizar nota:", error);
-        res.status(500).json({ error: "Error al actualizar nota", detalle: error.message });
-    }
+      res.json({ message: 'Nota actualizada exitosamente.' });
+
+  } catch (error) {
+      console.error("❌ Error al actualizar nota:", error);
+      res.status(500).json({ error: "Error al actualizar nota", detalle: error.message });
+  }
 });
+
 
 /**
  * @route DELETE /api/notas/:id_nota
@@ -251,22 +285,22 @@ router.put('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
  * @returns {json} Mensaje de éxito.
  */
 router.delete('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
-    const { id_nota } = req.params;
+  const { id_nota } = req.params;
 
-    try {
-        const deleteQuery = 'DELETE FROM notas WHERE id_nota = ?';
-        const [result] = await db.promise().query(deleteQuery, [id_nota]);
+  try {
+      const deleteQuery = 'DELETE FROM notas WHERE id_nota = ?';
+      const [result] = await db.promise().query(deleteQuery, [id_nota]);
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Nota no encontrada para eliminar.' });
-        }
+      if (result.affectedRows === 0) {
+          return res.status(404).json({ error: 'Nota no encontrada para eliminar.' });
+      }
 
-        res.json({ message: 'Nota eliminada exitosamente.' });
+      res.json({ message: 'Nota eliminada exitosamente.' });
 
-    } catch (error) {
-        console.error("❌ Error al eliminar nota:", error);
-        res.status(500).json({ error: "Error al eliminar nota", detalle: error.message });
-    }
+  } catch (error) {
+      console.error("❌ Error al eliminar nota:", error);
+      res.status(500).json({ error: "Error al eliminar nota", detalle: error.message });
+  }
 });
 
 
@@ -349,7 +383,7 @@ router.get('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) =
  * @returns {json} Mensaje de éxito e ID de la nueva actividad.
  */
 router.post('/actividades', /*isAuthenticated,*/ async (req, res) => {
-    const { nombre_actividad, descripcion = null, fecha_creacion, id_materia } = req.body;
+    const { nombre_actividad, descripcion = null, fecha_creacion, id_materia, ponderacion } = req.body;
 
     try {
         if (!nombre_actividad || !fecha_creacion || !id_materia) {
@@ -364,7 +398,7 @@ router.post('/actividades', /*isAuthenticated,*/ async (req, res) => {
         `;
         const [result] = await db.promise().query(
             insertActividadQuery,
-            [nombre_actividad, descripcion, formattedFechaCreacion, id_materia, 1.0]
+            [nombre_actividad, descripcion, formattedFechaCreacion, id_materia, ponderacion]
         );
         const nuevaActividadId = result.insertId;
 
@@ -605,14 +639,15 @@ router.get('/materias', async (req, res) => {
     return res.status(400).json({ error: 'Debes especificar curso y periodo.' });
   }
   try {
+    // Buscar materias activas asociadas a un curso y periodo, igual que actividades
     const query = `
       SELECT m.id_materia, m.materia AS nombre_materia
       FROM materias m
-      JOIN cursos_periodo cp ON cp.id_curso = m.id_curso
+      JOIN materias_periodo mp ON m.id_materia = mp.id_materia
+      JOIN cursos_periodo cp ON cp.id_curso = m.id_curso AND cp.id_periodo = mp.id_periodo
       WHERE cp.id_curso = ? AND cp.id_periodo = ? AND m.activo = 1
     `;
     const [materias] = await db.promise().query(query, [curso, periodo]);
-    // Para robustez, igual que actividades, responde como array plano
     res.json(materias);
   } catch (error) {
     console.error('Error al obtener materias filtradas:', error);
@@ -670,6 +705,77 @@ router.post('/notas/actividad/:id_actividad', (req, res) => {
       console.log('❌ No hay notas válidas para guardar');
       return res.status(400).json({ error: 'No hay notas válidas para guardar.' });
     }
+    // Usar db como pool clásico si no existe getConnection
+    const pool = db.getConnection ? db : db;
+    if (!db.getConnection) {
+      // Sin transacciones, solo inserciones/actualizaciones simples
+      let errores = [];
+      let procesados = 0;
+      notas.forEach(n => {
+        pool.query('SELECT id_nota FROM notas WHERE id_actividad = ? AND id_estudiante = ?', [id_actividad, n.id_estudiante], (err, existe) => {
+          if (err) { console.error('Error en SELECT:', err); errores.push(err); procesados++; if (procesados === notas.length) finalizar(); return; }
+          // Verificar si el estudiante existe
+          pool.query('SELECT id_estudiante FROM estudiantes WHERE id_estudiante = ?', [n.id_estudiante], (err, estudianteExiste) => {
+            if (err) { console.error('Error verificando estudiante:', err); errores.push(err); procesados++; if (procesados === notas.length) finalizar(); return; }
+            if (estudianteExiste.length === 0) {
+              // Buscar el id_usuario correspondiente
+              pool.query('SELECT id_usuario FROM usuarios WHERE id_usuario = ?', [n.id_estudiante], (err, usuarioRows) => {
+                if (err) { console.error('Error buscando usuario:', err); errores.push(err); procesados++; if (procesados === notas.length) finalizar(); return; }
+                if (usuarioRows.length === 0) {
+                  console.error('No existe el usuario para el id_estudiante:', n.id_estudiante);
+                  errores.push(new Error('No existe el usuario para el id_estudiante: ' + n.id_estudiante));
+                  procesados++;
+                  if (procesados === notas.length) finalizar();
+                  return;
+                }
+                // Insertar estudiante con ambos campos
+                pool.query('INSERT INTO estudiantes (id_estudiante, id_usuario) VALUES (?, ?)', [n.id_estudiante, n.id_estudiante], (err) => {
+                  if (err) { console.error('Error insertando estudiante:', err); errores.push(err); procesados++; if (procesados === notas.length) finalizar(); return; }
+                  // Continuar con la lógica de notas después de insertar estudiante
+                  insertarActualizarNota();
+                });
+              });
+            } else {
+              insertarActualizarNota();
+            }
+            function insertarActualizarNota() {
+              if (existe.length > 0) {
+                pool.query('UPDATE notas SET nota = ? WHERE id_nota = ?', [n.nota, existe[0].id_nota], (err) => {
+                  if (err) { console.error('Error en UPDATE:', err); errores.push(err); }
+                  guardarComentario();
+                });
+              } else {
+                pool.query('INSERT INTO notas (id_actividad, id_estudiante, nota) VALUES (?, ?, ?)', [id_actividad, n.id_estudiante, n.nota], (err) => {
+                  if (err) { console.error('Error en INSERT:', err); errores.push(err); }
+                  guardarComentario();
+                });
+              }
+            }
+            function guardarComentario() {
+              if (n.comentarios && n.comentarios.trim() !== '') {
+                pool.query('INSERT INTO comentarios (id_estudiante, mensaje, fecha_hora) VALUES (?, ?, NOW())', [n.id_estudiante, n.comentarios], (err) => {
+                  if (err) { console.error('Error en INSERT comentario:', err); errores.push(err); }
+                  procesados++;
+                  if (procesados === notas.length) finalizar();
+                });
+              } else {
+                procesados++;
+                if (procesados === notas.length) finalizar();
+              }
+            }
+          });
+        });
+      });
+      function finalizar() {
+        if (errores.length > 0) {
+          console.error('Errores al guardar notas:', errores);
+          return res.status(500).json({ error: 'Error al registrar/actualizar notas y comentarios', detalle: errores.map(e => e.message) });
+        }
+        res.json({ message: 'Notas y comentarios registrados/actualizados correctamente.' });
+      }
+      return;
+    }
+    // Si existe getConnection, usar el flujo original con transacciones
     db.getConnection((err, conn) => {
       if (err) {
         console.error('Error obteniendo conexión:', err);
@@ -684,32 +790,58 @@ router.post('/notas/actividad/:id_actividad', (req, res) => {
         let errores = [];
         let procesados = 0;
         notas.forEach(n => {
-          const fecha_registro = n.fecha_registro || new Date().toISOString().slice(0, 10);
           conn.query('SELECT id_nota FROM notas WHERE id_actividad = ? AND id_estudiante = ?', [id_actividad, n.id_estudiante], (err, existe) => {
             if (err) { console.error('Error en SELECT:', err); errores.push(err); procesados++; if (procesados === notas.length) finalizar(); return; }
-            if (existe.length > 0) {
-              conn.query('UPDATE notas SET nota = ?, fecha_registro = ? WHERE id_nota = ?', [n.nota, fecha_registro, existe[0].id_nota], (err) => {
-                if (err) { console.error('Error en UPDATE:', err); errores.push(err); }
-                guardarComentario();
-              });
-            } else {
-              conn.query('INSERT INTO notas (id_actividad, id_estudiante, nota, fecha_registro) VALUES (?, ?, ?, ?)', [id_actividad, n.id_estudiante, n.nota, fecha_registro], (err) => {
-                if (err) { console.error('Error en INSERT:', err); errores.push(err); }
-                guardarComentario();
-              });
-            }
-            function guardarComentario() {
-              if (n.comentarios && n.comentarios.trim() !== '') {
-                conn.query('INSERT INTO comentarios (id_estudiante, id_actividad, mensaje, fecha_hora) VALUES (?, ?, ?, NOW())', [n.id_estudiante, id_actividad, n.comentarios], (err) => {
-                  if (err) { console.error('Error en INSERT comentario:', err); errores.push(err); }
-                  procesados++;
-                  if (procesados === notas.length) finalizar();
+            // Verificar si el estudiante existe
+            conn.query('SELECT id_estudiante FROM estudiantes WHERE id_estudiante = ?', [n.id_estudiante], (err, estudianteExiste) => {
+              if (err) { console.error('Error verificando estudiante:', err); errores.push(err); procesados++; if (procesados === notas.length) finalizar(); return; }
+              if (estudianteExiste.length === 0) {
+                // Buscar el id_usuario correspondiente
+                conn.query('SELECT id_usuario FROM usuarios WHERE id_usuario = ?', [n.id_estudiante], (err, usuarioRows) => {
+                  if (err) { console.error('Error buscando usuario:', err); errores.push(err); procesados++; if (procesados === notas.length) finalizar(); return; }
+                  if (usuarioRows.length === 0) {
+                    console.error('No existe el usuario para el id_estudiante:', n.id_estudiante);
+                    errores.push(new Error('No existe el usuario para el id_estudiante: ' + n.id_estudiante));
+                    procesados++;
+                    if (procesados === notas.length) finalizar();
+                    return;
+                  }
+                  // Insertar estudiante con ambos campos
+                  conn.query('INSERT INTO estudiantes (id_estudiante, id_usuario) VALUES (?, ?)', [n.id_estudiante, n.id_estudiante], (err) => {
+                    if (err) { console.error('Error insertando estudiante:', err); errores.push(err); procesados++; if (procesados === notas.length) finalizar(); return; }
+                    // Continuar con la lógica de notas después de insertar estudiante
+                    insertarActualizarNota();
+                  });
                 });
               } else {
-                procesados++;
-                if (procesados === notas.length) finalizar();
+                insertarActualizarNota();
               }
-            }
+              function insertarActualizarNota() {
+                if (existe.length > 0) {
+                  conn.query('UPDATE notas SET nota = ? WHERE id_nota = ?', [n.nota, existe[0].id_nota], (err) => {
+                    if (err) { console.error('Error en UPDATE:', err); errores.push(err); }
+                    guardarComentario();
+                  });
+                } else {
+                  conn.query('INSERT INTO notas (id_actividad, id_estudiante, nota) VALUES (?, ?, ?)', [id_actividad, n.id_estudiante, n.nota], (err) => {
+                    if (err) { console.error('Error en INSERT:', err); errores.push(err); }
+                    guardarComentario();
+                  });
+                }
+              }
+              function guardarComentario() {
+                if (n.comentarios && n.comentarios.trim() !== '') {
+                  conn.query('INSERT INTO comentarios (id_estudiante, mensaje, fecha_hora) VALUES (?, ?, NOW())', [n.id_estudiante, n.comentarios], (err) => {
+                    if (err) { console.error('Error en INSERT comentario:', err); errores.push(err); }
+                    procesados++;
+                    if (procesados === notas.length) finalizar();
+                  });
+                } else {
+                  procesados++;
+                  if (procesados === notas.length) finalizar();
+                }
+              }
+            });
           });
         });
         function finalizar() {
@@ -735,6 +867,45 @@ router.post('/notas/actividad/:id_actividad', (req, res) => {
   } catch (error) {
     console.error('❌ ERROR NO CAPTURADO EN /notas/actividad/:id_actividad:', error);
     res.status(500).json({ error: 'Error inesperado en el endpoint', detalle: error.message });
+  }
+});
+
+router.get('/materias/:id_materia/estudiantes', async (req, res) => {
+  const { id_materia } = req.params;
+  try {
+      const query = `
+          SELECT u.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula
+          FROM usuarios u
+          JOIN usuario_materias um ON u.id_usuario = um.id_usuario
+          WHERE um.id_materia = ? AND u.rol = 'estudiante'
+          ORDER BY u.primer_apellido, u.primer_nombre;
+      `;
+      const [estudiantes] = await db.promise().query(query, [id_materia]);
+      res.json(estudiantes);
+  } catch (error) {
+      console.error('Error al obtener estudiantes de la materia:', error);
+      res.status(500).json({ error: 'Error al obtener estudiantes de la materia', detalle: error.message });
+  }
+});
+
+/**
+* @route GET /api/materias/:id_materia/actividades
+* @description Obtiene las actividades de una materia específica.
+*/
+router.get('/materias/:id_materia/actividades', async (req, res) => {
+  const { id_materia } = req.params;
+  try {
+      const query = `
+          SELECT id_actividad, nombre_actividad
+          FROM actividades
+          WHERE id_materia = ?
+          ORDER BY nombre_actividad;
+      `;
+      const [actividades] = await db.promise().query(query, [id_materia]);
+      res.json(actividades);
+  } catch (error) {
+      console.error('Error al obtener actividades de la materia:', error);
+      res.status(500).json({ error: 'Error al obtener actividades de la materia', detalle: error.message });
   }
 });
 
@@ -810,5 +981,52 @@ router.get('/materias/:id/actividades/resumen', async (req, res) => {
     res.status(500).json({ error: 'Error al obtener resumen de actividades', detalle: error.message });
   }
 });
+
+// Obtener todas las notas de todos los estudiantes para todas las actividades de una materia
+router.get('/notas/materia/:id_materia', async (req, res) => {
+  const { id_materia } = req.params;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
+  try {
+      const countSql = `
+        SELECT COUNT(*) AS total
+        FROM notas n
+        JOIN actividades a ON n.id_actividad = a.id_actividad
+        WHERE a.id_materia = ?
+      `;
+      const [[{ total }]] = await db.promise().query(countSql, [id_materia]);
+      const totalCount = total;
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const sql = `
+        SELECT
+          n.id_nota,
+          n.nota,
+          n.fecha_registro,
+          u.primer_nombre AS nombre_estudiante,
+          u.primer_apellido AS apellido_estudiante,
+          m.materia AS nombre_materia,
+          a.nombre_actividad,
+          a.descripcion AS descripcion_actividad
+        FROM notas n
+        JOIN usuarios u ON n.id_estudiante = u.id_usuario
+        JOIN actividades a ON n.id_actividad = a.id_actividad
+        JOIN materias m ON a.id_materia = m.id_materia -- FIX: Condición de JOIN corregida
+        WHERE m.id_materia = ?
+        ORDER BY u.primer_nombre, a.nombre_actividad, n.fecha_registro DESC
+        LIMIT ? OFFSET ?
+      `;
+      const [notas] = await db.promise().query(sql, [id_materia, limit, offset]);
+      
+      res.json({ notas, totalCount, totalPages, currentPage: page });
+
+  } catch (err) {
+      res.status(500).json({ error: 'Error al obtener notas', detalle: err.message });
+  }
+});
+
+
 
 export default router;

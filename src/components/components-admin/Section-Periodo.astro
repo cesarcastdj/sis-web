@@ -109,16 +109,21 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
         </button>
       </div>
       <div class="modal-body">
-        <h6 class="section-title">Información del Periodo</h6>
-        <p><strong>Periodo Académico:</strong> <span id="detallePeriodoAcademico"></span></p>
+        <h6 class="section-title">Información General del Periodo</h6>
+        <p><strong>ID del Periodo:</strong> <span id="detallePeriodoId"></span></p>
+        <p><strong>Nombre:</strong> <span id="detallePeriodoNombre"></span></p>
         <p><strong>Fecha de Inicio:</strong> <span id="detalleFechaInicio"></span></p>
         <p><strong>Fecha de Fin:</strong> <span id="detalleFechaFin"></span></p>
-        <hr/>
-        <h6 class="section-title">Estadísticas Asociadas</h6>
-        <p><strong>Cursos Asignados:</strong> <span id="detalleCursos"></span></p>
-        <p><strong>Materias Asignadas:</strong> <span id="detalleMaterias"></span></p>
-        <p><strong>Total Estudiantes:</strong> <span id="detalleEstudiantes"></span></p>
-        <p><strong>Total Profesores:</strong> <span id="detalleProfesores"></span></p>
+        <p><strong>Estado:</strong> <span id="detallePeriodoEstado">N/A</span></p> <!-- Asumiendo que `estado` no está en tu DB de periodos, pero lo dejo por si lo implementas -->
+
+        <h6 class="section-title mt-4">Asignaciones y Contenido Académico</h6>
+        <p><strong>Cursos Asociados:</strong> <span id="detalleCursosAsociados"></span></p>
+        <p><strong>Secciones Asociadas:</strong> <span id="detalleSeccionesAsociadas"></span></p>
+        <p><strong>Materias Ofrecidas:</strong> <span id="detalleMateriasOfrecidas"></span></p>
+        
+        <h6 class="section-title mt-4">Resumen de Participantes</h6>
+        <p><strong>Estudiantes Inscritos:</strong> <span id="detalleCantidadEstudiantes"></span></p>
+        <p><strong>Profesores Asignados:</strong> <span id="detalleCantidadProfesores"></span></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -186,13 +191,17 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
 
     // Elementos del modal "Ver Más Información"
     const modalVerMasInformacionPeriodo = new bootstrap.Modal(document.getElementById('modalVerMasInformacionPeriodo'));
-    const detallePeriodoAcademico = document.getElementById('detallePeriodoAcademico');
+    const detallePeriodoId = document.getElementById('detallePeriodoId'); 
+    const detallePeriodoNombre = document.getElementById('detallePeriodoNombre'); 
     const detalleFechaInicio = document.getElementById('detalleFechaInicio');
     const detalleFechaFin = document.getElementById('detalleFechaFin');
-    const detalleCursos = document.getElementById('detalleCursos');
-    const detalleMaterias = document.getElementById('detalleMaterias');
-    const detalleProfesores = document.getElementById('detalleProfesores');
-    const detalleEstudiantes = document.getElementById('detalleEstudiantes');
+    const detallePeriodoEstado = document.getElementById('detallePeriodoEstado'); 
+    const detalleCursosAsociados = document.getElementById('detalleCursosAsociados'); 
+    const detalleSeccionesAsociadas = document.getElementById('detalleSeccionesAsociadas'); 
+    const detalleMateriasOfrecidas = document.getElementById('detalleMateriasOfrecidas'); 
+    const detalleCantidadEstudiantes = document.getElementById('detalleCantidadEstudiantes'); 
+    const detalleCantidadProfesores = document.getElementById('detalleCantidadProfesores'); 
+
 
     // Elementos del Modal Editar Periodos Académicos
     const modalEditarPeriodo = new bootstrap.Modal(document.getElementById('modalEditarPeriodo'));
@@ -468,7 +477,7 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
     // Función principal para cargar periodos en la tabla y actualizar contadores
     async function loadPeriodos(page) {
       console.log(`DEBUG: loadPeriodos called for page ${page}.`);
-      periodosTableBody.innerHTML = `<tr><td colspan="5" class="text-center">Cargando periodos...</td></tr>`;
+      periodosTableBody.innerHTML = `<tr><td colspan="5" class="text-center">Cargando periodos académicos...</td></tr>`;
       paginationControls.innerHTML = ''; 
       totalPeriodosCount.textContent = '...';
 
@@ -555,7 +564,7 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
                 const action = e.currentTarget.dataset.action;
                 const periodoId = e.currentTarget.dataset.id;
                 const periodo = periodosData.find(p => p.id_periodo.toString() === periodoId);
-
+                
                 if (!periodo) {
                     console.error('Error: Periodo no encontrado para ID:', periodoId);
                     return;
@@ -585,27 +594,36 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
     async function mostrarDetallesPeriodo(periodo) {
         console.log("DEBUG: Periodo para ver detalles (mostrarDetallesPeriodo):", periodo);
         try {
+            // Fetch de la API que ahora devuelve más detalles
             const response = await fetch(`http://localhost:3001/api/periodos-academicos/${periodo.id_periodo}`);
             if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
             const detallesCompletos = await response.json();
             console.log("DEBUG: Detalles completos del periodo del backend (mostrarDetallesPeriodo):", detallesCompletos);
 
-            detallePeriodoAcademico.textContent = detallesCompletos.periodo || 'N/A';
+            // Poblar el modal con la información
+            detallePeriodoId.textContent = detallesCompletos.id_periodo || 'N/A';
+            detallePeriodoNombre.textContent = detallesCompletos.nombre_periodo || 'N/A';
             detalleFechaInicio.textContent = detallesCompletos.fechaInicio ? new Date(detallesCompletos.fechaInicio).toLocaleDateString() : 'N/A';
             detalleFechaFin.textContent = detallesCompletos.fechaFinal ? new Date(detallesCompletos.fechaFinal).toLocaleDateString() : 'N/A';
-            
-            // Eliminado estado del detalle ya que no está en la tabla periodo
-            // detalleEstadoPeriodo.textContent = 'No aplica (sin campo estado en tabla periodo)'; // Esto no es necesario si quitamos el elemento HTML
-            
-            detalleCursos.textContent = detallesCompletos.cursos_info && detallesCompletos.cursos_info.length > 0
+            // Asumiendo que `estado` no está en tu DB de periodos, pero lo dejo por si lo implementas
+            detallePeriodoEstado.textContent = detallesCompletos.estado !== undefined ? (detallesCompletos.estado === 1 ? 'Activo' : 'Inactivo') : 'N/A';
+
+            // Mostrar cursos, secciones y materias
+            detalleCursosAsociados.textContent = detallesCompletos.cursos_info && detallesCompletos.cursos_info.length > 0
                 ? detallesCompletos.cursos_info.map(c => c.nombre_curso).join(', ')
                 : 'Ninguno';
-            detalleMaterias.textContent = detallesCompletos.materias_info && detallesCompletos.materias_info.length > 0
+            
+            detalleSeccionesAsociadas.textContent = detallesCompletos.secciones_info && detallesCompletos.secciones_info.length > 0
+                ? detallesCompletos.secciones_info.map(s => s.nombre_seccion).join(', ')
+                : 'Ninguna';
+
+            detalleMateriasOfrecidas.textContent = detallesCompletos.materias_info && detallesCompletos.materias_info.length > 0
                 ? detallesCompletos.materias_info.map(m => m.nombre_materia).join(', ')
                 : 'Ninguna';
             
-            detalleEstudiantes.textContent = detallesCompletos.totalEstudiantes !== undefined ? detallesCompletos.totalEstudiantes : 'N/A';
-            detalleProfesores.textContent = detallesCompletos.totalProfesores !== undefined ? detallesCompletos.totalProfesores : 'N/A';
+            // Mostrar conteos de estudiantes y profesores
+            detalleCantidadEstudiantes.textContent = detallesCompletos.totalEstudiantes !== undefined ? detallesCompletos.totalEstudiantes : 'N/A';
+            detalleCantidadProfesores.textContent = detallesCompletos.totalProfesores !== undefined ? detallesCompletos.totalProfesores : 'N/A';
 
             modalVerMasInformacionPeriodo.show();
 
@@ -627,7 +645,7 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
             console.log("DEBUG: Detalles completos del periodo para edición (editarPeriodo):", detallesCompletos);
 
             editIdPeriodo.value = detallesCompletos.id_periodo;
-            editNombrePeriodo.value = detallesCompletos.periodo || ''; // Coincide con el backend
+            editNombrePeriodo.value = detallesCompletos.nombre_periodo || ''; // Coincide con el backend
             editFechaInicio.value = detallesCompletos.fechaInicio ? new Date(detallesCompletos.fechaInicio).toISOString().split('T')[0] : '';
             editFechaFin.value = detallesCompletos.fechaFinal ? new Date(detallesCompletos.fechaFinal).toISOString().split('T')[0] : '';
 
