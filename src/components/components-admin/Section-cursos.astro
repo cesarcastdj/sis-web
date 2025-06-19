@@ -419,10 +419,11 @@ import "../../style/style-admin/cursos.css";
               </button>
               <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${curso.id_curso}">
                 <li><a class="dropdown-item edit-curso-btn" href="#" data-id="${curso.id_curso}"><i class='bx bx-edit-alt'></i> Editar</a></li>
-                <li><a class="dropdown-item estado-curso-btn" href="#" data-id="${curso.id_curso}" data-estado="${curso.estado}">
-                  <i class='bx bx-${curso.estado === 'activo' ? 'low-vision' : 'show'}'></i> ${curso.estado === 'activo' ? 'Desactivar' : 'Activar'}
-                </a></li>
-                <li><a class="dropdown-item delete-curso-btn" href="#" data-id="${curso.id_curso}"><i class='bx bx-trash'></i> Eliminar</a></li>
+                ${curso.estado === 1 ? `
+                    <li><a class="dropdown-item toggle-curso-estado-btn" href="#" data-id="${curso.id_curso}" data-new-estado="0"><i class='bx bx-pause'></i> Desactivar</a></li>
+                ` : `
+                    <li><a class="dropdown-item toggle-curso-estado-btn" href="#" data-id="${curso.id_curso}" data-new-estado="1"><i class='bx bx-show'></i> Activar</a></li>
+                `}
               </ul>
             </div>
           </td>
@@ -530,16 +531,10 @@ import "../../style/style-admin/cursos.css";
       button.addEventListener('click', handleEditCurso);
     });
 
-    // Event listeners para botones de cambiar estado
-    document.querySelectorAll('.estado-curso-btn').forEach(button => {
-      button.removeEventListener('click', handleChangeCursoEstado); // Evitar duplicados
-      button.addEventListener('click', handleChangeCursoEstado);
-    });
-
-    // Event listeners para botones de eliminar
-    document.querySelectorAll('.delete-curso-btn').forEach(button => {
-      button.removeEventListener('click', handleDeleteCurso); // Evitar duplicados
-      button.addEventListener('click', handleDeleteCurso);
+    // Event listeners para los botones de cambiar/desactivar estado unificados
+    document.querySelectorAll('.toggle-curso-estado-btn').forEach(button => {
+      button.removeEventListener('click', toggleCursoEstado); // Evitar duplicados
+      button.addEventListener('click', toggleCursoEstado);
     });
   }
 
@@ -553,11 +548,12 @@ import "../../style/style-admin/cursos.css";
     const form = event.target;
     const nombreCurso = form.elements['nombreCurso'].value.trim();
     const idPeriodo = form.elements['idPeriodo'].value;
+    const idSeccion = form.elements['idSeccion'].value; // Asegúrate de obtener idSeccion
     const agregarMateria = form.elements['agregarMateriaSelect'].value === 'si';
     const nombreMateria = form.elements['nombreMateria'].value.trim();
 
     // Validación básica
-    if (!nombreCurso || !idPeriodo || (agregarMateria && !nombreMateria)) {
+    if (!nombreCurso || !idPeriodo || !idSeccion || (agregarMateria && !nombreMateria)) { // Incluido idSeccion en la validación
       form.classList.add('was-validated'); // Muestra feedback de Bootstrap
       mostrarAlerta('Por favor, completa todos los campos obligatorios.', 'danger');
       return;
@@ -566,6 +562,7 @@ import "../../style/style-admin/cursos.css";
     const data = {
       nombreCurso,
       id_periodo: parseInt(idPeriodo),
+      id_seccion: parseInt(idSeccion), // Asegúrate de enviar id_seccion
       agregarMateria,
       nombreMateria: agregarMateria ? nombreMateria : null
     };
@@ -723,14 +720,14 @@ import "../../style/style-admin/cursos.css";
     }
   }
 
-  async function handleChangeCursoEstado(event) {
+  // Nueva función para togglear el estado del curso (activar/desactivar)
+  async function toggleCursoEstado(event) {
     const cursoId = event.currentTarget.dataset.id;
-    const estadoActual = event.currentTarget.dataset.estado;
-    const nuevoEstado = estadoActual === 'activo' ? 'inactivo' : 'activo';
+    const nuevoEstado = parseInt(event.currentTarget.dataset.newEstado); // Obtener el estado deseado (0 o 1)
 
     const confirmacion = await mostrarConfirmacion(
-      `¿Estás seguro de que quieres ${nuevoEstado === 'activo' ? 'activar' : 'desactivar'} este curso?`,
-      `${nuevoEstado === 'activo' ? 'Activar' : 'Desactivar'} Curso`
+      `¿Estás seguro de que quieres ${nuevoEstado === 1 ? 'activar' : 'desactivar'} este curso?`,
+      `${nuevoEstado === 1 ? 'Activar' : 'Desactivar'} Curso`
     );
 
     if (confirmacion) {
@@ -738,7 +735,7 @@ import "../../style/style-admin/cursos.css";
         const response = await fetch(`${API_BASE_URL}/cursos-academicos/${cursoId}/estado`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado: nuevoEstado })
+          body: JSON.stringify({ estado: nuevoEstado }) // Enviar el valor numérico
         });
 
         if (!response.ok) {
@@ -756,35 +753,4 @@ import "../../style/style-admin/cursos.css";
       }
     }
   }
-
-  async function handleDeleteCurso(event) {
-    const cursoId = event.currentTarget.dataset.id;
-
-    const confirmacion = await mostrarConfirmacion(
-      `¿Estás seguro de que quieres eliminar este curso? Esta acción es irreversible.`,
-      `Eliminar Curso`
-    );
-
-    if (confirmacion) {
-      try {
-        const response = await fetch(`${API_BASE_URL}/cursos-academicos/${cursoId}`, {
-          method: 'DELETE'
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || 'Error al eliminar el curso.');
-        }
-
-        const result = await response.json();
-        mostrarAlerta(result.message, 'success');
-        await fetchCursosSummary();
-        await fetchCursos(currentPage); // Recargar la tabla
-      } catch (error) {
-        console.error('Error al eliminar curso:', error);
-        mostrarAlerta(error.message || 'Ocurrió un error al eliminar el curso.', 'danger');
-      }
-    }
-  }
-
 </script>

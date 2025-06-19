@@ -308,6 +308,179 @@ router.get('/cursos', (req, res) => {
     });
 });
 
+// Obtener cursos disponibles en la papelera
+router.get('/cursos/papelera', (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  // Se usa 5 para coincidir con el itemsPerPage de las tablas de papelera en el frontend
+  const limit = parseInt(req.query.limit) || 5; 
+  const offset = (page - 1) * limit;
+
+
+  // Consulta para obtener el conteo total de materias inactivas
+  const countSql = `
+    SELECT COUNT(DISTINCT c.id_curso) AS total
+    FROM cursos c
+    WHERE c.activo = 0;
+  `;
+
+  db.query(countSql, (err, countResults) => {
+    if (err) {
+      console.error('Error al obtener el conteo total de cursos inactivos:', err);
+      return res.status(500).json({ error: 'Error al obtener el conteo de cursos', detalle: err.message });
+    }
+    const totalCount = countResults[0].total;
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Consulta para obtener los cursos inactivos paginados con nombres de período académico
+    const sql = `
+      SELECT
+        c.id_curso,
+        c.curso AS nombre_curso,
+        c.activo,
+        GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC SEPARATOR ', ') AS periodoAcademicoNames
+      FROM cursos c
+      LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+      LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
+      WHERE c.activo = 0
+      GROUP BY c.id_curso, c.curso, c.activo
+      ORDER BY c.curso
+      LIMIT ? OFFSET ?
+    `;
+
+    db.query(sql, [limit, offset], (err, results) => {
+      if (err) {
+        console.error('Error al obtener cursos inactivos paginados:', err);
+        return res.status(500).json({ error: 'Error al obtener cursos', detalle: err.message });
+      }
+
+      // Si no hay resultados y el conteo total es 0, no hay materias inactivas.
+      // Se devuelve 200 OK con un array vacío.
+      if (results.length === 0 && totalCount === 0) {
+          return res.json({
+            cursos: [],
+            totalCount: 0,
+            totalPages: 0,
+            currentPage: page,
+            message: 'No se encontraron cursos inactivos.'
+          });
+      }
+
+      res.json({
+        cursos: results,
+        totalCount: totalCount,
+        totalPages: totalPages,
+        currentPage: page,
+        message: 'Cursos inactivos obtenidos exitosamente'
+      });
+    });
+  });
+});
+router.put('/cursos/:id/estado', async (req, res) => { // Eliminado el '/api'
+  const { id } = req.params;
+  const { estado } = req.body; 
+
+  try {
+    const updateEstadoQuery = `
+      UPDATE cursos
+      SET activo = ?
+      WHERE id_curso = ?;
+    `;
+    await db.promise().query(updateEstadoQuery, [estado, id]);
+    res.json({ message: `Estado del profesor ${id} actualizado a ${estado}.` });
+  } catch (error) {
+    console.error("❌ Error al actualizar estado del profesor:", error);
+    res.status(500).json({ error: "Error al actualizar estado del profesor", detalle: error.message });
+  }
+});
+
+router.put('/materias/:id/estado', async (req, res) => { // Eliminado el '/api'
+  const { id } = req.params;
+  const { estado } = req.body; 
+
+  try {
+    const updateEstadoQuery = `
+      UPDATE materias
+      SET activo = ?
+      WHERE id_materia = ?;
+    `;
+    await db.promise().query(updateEstadoQuery, [estado, id]);
+    res.json({ message: `Estado de la materia ${id} actualizado a ${estado}.` });
+  } catch (error) {
+    console.error("❌ Error al actualizar estado de la materia:", error);
+    res.status(500).json({ error: "Error al actualizar estado de la materia", detalle: error.message });
+  }
+});
+
+router.get('/materias/papelera', (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  // Se usa 5 para coincidir con el itemsPerPage de las tablas de papelera en el frontend
+  const limit = parseInt(req.query.limit) || 5; 
+  const offset = (page - 1) * limit;
+
+  console.log(`GET /materias/papelera llamado para página ${page} con límite ${limit}`);
+
+  // Consulta para obtener el conteo total de materias inactivas
+  const countSql = `
+    SELECT COUNT(DISTINCT m.id_materia) AS total
+    FROM materias m
+    WHERE m.activo = 0;
+  `;
+
+  db.query(countSql, (err, countResults) => {
+    if (err) {
+      console.error('Error al obtener el conteo total de materias inactivas:', err);
+      return res.status(500).json({ error: 'Error al obtener el conteo de materias', detalle: err.message });
+    }
+    const totalCount = countResults[0].total;
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Consulta para obtener las materias inactivas paginadas con nombres de período académico
+    const sql = `
+      SELECT
+        m.id_materia,
+        m.materia AS nombre_materia,
+        m.activo,
+        GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC SEPARATOR ', ') AS periodoAcademicoNames
+      FROM materias m
+      LEFT JOIN materias_periodo mp ON m.id_materia = mp.id_materia
+      LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
+      WHERE m.activo = 0
+      GROUP BY m.id_materia, m.materia, m.activo
+      ORDER BY m.materia
+      LIMIT ? OFFSET ?
+    `;
+
+    db.query(sql, [limit, offset], (err, results) => {
+      if (err) {
+        console.error('Error al obtener materias inactivas paginadas:', err);
+        return res.status(500).json({ error: 'Error al obtener materias', detalle: err.message });
+      }
+
+      // Si no hay resultados y el conteo total es 0, no hay materias inactivas.
+      // Se devuelve 200 OK con un array vacío.
+      if (results.length === 0 && totalCount === 0) {
+          return res.json({
+            materias: [],
+            totalCount: 0,
+            totalPages: 0,
+            currentPage: page,
+            message: 'No se encontraron materias inactivas.'
+          });
+      }
+
+      res.json({
+        materias: results,
+        totalCount: totalCount,
+        totalPages: totalPages,
+        currentPage: page,
+        message: 'Materias inactivas obtenidas exitosamente'
+      });
+    });
+  });
+});
+
+
+
 // Obtener materias por curso
 router.get('/cursos/:id/materias', (req, res) => {
     const cursoId = req.params.id;

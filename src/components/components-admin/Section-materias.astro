@@ -217,7 +217,7 @@ import "../../style/style-admin/materias.css";
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
 <script is:inline>
-  const API_BASE_URL = 'http://localhost:3001/api'; // Ajusta esto a la URL de tu backend
+  const API_BASE_URL = 'http://localhost:3001/api'; // Asegúrate de que esta URL sea correcta
 
   // ==========================================================
   // FUNCIONES DE UTILIDAD PARA MODALES DE CONFIRMACIÓN Y ALERTA
@@ -593,10 +593,15 @@ import "../../style/style-admin/materias.css";
           <td>
             <span>${materia.estado === 1 ? 'Activo' : (materia.estado === 0 ? 'Inactivo' : 'Desconocido')}</span>
           </td>
-          <td>
+          <td class="d-flex align-items-center flex-wrap gap-2">
             <a href="/Admin-Control/actividades-notas?materiaId=${materia.id_materia}" class="btn btn-primary btn-sm">
               <i class='bx bx-list-check me-1'></i> Ver Actividades/Notas
             </a>
+            ${materia.estado === 1 ? `
+              <button type="button" class="btn btn-warning btn-sm desactivar-materia-btn" data-id="${materia.id_materia}">
+                <i class='bx bx-pause me-1'></i> Desactivar Materia
+              </button>
+            ` : ''}
           </td>
         `;
       });
@@ -695,9 +700,19 @@ import "../../style/style-admin/materias.css";
         idCursoSelect.innerHTML += `<option value="${curso.id_curso}">${curso.nombre_curso} - ${curso.nombre_periodo}</option>`;
       });
 
+      // Asegurarse de que el select de edición también se cargue
+      if (editIdCursoSelect) {
+        editIdCursoSelect.innerHTML = '<option value="">Selecciona una opción</option>';
+        cursos.forEach(curso => {
+          editIdCursoSelect.innerHTML += `<option value="${curso.id_curso}">${curso.nombre_curso} - ${curso.nombre_periodo}</option>`;
+        });
+      }
+
+
       // Obtener periodos (solo activos)
       const periodosResponse = await fetch(`${API_BASE_URL}/periodos`);
       const periodos = await periodosResponse.json();
+      idPeriodoSelect.innerHTML = '<option value="">Selecciona un período</option>'; // Reiniciar para evitar duplicados
       periodos.forEach(periodo => {
         idPeriodoSelect.innerHTML += `<option value="${periodo.id_periodo}">${periodo.periodo}</option>`;
       });
@@ -705,7 +720,7 @@ import "../../style/style-admin/materias.css";
       // Obtener secciones
       const seccionesResponse = await fetch(`${API_BASE_URL}/secciones`);
       const secciones = await seccionesResponse.json();
-      idSeccionSelect.innerHTML = '<option value="">Selecciona una sección</option>';
+      idSeccionSelect.innerHTML = '<option value="">Selecciona una sección</option>'; // Reiniciar para evitar duplicados
       secciones.forEach(seccion => {
         idSeccionSelect.innerHTML += `<option value="${seccion.id_seccion}">${seccion.seccion}</option>`;
       });
@@ -716,16 +731,6 @@ import "../../style/style-admin/materias.css";
     }
   }
 
-  function populateSelect(selectElement, items, idKey, nameKey) {
-    selectElement.innerHTML = '<option value="">Selecciona una opción</option>'; // Restablecer a la opción por defecto
-    items.forEach(item => {
-      const option = document.createElement('option');
-      option.value = item[idKey];
-      option.textContent = item[nameKey];
-      selectElement.appendChild(option);
-    });
-  }
-
   function attachTableEventListeners() {
     // Event listeners para botones de editar
     document.querySelectorAll('.edit-materia-btn').forEach(button => {
@@ -733,7 +738,7 @@ import "../../style/style-admin/materias.css";
       button.addEventListener('click', handleEditMateria);
     });
 
-    // Event listeners para botones de cambiar estado
+    // Event listeners para botones de cambiar estado (mantengo el nombre aunque desactivar es más específico aquí)
     document.querySelectorAll('.estado-materia-btn').forEach(button => {
       button.removeEventListener('click', handleChangeMateriaEstado); // Evitar duplicados
       button.addEventListener('click', handleChangeMateriaEstado);
@@ -749,6 +754,15 @@ import "../../style/style-admin/materias.css";
     document.querySelectorAll('.asignar-usuarios-btn, .editar-usuarios-btn').forEach(button => {
       button.removeEventListener('click', handleAsignarUsuarios); // Evitar duplicados
       button.addEventListener('click', handleAsignarUsuarios);
+    });
+
+    // Nuevo Event listener para el botón de desactivar materia
+    document.querySelectorAll('.desactivar-materia-btn').forEach(button => {
+        button.removeEventListener('click', desactivarMateria); // Evitar duplicados
+        button.addEventListener('click', (event) => {
+            const materiaId = event.currentTarget.dataset.id;
+            desactivarMateria(materiaId);
+        });
     });
   }
 
@@ -917,6 +931,38 @@ import "../../style/style-admin/materias.css";
       }
     }
   }
+
+  // Nueva función para desactivar materia (establecer estado a 0)
+  async function desactivarMateria(materiaId) {
+    const confirmacion = await mostrarConfirmacion(
+      `¿Estás seguro de que quieres desactivar esta materia? La materia pasará a estado "Inactivo".`,
+      `Desactivar Materia`
+    );
+
+    if (confirmacion) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}/estado`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: 'inactivo' }) // Cambiado de 0 a 'inactivo'
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al desactivar la materia.');
+        }
+
+        const result = await response.json();
+        mostrarAlerta(result.message, 'success');
+        await fetchMateriasSummary();
+        await fetchMaterias(currentPage); // Recargar la tabla
+      } catch (error) {
+        console.error('Error al desactivar materia:', error);
+        mostrarAlerta(error.message || 'Ocurrió un error al desactivar la materia.', 'danger');
+      }
+    }
+  }
+
 
   async function handleDeleteMateria(event) {
     const materiaId = event.currentTarget.dataset.id;
