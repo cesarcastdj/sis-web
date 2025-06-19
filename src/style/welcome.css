@@ -348,7 +348,6 @@ body {
     right: 1.8rem;
     width: 2rem; /* Tamaño más grande */
     height: 2rem;
-    background: var(--color-primary) !important; /* Color del icono de cerrar a rosa */
     border: none;
     color: var(--color-quaternary) !important; /* Color del icono de cerrar a blanco */
     font-size: 1.2rem;
@@ -366,7 +365,6 @@ body {
     color: var(--color-primary) !important; /* Púrpura en hover */
     transform: scale(1.3);
     box-shadow: 0 0 20px rgba(255, 105, 180, 1); /* Sombra rosa más fuerte en hover */
-    background: var(--color-primary) !important; /* Fondo púrpura al pasar el mouse */
 }
 
 .modal-dialog .btn-close:focus {

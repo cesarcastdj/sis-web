@@ -8,7 +8,7 @@ import '../style/welcome.css';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GLLR - Sistema de Gestión de Notas</title>
     <!-- Incluye Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Incluye Boxicons para íconos -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <!-- Enlaza tu archivo CSS personalizado -->
@@ -117,7 +117,8 @@ import '../style/welcome.css';
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="regCedula" class="form-label">Cédula <span class="campo-obligatorio">*</span></label>
-                  <input type="text" class="form-control" id="regCedula" placeholder="Ejemplo: 12345678" required />
+                  <!-- Campo de cédula modificado para incluir maxlength -->
+                  <input type="tel" class="form-control" id="regCedula" placeholder="Ejemplo: 123456789" pattern="[0-9]{6,15}" maxlength="15" required />
                   <div class="invalid-feedback"></div>
                 </div>
                 <div class="col-md-6 mb-3">
@@ -263,7 +264,6 @@ import '../style/welcome.css';
         const regSegundoApellidoInput = document.getElementById('regSegundoApellido');
         const regEmailInput = document.getElementById('regEmail');
         const regDireccionInput = document.getElementById('regDireccion');
-        // Eliminado: const regUsuarioInput = document.getElementById('regUsuario');
         const regPasswordInput = document.getElementById('regPassword');
         const regConfirmPasswordInput = document.getElementById('regConfirmPassword');
 
@@ -277,7 +277,24 @@ import '../style/welcome.css';
 
         // 🛠 Verificar sesión antes de acceder al dashboard
         document.addEventListener('DOMContentLoaded', async () => {
+            // Asegura que todos los modales de Bootstrap estén ocultos y sus backdrops eliminados al cargar la página
+            // Esto es crucial para evitar que la interfaz se quede "bloqueada" con un fondo oscuro si un modal
+            // no se cerró correctamente en la navegación o una redirección.
+            document.querySelectorAll('.modal.show').forEach(modalEl => {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            });
+            document.querySelectorAll('.modal-backdrop').forEach(backdropEl => {
+                backdropEl.remove();
+            });
+
             try {
+                // Se realiza una llamada al backend para verificar si el usuario está logueado.
+                // Si la sesión no se borra correctamente en el backend al cerrar sesión,
+                // esta verificación podría detectar una sesión activa y redirigir
+                // al usuario de vuelta al dashboard, creando un bucle.
                 const response = await fetch('http://localhost:3001/usuario', {
                     method: 'GET',
                     credentials: 'include'
@@ -285,11 +302,27 @@ import '../style/welcome.css';
 
                 const data = await response.json();
 
+                // Si hay un ID de usuario y la ruta actual es la página de bienvenida, redirige al dashboard.
                 if (data.id && (window.location.pathname === "/" || window.location.pathname === "/welcome")) {
-                    window.location.href = data.rol === 'admin' ? "/Admin-Control/Admin-home" : "/Students/Students-Control" || data.rol === 'pendiente' ? "/" : "/welcome" || data.rol === 'profesor' ? "/Profesor-Control/Profesor-Control" : "/welcome";
+                    if (data.rol === 'admin') {
+                        window.location.href = '/Admin-Control/Admin-home';
+                    } else if (data.rol === 'estudiante') {
+                        window.location.href = '/Students-Control/Students-Control';
+                    } else if (data.rol === 'profesor') {
+                        window.location.href = '/Profesor-Control/Profesor-Control';
+                    } else if (data.rol === 'pendiente') {
+                        // Si el rol es 'pendiente', podría quedarse en la página de bienvenida
+                        // o ser redirigido a una página específica para usuarios pendientes.
+                        // Asegúrate de que esta lógica no cause un bucle.
+                        // Actualmente, te deja en la página de bienvenida, lo cual es correcto si no hay redirección.
+                        console.log('Usuario con rol "pendiente" en la página de bienvenida.');
+                    }
                 }
                 } catch (error) {
                 console.error('❌ Error verificando sesión:', error);
+                // Si hay un error al verificar la sesión (ej. el backend no responde o la sesión no existe),
+                // el usuario permanecerá en la página de bienvenida o será redirigido al login.
+                // Esto es el comportamiento deseado después de un logout exitoso.
             }
         });
 
@@ -421,17 +454,30 @@ import '../style/welcome.css';
             }
         });
 
-        // Validar cédula al perder foco (regCedulaInput)
+        // Validar cédula al perder foco (regCedulaInput) y al escribir
+        regCedulaInput.addEventListener('input', function() {
+            // Esta línea asegura que solo se permitan dígitos y recorta el valor a 15 caracteres
+            this.value = this.value.replace(/\D/g, '').slice(0, 15); 
+            const cedula = this.value.trim();
+            // Nueva validación de formato de cédula venezolana (6 a 15 dígitos numéricos)
+            const cedulaRegex = /^\d{6,15}$/;
+            if (!cedulaRegex.test(cedula)) {
+                mostrarError(regCedulaInput, 'Formato de cédula inválido (6-15 dígitos numéricos).');
+            } else {
+                limpiarError(regCedulaInput);
+            }
+        });
+
         regCedulaInput.addEventListener('blur', async function() {
             const cedula = this.value.trim();
             if (!cedula) {
                 mostrarError(regCedulaInput, 'La cédula es obligatoria.');
                 return;
             }
-            // Validación de formato de cédula venezolana (6 a 9 dígitos numéricos)
-            const cedulaRegex = /^\d{6,9}$/;
+            // Nueva validación de formato de cédula venezolana (6 a 15 dígitos numéricos)
+            const cedulaRegex = /^\d{6,15}$/;
             if (!cedulaRegex.test(cedula)) {
-                mostrarError(regCedulaInput, 'Formato de cédula inválido (6-9 dígitos numéricos).');
+                mostrarError(regCedulaInput, 'Formato de cédula inválido (6-15 dígitos numéricos).');
                 return;
             }
             
@@ -455,9 +501,11 @@ import '../style/welcome.css';
                 }
             } catch (error) {
                 console.error('Error verificando cédula:', error);
+                // Si el error es una instancia de Error, usa su mensaje, de lo contrario, un mensaje genérico.
                 mostrarError(regCedulaInput, error.message || 'Error al verificar la cédula.');
             }
         });
+
 
         // Validar número de teléfono
         regNumeroTelefonoInput.addEventListener('input', function() {
@@ -633,10 +681,10 @@ import '../style/welcome.css';
             });
 
             // Revalidaciones adicionales
-            // Validación de formato de cédula (6 a 9 dígitos numéricos)
-            const cedulaRegex = /^\d{6,9}$/;
+            // Validación de formato de cédula (6 a 15 dígitos numéricos)
+            const cedulaRegex = /^\d{6,15}$/;
             if (!cedulaRegex.test(regCedulaInput.value.trim())) {
-                mostrarError(regCedulaInput, 'Formato de cédula inválido (6-9 dígitos numéricos).');
+                mostrarError(regCedulaInput, 'Formato de cédula inválido (6-15 dígitos numéricos).');
                 formularioValido = false;
             }
 
@@ -703,8 +751,11 @@ import '../style/welcome.css';
 
                 // Mostrar mensaje de éxito y redirigir o abrir modal de login
                 showCustomAlert('Usuario registrado exitosamente. Espera aprobación del administrador.', () => {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-                    modal.hide();
+                    // Cerrar explícitamente el modal de registro si sigue abierto
+                    const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+                    if (registerModal) {
+                        registerModal.hide();
+                    }
                     new bootstrap.Modal(document.getElementById('loginModal')).show(); // Abrir modal de login
                 });
 
@@ -785,7 +836,48 @@ import '../style/welcome.css';
             // Ejecutar callback cuando el modal se cierra
             document.getElementById('customAlertModal').addEventListener('hidden.bs.modal', callback);
         }
+
+        // --- INSTRUCCIONES PARA EL MANEJO DE CERRAR SESIÓN EN EL DASHBOARD ---
+        // El problema de un bucle o pantalla bloqueada después de "salir" se debe
+        // comúnmente a que el backend no invalida la sesión correctamente,
+        // o la redirección del frontend no es robusta.
+
+        // Aquí se muestra un ejemplo de cómo debería funcionar una función de logout
+        // que debería ser llamada desde el botón "Salir" en tus páginas del dashboard.
+        async function handleLogout() {
+            try {
+                // 1. Realizar una llamada al backend para destruir la sesión.
+                // Asegúrate de que tu endpoint de logout en Node.js invalide
+                // cualquier cookie de sesión o token de autenticación.
+                const response = await fetch('http://localhost:3001/logout', { // Ajusta la URL de tu endpoint de logout
+                    method: 'POST', // O 'GET' dependiendo de cómo lo tengas configurado en tu backend
+                    credentials: 'include' // Para enviar cookies de sesión si las usas
+                });
+
+                if (!response.ok) {
+                    // Si el backend responde con un error, muéstralo.
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error al cerrar sesión en el servidor.');
+                }
+
+                // 2. Si el logout es exitoso en el backend, redirige al usuario a la página de bienvenida.
+                // Esta redirección forzará la recarga de la página de bienvenida, y el script
+                // de DOMContentLoaded verificará la sesión limpia (sin data.id) y no redirigirá de nuevo.
+                window.location.href = '/welcome'; // O '/', la ruta de tu página de bienvenida
+            } catch (error) {
+                console.error('❌ Error al cerrar sesión:', error);
+                showCustomAlert(error.message || 'Error al cerrar sesión. Por favor, inténtelo de nuevo.');
+            }
+        }
+
+        // EJEMPLO: Si tuvieras un botón de logout en una de tus páginas de dashboard,
+        // su evento 'click' debería llamar a handleLogout.
+        // Por ejemplo (en una página de dashboard, no en welcome.html):
+        // const logoutButton = document.getElementById('logoutButton');
+        // if (logoutButton) {
+        //     logoutButton.addEventListener('click', handleLogout);
+        // }
+        // --- FIN DE INSTRUCCIONES PARA EL MANEJO DE CERRAR SESIÓN EN EL DASHBOARD ---
     </script>
 </body>
 </html>
-

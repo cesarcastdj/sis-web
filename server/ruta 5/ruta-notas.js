@@ -103,6 +103,7 @@ router.get('/notas/materia/:id_materia/usuario/:id_usuario', /*isAuthenticated,*
           SELECT
               n.id_nota,
               n.nota,
+              n.id_estudiante,
               n.fecha_registro,
               u.primer_nombre AS nombre_estudiante,
               u.primer_apellido AS apellido_estudiante,
@@ -421,7 +422,7 @@ router.post('/actividades', /*isAuthenticated,*/ async (req, res) => {
  */
 router.put('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) => {
     const { id_actividad } = req.params;
-    const { nombre_actividad, descripcion = null, fecha_creacion, id_materia } = req.body;
+    const { nombre_actividad, descripcion = null, fecha_creacion, id_materia, ponderacion } = req.body;
 
     try {
         let updateFields = {};
@@ -429,7 +430,7 @@ router.put('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) =
         if (descripcion !== undefined) updateFields.descripcion = descripcion;
         if (fecha_creacion !== undefined) updateFields.fecha_creacion = new Date(fecha_creacion).toISOString().slice(0, 10);
         if (id_materia !== undefined) updateFields.id_materia = id_materia;
-
+        if (ponderacion !== undefined) updateFields.ponderacion = ponderacion;
         if (Object.keys(updateFields).length === 0) {
             return res.status(400).json({ error: "No hay campos para actualizar." });
         }
@@ -602,7 +603,7 @@ router.get('/estudiante/notas', /*isAuthenticated,*/ async (req, res) => { // FI
         // 5. Calculamos estadísticas
         const statsQuery = `
             SELECT 
-                COALESCE(ROUND(AVG(NULLF(n.nota, 0)), 2), 0.00) as promedio_general,
+                COALESCE(ROUND(AVG(NULLIF(n.nota, 0)), 2), 0.00) as promedio_general,
                 COUNT(DISTINCT CASE WHEN n.nota >= 10 THEN m.id_materia END) as materias_aprobadas,
                 COUNT(DISTINCT CASE WHEN n.nota < 10 OR n.nota IS NULL THEN m.id_materia END) as materias_pendientes
             FROM estudiantes e
@@ -965,78 +966,137 @@ router.get('/materias/:id/actividades', async (req, res) => {
 // Resumen de actividades de una materia
 router.get('/materias/:id/actividades/resumen', async (req, res) => {
   const { id } = req.params;
+
   try {
     // Total de actividades
     const [[{ totalActividades }]] = await db.promise().query(
       'SELECT COUNT(*) AS totalActividades FROM actividades WHERE id_materia = ?', [id]
     );
-    // Promedio general de la materia (de todas las notas de todas las actividades de la materia)
+
+    // Promedio general simple (promedio de todas las notas de la materia)
     const [[{ promedioGeneralMateria }]] = await db.promise().query(
-      `SELECT AVG(nota) AS promedioGeneralMateria FROM notas n
+      `SELECT AVG(nota) AS promedioGeneralMateria
+       FROM notas n
        JOIN actividades a ON n.id_actividad = a.id_actividad
        WHERE a.id_materia = ?`, [id]
     );
-    // Total de estudiantes en la materia
-    const [[{ total_estudiantes_materia }]] = await db.promise().query(
-      `SELECT COUNT(DISTINCT um.id_usuario) AS total_estudiantes_materia
-       FROM usuario_materias um
+
+    // Lista de estudiantes únicos relacionados con la materia
+    const [estudiantes] = await db.promise().query(
+      `SELECT DISTINCT u.id_usuario AS id_estudiante
+       FROM usuarios u
+       JOIN usuario_materias um ON u.id_usuario = um.id_usuario
        WHERE um.id_materia = ?`, [id]
     );
+
+    // Actividades con ponderación
+    const [actividades] = await db.promise().query(
+      `SELECT id_actividad, ponderacion
+       FROM actividades
+       WHERE id_materia = ?`, [id]
+    );
+
+    // Todas las notas registradas en actividades de esta materia
+    const [notas] = await db.promise().query(
+      `SELECT id_estudiante, id_actividad, nota
+       FROM notas
+       WHERE id_actividad IN (
+         SELECT id_actividad FROM actividades WHERE id_materia = ?
+       )`, [id]
+    );
+
+    // Crear mapa de ponderaciones
+    const mapaPonderaciones = new Map();
+    actividades.forEach(({ id_actividad, ponderacion }) => {
+      mapaPonderaciones.set(id_actividad, ponderacion);
+    });
+
+    // Calcular nota definitiva por estudiante
+    const notaDefinitivaPorEstudiante = new Map();
+
+    estudiantes.forEach(est => {
+      const notasEst = notas.filter(n => n.id_estudiante === est.id_estudiante);
+      let notaFinal = 0;
+      let sumaPonderacion = 0;
+
+      notasEst.forEach(n => {
+        const ponderacion = mapaPonderaciones.get(n.id_actividad) || 0;
+        if (n.nota !== null) {
+          notaFinal += n.nota * (ponderacion / 100);
+          sumaPonderacion += ponderacion;
+        }
+      });
+
+      const notaDefinitiva = sumaPonderacion > 0 ? notaFinal : 0;
+      notaDefinitivaPorEstudiante.set(est.id_estudiante, notaDefinitiva);
+    });
+
+    // Aprobados y reprobados por nota definitiva
+    let estudiantesAprobados = 0;
+    let estudiantesReprobados = 0;
+
+    notaDefinitivaPorEstudiante.forEach(nota => {
+      if (nota >= 10) estudiantesAprobados++;
+      else estudiantesReprobados++;
+    });
+
+    // Enviar respuesta
     res.json({
       totalActividades,
       promedioGeneralMateria: promedioGeneralMateria || 0,
-      total_estudiantes_materia
+      total_estudiantes_materia: estudiantes.length,
+      estudiantesAprobados,
+      estudiantesReprobados
     });
+
   } catch (error) {
-    console.error('Error al obtener resumen de actividades:', error);
-    res.status(500).json({ error: 'Error al obtener resumen de actividades', detalle: error.message });
+    console.error('❌ Error al obtener resumen de actividades:', error);
+    res.status(500).json({
+      error: 'Error al obtener resumen de actividades',
+      detalle: error.message
+    });
   }
 });
+
 
 // Obtener todas las notas de todos los estudiantes para todas las actividades de una materia
 router.get('/notas/materia/:id_materia', async (req, res) => {
   const { id_materia } = req.params;
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const offset = (page - 1) * limit;
 
   try {
-      const countSql = `
-        SELECT COUNT(*) AS total
-        FROM notas n
-        JOIN actividades a ON n.id_actividad = a.id_actividad
-        WHERE a.id_materia = ?
-      `;
-      const [[{ total }]] = await db.promise().query(countSql, [id_materia]);
-      const totalCount = total;
-      const totalPages = Math.ceil(totalCount / limit);
+    const notasQuery = `
+      SELECT
+        n.id_nota,
+        n.nota,
+        n.id_estudiante,
+        n.id_actividad,
+        n.fecha_registro,
+        u.primer_nombre,
+        u.primer_apellido,
+        a.nombre_actividad,
+        a.descripcion,
+        m.materia AS nombre_materia
+      FROM notas n
+      JOIN usuarios u ON n.id_estudiante = u.id_usuario
+      JOIN actividades a ON n.id_actividad = a.id_actividad
+      JOIN materias m ON a.id_materia = m.id_materia
+      WHERE m.id_materia = ?
+      ORDER BY u.primer_apellido ASC, u.primer_nombre ASC;
+    `;
 
-      const sql = `
-        SELECT
-          n.id_nota,
-          n.nota,
-          n.fecha_registro,
-          u.primer_nombre AS nombre_estudiante,
-          u.primer_apellido AS apellido_estudiante,
-          m.materia AS nombre_materia,
-          a.nombre_actividad,
-          a.descripcion AS descripcion_actividad
-        FROM notas n
-        JOIN usuarios u ON n.id_estudiante = u.id_usuario
-        JOIN actividades a ON n.id_actividad = a.id_actividad
-        JOIN materias m ON a.id_materia = m.id_materia -- FIX: Condición de JOIN corregida
-        WHERE m.id_materia = ?
-        ORDER BY u.primer_nombre, a.nombre_actividad, n.fecha_registro DESC
-        LIMIT ? OFFSET ?
-      `;
-      const [notas] = await db.promise().query(sql, [id_materia, limit, offset]);
-      
-      res.json({ notas, totalCount, totalPages, currentPage: page });
+    const [notas] = await db.promise().query(notasQuery, [id_materia]);
 
-  } catch (err) {
-      res.status(500).json({ error: 'Error al obtener notas', detalle: err.message });
+    res.json({ notas });
+
+  } catch (error) {
+    console.error("❌ Error al obtener notas por materia:", error);
+    res.status(500).json({
+      error: "Error al obtener notas por materia",
+      detalle: error.message
+    });
   }
 });
+
 
 
 

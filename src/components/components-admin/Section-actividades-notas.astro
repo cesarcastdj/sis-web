@@ -1,0 +1,1881 @@
+---
+// src/pages/admin/actividades-y-notas.astro
+import "../../style/style-admin/actividades.css"; // Estilos para actividades
+
+---
+
+<section class="data-content-section">
+  <!-- Título principal de la sección -->
+  <section class="actividades-header-card mb-4">
+    <div class="welcome-search-data">
+      <h2 class="welcome-search-data__title" id="materiaTitulo">Cargando Materia...</h2>
+      <button class="btn btn-outline-secondary btn-sm ms-auto" id="btnVolverMaterias" type="button">
+        <i class='bx bx-arrow-back'></i> Volver a Materias
+      </button>
+    </div>
+  </section>
+
+  <!-- Sección de Resumen General (Actividades, Estudiantes, Profesor, Notas) -->
+  <section class="content-info-data">
+    <section class="data-general-control four-column-grid"> <!-- Cambiado a four-column-grid -->
+      <!-- Tarjeta de Resumen de Actividades -->
+      <div class="registro-control consolidated-actividades-card">
+        <div class="card-icon-title">
+          <i class='bx bx-task'></i> <!-- Icono para actividades -->
+          <h5 class="card-title">Resumen de Actividades</h5>
+        </div>
+        <div class="actividades-summary-grid">
+          <div class="summary-item">
+            <span class="summary-count" id="totalActividadesCount">0</span>
+            <span class="summary-label">Total Actividades</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count" id="promedioGeneralMateria">0.00</span>
+            <span class="summary-label">Promedio Materia</span>
+          </div>
+        </div>
+        <div class="mt-3 text-center">
+          <div class="btn-accion-control">
+            <button class="btn btn-card" id="btnAnadirActividad" data-bs-toggle="modal" data-bs-target="#modalAnadirActividad">
+              <i class='bx bx-plus me-2'></i>Añadir Actividad
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Resumen de Estudiantes -->
+      <div class="registro-control consolidated-students-card">
+        <div class="card-icon-title">
+          <i class='bx bxs-user-detail'></i> <!-- Icono para estudiantes -->
+          <h5 class="card-title">Estudiantes</h5>
+        </div>
+        <div class="students-summary-grid">
+          <div class="summary-item">
+            <span class="summary-count" id="estudiantesEnMateriaCount">0</span>
+            <span class="summary-label">Total Inscritos</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count text-success" id="estudiantesAprobadosCount">0</span>
+            <span class="summary-label">Aprobados</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-count text-danger" id="estudiantesReprobadosCount">0</span>
+            <span class="summary-label">Reprobados</span>
+          </div>
+        </div>
+        <div class="mt-3 text-center">
+          <div class="btn-accion-control">
+            <button class="btn btn-card" id="btnGestionarEstudiantes">
+              <i class='bx bxs-group me-2'></i>Gestionar Estudiantes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta de Resumen de Profesor -->
+      <div class="registro-control consolidated-professor-card">
+        <div class="card-icon-title">
+          <i class='bx bxs-user-circle'></i> <!-- Icono para profesor -->
+          <h5 class="card-title">Profesor Asignado</h5>
+        </div>
+        <div class="professor-info">
+          <span id="profesorAsignadoNombre" class="profesor-name">Sin asignar</span>
+        </div>
+        <div class="mt-3 text-center">
+          <div class="btn-accion-control">
+            <button class="btn btn-card" id="btnAsignarProfesor">
+              <i class='bx bxs-user-plus me-2'></i>Asignar Profesor
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nuevo Card de Notas -->
+      <div class="registro-control consolidated-notas-card">
+        <div class="card-icon-title">
+          <i class='bx bxs-calculator'></i> <!-- Icono para notas -->
+          <h5 class="card-title">Añadir Notas</h5>
+        </div>
+        <div class="notas-card-content">
+          <p>Registra las calificaciones de tus estudiantes de manera rápida.</p>
+        </div>
+        <div class="mt-3 text-center">
+          <div class="btn-accion-control">
+            <button class="btn btn-card" id="btnAnadirNotaCard">
+              <i class='bx bx-plus me-2'></i>Añadir Nota
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <hr class="my-5">
+
+  <!-- Sección de Gestión de Actividades -->
+  <div id="actividadesSection">
+    <h3 class="mt-4 mb-3">Gestión de Actividades</h3>
+    <div class="display-table mt-4" id="tableActividades">
+      <div class="d-flex justify-content-end mb-3">
+        <input type="text" id="searchInputActividades" class="form-control w-25" placeholder="Buscar actividad...">
+      </div>
+      <div class="tabla-info-person">
+        <table class="table table-dark table-striped">
+          <thead>
+            <tr>
+              <th scope="col">Nº</th>
+              <th scope="col">Nombre de la Actividad</th>
+              <th scope="col">Descripción</th>
+              <th scope="col">Fecha de Entrega</th>
+              <th scope="col">Ponderación</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="actividadesTableBody">
+            <!-- Contenido de la tabla de actividades se carga aquí dinámicamente -->
+            <tr>
+              <td colspan="7" class="text-center">Cargando actividades...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación de Actividades -->
+      <nav aria-label="Page navigation Actividades" class="pagination-container">
+        <ul class="pagination-list" id="paginationActividades">
+          <!-- Los botones de paginación se insertarán aquí -->
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <hr class="my-5">
+
+  <!-- Sección de Notas -->
+  <div id="notasSection">
+    <h3 class="mt-4 mb-3">Gestión de Notas</h3>
+    <div class="display-table mt-4" id="tableNotas">
+      <div class="d-flex justify-content-end mb-3">
+        <!-- El botón "Añadir Nota" principal ahora está en el nuevo card -->
+      </div>
+      <div class="tabla-info-person">
+        <table class="table table-dark table-hover table-striped tabla-notas-admin">
+          <thead id="notasTableHeader">
+            <!-- Headers dinámicos de las notas y actividades -->
+          </thead>
+          <tbody id="notasTableBody">
+            <tr>
+              <td colspan="3" class="text-center">Cargando notas...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="paginationControlsNotas" class="pagination text-center mt-3"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Modales de Actividades -->
+<!-- Modal para Añadir Actividad -->
+<div class="modal fade" id="modalAnadirActividad" tabindex="-1" aria-labelledby="modalAnadirActividadLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAnadirActividadLabel">Añadir Nueva Actividad</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formAnadirActividad">
+          <div class="mb-3">
+            <label for="nombreActividad" class="form-label">Nombre de la Actividad <span class="campo-obligatorio">*</span></label>
+            <input type="text" class="form-control" id="nombreActividad" required>
+            <div class="invalid-feedback">Por favor, ingresa el nombre de la actividad.</div>
+          </div>
+          <div class="mb-3">
+            <label for="descripcionActividad" class="form-label">Descripción (Opcional)</label>
+            <textarea class="form-control" id="descripcionActividad" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="fechaEntrega" class="form-label">Fecha de Entrega <span class="campo-obligatorio">*</span></label>
+            <input type="date" class="form-control" id="fechaEntrega" required>
+            <div class="invalid-feedback">Por favor, ingresa la fecha de entrega.</div>
+          </div>
+          <div class="mb-3">
+            <label for="ponderacion" class="form-label">Ponderación <span class="campo-obligatorio">*</span></label>
+            <input type="number" class="form-control" id="ponderacion" required min="0" max="100" step="0.01">
+            <div class="invalid-feedback">Por favor, ingresa la ponderación.</div>
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <button type="reset" class="btn btn-secondary">Limpiar</button>
+            <button type="submit" class="btn btn-primary">Añadir Actividad</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Editar Actividad -->
+<div class="modal fade" id="modalEditarActividad" tabindex="-1" aria-labelledby="modalEditarActividadLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarActividadLabel">Editar Actividad</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarActividad">
+          <input type="hidden" id="editActividadId">
+          <div class="mb-3">
+            <label for="editNombreActividad" class="form-label">Nombre de la Actividad <span class="campo-obligatorio">*</span></label>
+            <input type="text" class="form-control" id="editNombreActividad" required>
+            <div class="invalid-feedback">Por favor, ingresa el nombre de la actividad.</div>
+          </div>
+          <div class="mb-3">
+            <label for="editDescripcionActividad" class="form-label">Descripción (Opcional)</label>
+            <textarea class="form-control" id="editDescripcionActividad" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="editFechaEntrega" class="form-label">Fecha de Entrega <span class="campo-obligatorio">*</span></label>
+            <input type="date" class="form-control" id="editFechaEntrega" required>
+            <div class="invalid-feedback">Por favor, ingresa la fecha de entrega.</div>
+          </div>
+          <div class="mb-3">
+            <label for="editPonderacion" class="form-label">Ponderación <span class="campo-obligatorio">*</span></label>
+            <input type="number" class="form-control" id="editPonderacion" required min="0" max="100" step="0.01">
+            <div class="invalid-feedback">Por favor, ingresa la ponderación.</div>
+          </div>
+          <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para calificar estudiantes -->
+<div class="modal fade" id="modalCalificarEstudiantes" tabindex="-1" aria-labelledby="modalCalificarEstudiantesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCalificarEstudiantesLabel">Calificar Estudiantes</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <strong>Actividad:</strong> <span id="nombreActividadCalificar">Cargando...</span><br>
+          <strong>Materia:</strong> <span id="nombreMateriaCalificar">Cargando...</span>
+        </div>
+        <form id="formCalificarEstudiantes">
+          <div id="listaEstudiantesNotas"></div>
+          <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-primary">Guardar Notas</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modales de Notas -->
+
+<!-- Modal para Añadir Nueva Nota -->
+<div class="modal fade" id="modalAnadirNota" tabindex="-1" aria-labelledby="modalAnadirNotaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAnadirNotaLabel">Añadir Nueva Nota</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formAnadirNota">
+          <h6 class="section-title">Información de la Nota</h6>
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label for="selectAnadirEstudiante" class="form-label">Estudiante</label>
+              <select class="form-select" id="selectAnadirEstudiante" required disabled>
+                <option value="">Seleccione un estudiante</option>
+                <!-- Opciones de estudiantes se cargarán aquí dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-12 mb-3">
+              <label for="selectAnadirActividad" class="form-label">Actividad</label>
+              <select class="form-select" id="selectAnadirActividad" required disabled>
+                <option value="">Seleccione una actividad</option>
+                <!-- Opciones de actividades se cargarán aquí dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="anadirNotaValor" class="form-label">Nota</label>
+              <input type="number" step="0.01" class="form-control" id="anadirNotaValor" placeholder="Ej. 15.50" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="anadirFechaRegistro" class="form-label">Fecha de Registro</label>
+              <input type="date" class="form-control" id="anadirFechaRegistro" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-12 mb-3">
+              <label for="anadirComentarios" class="form-label">Comentarios (Opcional)</label>
+              <textarea class="form-control" id="anadirComentarios" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardarNota">Guardar Nota</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Ver Más Información de la Nota -->
+<div class="modal fade" id="modalVerMasInformacionNota" tabindex="-1" aria-labelledby="modalVerMasInformacionNotaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalVerMasInformacionNotaLabel">Detalles de la Nota</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h6 class="section-title">Información General</h6>
+        <p><strong>Estudiante:</strong> <span id="detalleEstudianteNombre"></span> (C.I: <span id="detalleEstudianteID"></span>)</p>
+        <p><strong>Materia:</strong> <span id="detalleMateriaNombre"></span> (ID: <span id="detalleMateriaID"></span>)</p>
+        <p><strong>Actividad:</strong> <span id="detalleActividadNombre"></span> (ID: <span id="detalleActividadID"></span>)</p>
+        <p><strong>Nota:</strong> <span id="detalleNotaValor"></span></p>
+        <p><strong>Fecha de Registro:</strong> <span id="detalleFechaRegistro"></span></p>
+        <p><strong>Comentarios:</strong> <span id="detalleComentarios"></span></p>
+        <hr/>
+        <h6 class="section-title">Contexto Académico</h6>
+        <p><strong>Curso:</strong> <span id="detalleCursoNombre"></span> (ID: <span id="detalleCursoID"></span>)</p>
+        <p><strong>Periodo:</strong> <span id="detallePeriodoNombre"></span> (ID: <span id="detallePeriodoID"></span>)</p>
+        <p><strong>Sección:</strong> <span id="detalleSeccionNombre"></span> (ID: <span id="detalleSeccionID"></span>)</p>
+        <p><strong>Descripción Actividad:</strong> <span id="detalleActividadDescripcion"></span></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Editar Notas -->
+<div class="modal fade" id="modalEditarNota" tabindex="-1" aria-labelledby="modalEditarNotaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarNotaLabel">Editar Nota</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarNota">
+          <input type="hidden" id="editIdNota" />
+          <h6 class="section-title">Información de la Nota</h6>
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label for="editIdActividad" class="form-label">ID Actividad</label>
+              <input type="number" class="form-control" id="editIdActividad" placeholder="Ej. 101" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="editNotaValor" class="form-label">Nota</label>
+              <input type="number" step="0.01" class="form-control" id="editNotaValor" placeholder="Ej. 15.50" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="editFechaRegistro" class="form-label">Fecha de Registro</label>
+              <input type="date" class="form-control" id="editFechaRegistro" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-12 mb-3">
+              <label for="editComentarios" class="form-label">Comentarios (Opcional)</label>
+              <textarea class="form-control" id="editComentarios" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardarEdicionNota">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Gestionar Estudiantes -->
+<div class="modal fade" id="modalGestionarEstudiantes" tabindex="-1" aria-labelledby="modalGestionarEstudiantesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalGestionarEstudiantesLabel">Gestionar Estudiantes de la Materia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="formGestionarEstudiantes">
+        <div class="modal-body">
+          <input type="text" class="form-control mb-3" id="buscarEstudianteGestion" placeholder="Buscar estudiante por nombre o cédula...">
+          <div class="lista-usuarios-gestion" id="listaEstudiantesGestion">
+            <!-- Estudiantes se cargarán aquí -->
+            <div class="text-center text-muted">Cargando estudiantes...</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Estudiantes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Asignar Profesor -->
+<div class="modal fade" id="modalAsignarProfesor" tabindex="-1" aria-labelledby="modalAsignarProfesorLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAsignarProfesorLabel">Asignar Profesor a la Materia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <form id="formAsignarProfesor">
+        <div class="modal-body">
+          <input type="text" class="form-control mb-3" id="buscarProfesorAsignar" placeholder="Buscar profesor por nombre o cédula...">
+          <div class="lista-usuarios-gestion" id="listaProfesoresAsignar">
+            <!-- Profesores se cargarán aquí -->
+            <div class="text-center text-muted">Cargando profesores...</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Asignar Profesor</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script is:inline>
+  const API_BASE_URL = 'http://localhost:3001/api';
+  let currentMateriaId = null;
+  let currentMateriaNombre = '';
+  let currentPageActividades = 1;
+  const itemsPerPageActividades = 10;
+  let currentPageNotas = 1;
+  const itemsPerPageNotas = 10; // Esto ahora se aplica a la paginación de estudiantes en la tabla de notas
+
+  // Variables para gestionar el estado de los modales de asignación
+  let estudiantesEnMateriaCache = []; // Contiene los IDs de los estudiantes actualmente en la materia
+  let profesorEnMateriaCache = null; // Contiene el ID del profesor actualmente asignado
+
+  // Función robusta para mostrar alertas
+  function mostrarAlerta(mensaje, tipo, duracion = 5000) {
+    const alertContainer = document.getElementById('alertContainer') || (() => {
+      const div = document.createElement('div');
+      div.id = 'alertContainer';
+      div.style.position = 'fixed';
+      div.style.top = '20px';
+      div.style.left = '50%';
+      div.style.transform = 'translateX(-50%)';
+      div.style.zIndex = '9999';
+      div.style.width = 'auto';
+      div.style.maxWidth = '90%';
+      document.body.appendChild(div);
+      return div;
+    })();
+
+    const alertElement = document.createElement('div');
+    alertElement.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertElement.role = 'alert';
+    alertElement.textContent = mensaje;
+
+    alertContainer.appendChild(alertElement);
+
+    setTimeout(() => {
+      const bsAlert = new bootstrap.Alert(alertElement);
+      bsAlert.dispose();
+    }, duracion);
+  }
+
+  // Función para mostrar confirmación (reutilizada de materias.astro)
+  async function mostrarConfirmacion(mensaje, titulo = "Confirmación") {
+    return new Promise((resolve) => {
+      const modalId = 'customConfirmModal';
+      let confirmModalElement = document.getElementById(modalId);
+
+      if (confirmModalElement) {
+        confirmModalElement.remove();
+      }
+
+      const confirmModalHtml = `
+        <div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="customConfirmModalLabel">${titulo}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
+                  <i class='bx bx-x'></i>
+                </button>
+              </div>
+              <div class="modal-body">
+                ${mensaje}
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtnModal">Confirmar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
+
+      confirmModalElement = document.getElementById(modalId);
+      const customConfirmModal = new bootstrap.Modal(confirmModalElement);
+
+      const confirmActionBtn = document.getElementById('confirmActionBtnModal');
+      const cleanupAndResolve = (result) => {
+        customConfirmModal.hide();
+        confirmModalElement.addEventListener('hidden.bs.modal', () => {
+          confirmModalElement.remove();
+        }, { once: true });
+        resolve(result); // Resolve after modal is hidden
+      };
+
+      if (confirmActionBtn) {
+        confirmActionBtn.addEventListener('click', () => {
+          cleanupAndResolve(true);
+        }, { once: true });
+      } else {
+        console.error("ERROR: [mostrarConfirmacion] Botón 'confirmActionBtnModal' no encontrado.");
+        cleanupAndResolve(false);
+      }
+
+      confirmModalElement.addEventListener('hidden.bs.modal', () => {
+        // Esto asegura que si el modal se cierra al hacer clic fuera o con Esc,
+        // aún se resuelva a falso si no se ha resuelto ya con un clic en el botón.
+        if (!confirmActionBtn || confirmActionBtn.dataset.resolved !== 'true') {
+            resolve(false);
+        }
+      }, { once: true });
+
+      customConfirmModal.show();
+    });
+  }
+
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    currentMateriaId = urlParams.get('materiaId');
+
+    if (!currentMateriaId) {
+      mostrarAlerta('ID de materia no especificado en la URL.', 'danger');
+      document.getElementById('materiaTitulo').textContent = 'Error: Materia no encontrada';
+      return;
+    }
+
+    // Inicializar todo si el ID de materia está presente
+    await fetchMateriaDetails(currentMateriaId);
+    await fetchActividadesSummary(currentMateriaId); // Actualizado para incluir stats de estudiantes
+    await fetchActividades(currentMateriaId, currentPageActividades);
+    await loadNotasFiltradas(currentMateriaId, currentPageNotas); // Cargar notas también
+
+    // Listener para el botón de volver a materias
+    document.getElementById('btnVolverMaterias').addEventListener('click', () => {
+      window.location.href = '/Admin-Control/Materias';
+    });
+
+    // Enlazar el formulario de añadir actividad
+    const formAnadirActividad = document.getElementById('formAnadirActividad');
+    if (formAnadirActividad) {
+      formAnadirActividad.removeEventListener('submit', anadirActividad); // Evitar duplicados
+      formAnadirActividad.addEventListener('submit', anadirActividad);
+    }
+    // Enlazar el formulario de editar actividad
+    const formEditarActividad = document.getElementById('formEditarActividad');
+    if (formEditarActividad) {
+      formEditarActividad.removeEventListener('submit', editarActividad); // Evitar duplicados
+      formEditarActividad.addEventListener('submit', editarActividad);
+    }
+
+    // Enlazar el formulario de añadir nota
+    const formAnadirNota = document.getElementById('formAnadirNota');
+    if (formAnadirNota) {
+        formAnadirNota.removeEventListener('submit', anadirNota); // Evitar duplicados
+        formAnadirNota.addEventListener('submit', anadirNota);
+    }
+    // Enlazar el formulario de editar nota
+    const formEditarNota = document.getElementById('formEditarNota');
+    if (formEditarNota) {
+        formEditarNota.removeEventListener('submit', editarNotaSubmit); // Usar un nombre diferente para evitar conflicto con la función editarNota(id)
+        formEditarNota.addEventListener('submit', editarNotaSubmit);
+    }
+
+    // Event listener para el botón "Añadir Nota" del card de notas
+    document.getElementById('btnAnadirNotaCard').addEventListener('click', function() {
+        formAnadirNota.reset(); // Limpia el formulario
+        limpiarErroresFormulario(formAnadirNota);
+        // Cargar estudiantes y actividades basándose en la materia actual
+        loadEstudiantesModal(currentMateriaId, document.getElementById('selectAnadirEstudiante'));
+        loadActividadesModal(currentMateriaId, document.getElementById('selectAnadirActividad'));
+        document.getElementById('selectAnadirEstudiante').value = '';
+        document.getElementById('selectAnadirActividad').value = '';
+        // Mostrar el modal
+        const modalElement = document.getElementById('modalAnadirNota');
+        const bsModal = new bootstrap.Modal(modalElement);
+        bsModal.show();
+    });
+
+    // Event listener para el botón "Gestionar Estudiantes"
+    document.getElementById('btnGestionarEstudiantes').addEventListener('click', async () => {
+      // Fuerza una actualización de los detalles de la materia para asegurar cachés frescos
+      await fetchMateriaDetails(currentMateriaId); 
+      const modalElement = document.getElementById('modalGestionarEstudiantes');
+      const bsModal = new bootstrap.Modal(modalElement);
+      await abrirModalGestionarEstudiantes(currentMateriaId);
+      bsModal.show();
+    });
+
+    // Event listener para el botón "Asignar Profesor"
+    document.getElementById('btnAsignarProfesor').addEventListener('click', async () => {
+      // Fuerza una actualización de los detalles de la materia para asegurar cachés frescos
+      await fetchMateriaDetails(currentMateriaId);
+      const modalElement = document.getElementById('modalAsignarProfesor');
+      const bsModal = new bootstrap.Modal(modalElement);
+      await abrirModalAsignarProfesor(currentMateriaId);
+      bsModal.show();
+    });
+  });
+
+  async function fetchMateriaDetails(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${id}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      currentMateriaNombre = data.nombre_materia;
+      document.getElementById('materiaTitulo').textContent = `Gestión de la materia "${data.nombre_materia || 'Materia Desconocida'}"`;
+      // Actualizar el nombre del profesor asignado
+      const profesorNombre = data.profesores_info && data.profesores_info.length > 0 ? data.profesores_info[0].nombre_completo : 'Sin asignar';
+      document.getElementById('profesorAsignadoNombre').textContent = profesorNombre;
+      profesorEnMateriaCache = data.profesores_info && data.profesores_info.length > 0 ? String(data.profesores_info[0].id_usuario) : null;
+      estudiantesEnMateriaCache = data.estudiantes_info ? data.estudiantes_info.map(e => String(e.id_usuario)) : [];
+      
+    } catch (error) {
+      console.error('Error al obtener detalles de la materia:', error);
+      document.getElementById('materiaTitulo').textContent = 'Error al cargar Materia';
+      mostrarAlerta('No se pudo cargar el nombre de la materia o el profesor asignado.', 'danger');
+    }
+  }
+
+  async function fetchActividadesSummary(idMateria) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/actividades/resumen`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      document.getElementById('totalActividadesCount').textContent = data.totalActividades || '0';
+      const promedio = parseFloat(data.promedioGeneralMateria);
+      document.getElementById('promedioGeneralMateria').textContent = (typeof promedio === 'number' && !isNaN(promedio)) ? promedio.toFixed(2) : 'N/A';
+      document.getElementById('estudiantesEnMateriaCount').textContent = data.total_estudiantes_materia || '0';
+      document.getElementById('estudiantesAprobadosCount').textContent = data.estudiantesAprobados || '0';
+      document.getElementById('estudiantesReprobadosCount').textContent = data.estudiantesReprobados || '0';
+    } catch (error) {
+      console.error('Error al obtener resumen de actividades:', error);
+      mostrarAlerta('No se pudo cargar el resumen de actividades y estadísticas de estudiantes.', 'danger');
+    }
+  }
+
+  async function fetchActividades(idMateria, page) {
+    const tableBody = document.getElementById('actividadesTableBody');
+    const paginationActividades = document.getElementById('paginationActividades');
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Cargando actividades...</td></tr>';
+    paginationActividades.innerHTML = '';
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/actividades?page=${page}&limit=${itemsPerPageActividades}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      tableBody.innerHTML = ''; // Limpiar el mensaje de carga
+
+      if (!data || !Array.isArray(data.actividades) || data.actividades.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No se encontraron actividades para esta materia.</td></tr>';
+        if (data && data.message) { 
+             mostrarAlerta(data.message, 'info');
+        } else if (idMateria) { 
+             mostrarAlerta('No se encontraron actividades para esta materia o hubo un problema al cargarlas.', 'info');
+        }
+        return;
+      }
+
+      data.actividades.forEach((actividad, index) => {
+        const row = tableBody.insertRow();
+        const fechaEntrega = actividad.fecha_entrega ? new Date(actividad.fecha_entrega).toLocaleDateString() : 'N/A';
+        row.innerHTML = `
+          <td>${((page - 1) * itemsPerPageActividades) + index + 1}</td>
+          <td>${actividad.nombre_actividad}</td>
+          <td title="${actividad.descripcion}">${actividad.descripcion ? (actividad.descripcion.length > 50 ? actividad.descripcion.substring(0, 50) + '...' : actividad.descripcion) : 'Sin descripción'}</td>
+          <td>${fechaEntrega}</td>
+          <td>${actividad.ponderacion ? actividad.ponderacion.toFixed(2) : 'N/A'}</td>
+          <td>
+            <div class="dropdown">
+              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButtonAct${actividad.id_actividad}" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class='bx bx-dots-vertical-rounded'></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButtonAct${actividad.id_actividad}">
+                <li><a class="dropdown-item calificar-estudiantes-btn" href="#" data-id="${actividad.id_actividad}"><i class='bx bx-edit-alt'></i> Calificar estudiantes</a></li>
+                <li><a class="dropdown-item edit-actividad-btn" href="#" data-id="${actividad.id_actividad}"><i class='bx bx-pencil'></i> Editar Actividad</a></li>
+                <li><a class="dropdown-item delete-actividad-btn" href="#" data-id="${actividad.id_actividad}"><i class='bx bx-trash'></i> Eliminar Actividad</a></li>
+              </ul>
+            </div>
+          </td>
+        `;
+      });
+
+      setupPagination(data.totalPages, page, 'actividades');
+      attachActividadesEventListeners();
+
+    } catch (error) {
+      console.error('Error al cargar las actividades:', error);
+      tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar las actividades.</td></tr>';
+      mostrarAlerta('Error al cargar las actividades. Por favor, verifica la conexión con el servidor o los datos de la materia.', 'danger');
+    }
+  }
+
+  async function loadNotasFiltradas(id_materia, page) {
+    const notasTableBody = document.getElementById('notasTableBody');
+    const notasTableHeader = document.getElementById('notasTableHeader');
+    const paginationControls = document.getElementById('paginationControlsNotas');
+    
+    notasTableBody.innerHTML = `<tr><td colspan="3" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Cargando notas...</td></tr>`;
+    notasTableHeader.innerHTML = ''; // Limpiar encabezados anteriores
+    paginationControls.innerHTML = '';
+
+    try {
+      // 1. Obtener todos los datos necesarios
+      const [studentsResponse, activitiesResponse, notesResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/materias/${id_materia}/estudiantes`),
+        fetch(`${API_BASE_URL}/materias/${id_materia}/actividades`),
+        fetch(`${API_BASE_URL}/notas/materia/${id_materia}?limit=9999`) // Obtener todas las notas para la agregación
+      ]);
+
+      if (!studentsResponse.ok) throw new Error(`Error HTTP al obtener estudiantes: ${studentsResponse.status}`);
+      if (!activitiesResponse.ok) throw new Error(`Error HTTP al obtener actividades: ${activitiesResponse.status}`);
+      if (!notesResponse.ok) throw new Error(`Error HTTP al obtener notas: ${notesResponse.status}`);
+
+      const allStudents = await studentsResponse.json();
+      const allActivitiesData = await activitiesResponse.json();
+      const allNotesData = await notesResponse.json();
+
+      const activities = allActivitiesData.actividades || [];
+      const notes = allNotesData.notas || [];
+
+      console.log("DEBUG: --- INICIO loadNotasFiltradas ---");
+      console.log("DEBUG: Estudiantes obtenidos:", allStudents.map(s => ({ id: s.id_usuario, nombre: `${s.primer_nombre} ${s.primer_apellido}` })));
+      console.log("DEBUG: Actividades obtenidas:", activities.map(a => ({ id: a.id_actividad, nombre: a.nombre_actividad, ponderacion: a.ponderacion })));
+      console.log("DEBUG: Notas obtenidas para materia:", notes.map(n => ({ id_nota: n.id_nota, id_estudiante: n.id_estudiante, id_actividad: n.id_actividad, nota: n.nota })));
+
+      // Crear un mapa para buscar notas fácilmente: { idEstudiante: { idActividad: objetoNota } }
+      const studentActivityNotesMap = new Map();
+      notes.forEach(note => {
+        // Asegurarse de que los IDs se conviertan a números de manera segura
+        const studentId = Number(note.id_estudiante);
+        const activityId = Number(note.id_actividad);
+
+        console.log(`DEBUG: Procesando nota ID: ${note.id_nota}, Estudiante ID (raw/parsed): ${note.id_estudiante}/${studentId}, Actividad ID (raw/parsed): ${note.id_actividad}/${activityId}`);
+
+        if (!isNaN(studentId) && !isNaN(activityId)) {
+          if (!studentActivityNotesMap.has(studentId)) {
+            studentActivityNotesMap.set(studentId, new Map());
+          }
+          studentActivityNotesMap.get(studentId).set(activityId, note);
+          console.log(`DEBUG: Mapeada nota para Estudiante ${studentId}, Actividad ${activityId}. Nota: ${note.nota}`);
+        } else {
+            console.warn(`DEBUG: Saltando nota con ID de estudiante/actividad inválido: id_estudiante=${note.id_estudiante}, id_actividad=${note.id_actividad}`);
+        }
+      });
+      console.log("DEBUG: Mapa de notas construido (studentActivityNotesMap):", studentActivityNotesMap);
+
+
+      // 2. Construir encabezados de tabla dinámicamente
+      let headerHtml = '<tr><th scope="col">Nº</th><th scope="col">Estudiante</th>';
+      // Ordenar actividades por nombre para un orden de columnas consistente
+      activities.sort((a, b) => a.nombre_actividad.localeCompare(b.nombre_actividad)).forEach(activity => {
+        headerHtml += `<th scope="col" title="${activity.descripcion || ''}">${activity.nombre_actividad} (${activity.ponderacion.toFixed(0)}%)</th>`;
+      });
+      headerHtml += `<th scope="col">Nota Definitiva</th></tr>`;
+      notasTableHeader.innerHTML = headerHtml;
+      console.log("DEBUG: Encabezados de tabla generados.");
+
+      // 3. Rellenar el cuerpo de la tabla
+      notasTableBody.innerHTML = ''; // Limpiar mensaje de carga
+
+      if (allStudents.length === 0) {
+        notasTableBody.innerHTML = `<tr><td colspan="${activities.length + 3}" class="text-center text-muted">No se encontraron estudiantes en esta materia.</td></tr>`;
+        console.log("DEBUG: No se encontraron estudiantes en la materia.");
+        return;
+      }
+
+      // Implementar paginación manual para estudiantes
+      const totalStudents = allStudents.length;
+      const totalPagesStudents = Math.ceil(totalStudents / itemsPerPageNotas);
+      const startIndex = (page - 1) * itemsPerPageNotas;
+      const endIndex = Math.min(startIndex + itemsPerPageNotas, totalStudents);
+      const studentsToDisplay = allStudents.slice(startIndex, endIndex);
+
+      console.log(`DEBUG: Total estudiantes: ${totalStudents}, Estudiantes para mostrar en esta página (${page}):`, studentsToDisplay.map(s => s.id_usuario));
+
+
+      if (studentsToDisplay.length === 0) {
+        notasTableBody.innerHTML = `<tr><td colspan="${activities.length + 3}" class="text-center text-muted">No se encontraron estudiantes para mostrar en esta página.</td></tr>`;
+        console.log("DEBUG: No hay estudiantes para mostrar en la página actual.");
+        return;
+      }
+
+      studentsToDisplay.forEach((student, studentIndex) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${startIndex + studentIndex + 1}</td>
+                         <td>${student.primer_nombre} ${student.primer_apellido}</td>`;
+        
+        let sumOfWeightedNotes = 0; // Esto acumulará la suma ponderada
+        const studentIdNum = Number(student.id_usuario); // Asegurar que el ID sea un número
+        const studentNotes = studentActivityNotesMap.get(studentIdNum) || new Map();
+        console.log(`DEBUG: --- Procesando estudiante: ${student.primer_nombre} ${student.primer_apellido} (ID: ${studentIdNum}) ---`);
+        console.log("DEBUG: Notas mapeadas para este estudiante (studentNotes):", studentNotes);
+
+        // Iterar sobre las actividades ordenadas para asegurar que el orden de las columnas coincida con el encabezado
+        activities.sort((a, b) => a.nombre_actividad.localeCompare(b.nombre_actividad)).forEach(activity => {
+          const activityIdNum = Number(activity.id_actividad); // Asegurar que el ID sea un número
+          const note = studentNotes.get(activityIdNum); // Intenta obtener la nota para esta actividad de este estudiante
+          
+          let noteValueForCalculation = 0; // Se inicializa a 0 para el cálculo de la nota definitiva
+          let cellDisplayContent = '<span class="text-muted">N/A</span>'; // Por defecto si no hay nota, con estilo atenuado
+
+          console.log(`  DEBUG: Actividad: ${activity.nombre_actividad} (ID: ${activityIdNum}), Ponderación: ${activity.ponderacion}%`);
+          console.log(`    DEBUG: Nota encontrada para esta actividad/estudiante:`, note);
+
+          if (note && note.nota !== null && note.nota !== undefined) {
+              const parsedNote = parseFloat(note.nota);
+              if (!isNaN(parsedNote)) {
+                  noteValueForCalculation = parsedNote; // Usar la nota válida para el cálculo
+                  cellDisplayContent = parsedNote.toFixed(2); // Mostrar la nota real
+                  console.log(`    DEBUG: Nota válida encontrada: ${parsedNote}. Para cálculo: ${noteValueForCalculation}. Para mostrar: ${cellDisplayContent}`);
+              } else {
+                  console.warn(`    DEBUG: WARNING: El valor de la nota para la actividad ${activity.nombre_actividad} (ID: ${activityIdNum}) del estudiante ${student.primer_nombre} ${student.primer_apellido} no es un número válido:`, note.nota);
+                  // cellDisplayContent se mantiene como N/A, noteValueForCalculation se mantiene como 0
+              }
+          } else {
+              console.log(`    DEBUG: No se encontró nota para la actividad ${activity.nombre_actividad} (ID: ${activityIdNum}). Mostrando N/A y usando 0 para cálculo.`);
+          }
+
+          // Calcular la contribución ponderada al total
+          sumOfWeightedNotes += (noteValueForCalculation * (activity.ponderacion / 100));
+          console.log(`    DEBUG: Contribución ponderada de ${activity.nombre_actividad}: ${noteValueForCalculation} * (${activity.ponderacion} / 100) = ${noteValueForCalculation * (activity.ponderacion / 100)}. Suma acumulada actual: ${sumOfWeightedNotes}`);
+          
+          row.innerHTML += `<td class="text-center">${cellDisplayContent}</td>`; // Mostrar el contenido de la celda
+        });
+
+        // Añadir la columna de la Nota Definitiva
+        const finalGradeCell = document.createElement('td');
+        finalGradeCell.className = 'text-center';
+        finalGradeCell.innerHTML = `<strong>${sumOfWeightedNotes.toFixed(2)}</strong>`; // Mostrar la suma ponderada acumulada
+
+        // Aplicar color según el estado de aprobación (asumiendo que 10 es la nota mínima para aprobar)
+        if (sumOfWeightedNotes >= 10) { // Comprobar contra la nota final calculada
+          finalGradeCell.classList.add('text-success'); // Clase de Bootstrap para texto verde
+        } else {
+          finalGradeCell.classList.add('text-danger'); // Clase de Bootstrap para texto rojo
+        }
+        row.appendChild(finalGradeCell);
+        
+        notasTableBody.appendChild(row);
+        console.log(`DEBUG: Nota definitiva final para ${student.primer_nombre}: ${sumOfWeightedNotes.toFixed(2)}`);
+      });
+      
+      // Actualizar el control de paginación para estudiantes
+      setupPagination(totalPagesStudents, page, 'notas');
+      console.log("DEBUG: Renderizado de tabla de notas completado. --- FIN loadNotasFiltradas ---");
+
+    } catch (error) {
+      notasTableBody.innerHTML = `<tr><td colspan="${activities.length + 3}" class="text-center text-danger">Error al cargar notas y actividades: ${error.message}. Por favor, revise la consola para más detalles.</td></tr>`;
+      console.error('ERROR: Error al cargar notas filtradas (catch general):', error);
+      mostrarAlerta(`Error al cargar la tabla de notas: ${error.message}`, 'danger');
+    }
+  }
+
+
+  function setupPagination(totalPages, currentPage, type) {
+    const paginationContainerId = type === 'actividades' ? 'paginationActividades' : 'paginationControlsNotas';
+    const paginationContainer = document.getElementById(paginationContainerId);
+    paginationContainer.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    const ul = document.createElement('ul');
+    ul.className = 'pagination-list flex justify-center items-center gap-2';
+
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    const prevLink = document.createElement('a');
+    prevLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+    prevLink.href = '#';
+    prevLink.textContent = 'Anterior';
+    prevLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentPage > 1) {
+        if (type === 'actividades') fetchActividades(currentMateriaId, currentPage - 1);
+        else loadNotasFiltradas(currentMateriaId, currentPage - 1);
+      }
+    });
+    prevLi.appendChild(prevLink);
+    ul.appendChild(prevLi);
+
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+      const li = document.createElement('li');
+      li.className = 'page-item';
+      const link = document.createElement('a');
+      link.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+      link.href = '#';
+      link.textContent = '1';
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (type === 'actividades') fetchActividades(currentMateriaId, 1);
+        else loadNotasFiltradas(currentMateriaId, 1);
+      });
+      li.appendChild(link);
+      ul.appendChild(li);
+      if (startPage > 2) {
+        const ellipsis = document.createElement('li');
+        ellipsis.className = 'page-item disabled';
+        ellipsis.innerHTML = '<span class="page-link rounded-lg px-3 py-1 bg-gray-700 text-white">...</span>';
+        ul.appendChild(ellipsis);
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const li = document.createElement('li');
+      li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+      const link = document.createElement('a');
+      link.className = `page-link rounded-lg px-3 py-1 ${i === currentPage ? 'bg-purple-800' : 'bg-gray-700'} text-white hover:bg-purple-600`;
+      link.href = '#';
+      link.textContent = i;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (type === 'actividades') fetchActividades(currentMateriaId, i);
+        else loadNotasFiltradas(currentMateriaId, i);
+      });
+      li.appendChild(link);
+      ul.appendChild(li);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement('li');
+        ellipsis.className = 'page-item disabled';
+        ellipsis.innerHTML = '<span class="page-link rounded-lg px-3 py-1 bg-gray-700 text-white">...</span>';
+        ul.appendChild(ellipsis);
+      }
+      const li = document.createElement('li');
+      li.className = 'page-item';
+      const link = document.createElement('a');
+      link.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+      link.href = '#';
+      link.textContent = totalPages;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (type === 'actividades') fetchActividades(currentMateriaId, totalPages);
+        else loadNotasFiltradas(currentMateriaId, totalPages);
+      });
+      li.appendChild(link);
+      ul.appendChild(li);
+    }
+
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    const nextLink = document.createElement('a');
+    nextLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+    nextLink.href = '#';
+    nextLink.textContent = 'Siguiente';
+    nextLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentPage < totalPages) {
+        if (type === 'actividades') fetchActividades(currentMateriaId, currentPage + 1);
+        else loadNotasFiltradas(currentMateriaId, currentPage + 1);
+      }
+    });
+    nextLi.appendChild(nextLink);
+    ul.appendChild(nextLi);
+
+    paginationContainer.appendChild(ul);
+  }
+
+  // ==========================================================
+  // MANEJO DE FORMULARIOS Y ACCIONES DE ACTIVIDADES
+  // ==========================================================
+
+  function attachActividadesEventListeners() {
+    document.querySelectorAll('.edit-actividad-btn').forEach(button => {
+      button.removeEventListener('click', handleEditActividad);
+      button.addEventListener('click', handleEditActividad);
+    });
+
+    document.querySelectorAll('.delete-actividad-btn').forEach(button => {
+      button.removeEventListener('click', handleDeleteActividad);
+      button.addEventListener('click', handleDeleteActividad);
+    });
+
+    document.querySelectorAll('.calificar-estudiantes-btn').forEach(button => {
+      button.removeEventListener('click', handleCalificarEstudiantesClick);
+      button.addEventListener('click', handleCalificarEstudiantesClick);
+    });
+  }
+
+  function handleCalificarEstudiantesClick(event) {
+    event.preventDefault();
+    const actividadId = event.currentTarget.dataset.id;
+    abrirModalCalificarEstudiantes(actividadId);
+  }
+
+  async function anadirActividad(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const nombreActividad = form.elements['nombreActividad'].value.trim();
+    const descripcionActividad = form.elements['descripcionActividad'].value.trim();
+    const fechaEntrega = form.elements['fechaEntrega'].value;
+    const ponderacion = parseFloat(form.elements['ponderacion'].value);
+
+    if (!nombreActividad || !fechaEntrega || isNaN(ponderacion) || ponderacion < 0 || ponderacion > 100) {
+      form.classList.add('was-validated');
+      mostrarAlerta('Por favor, completa todos los campos obligatorios y asegúrate de que la ponderación sea un número entre 0 y 100.', 'danger');
+      return;
+    }
+
+    const data = {
+      id_materia: parseInt(currentMateriaId),
+      nombre_actividad: nombreActividad,
+      descripcion: descripcionActividad,
+      fecha_creacion: fechaEntrega,
+      ponderacion: ponderacion
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/actividades`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al añadir la actividad.');
+      }
+
+      const result = await response.json();
+      mostrarAlerta(result.message || 'Actividad creada exitosamente', 'success');
+      
+      const modalElement = document.getElementById('modalAnadirActividad');
+      const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+      if (bootstrapModal) bootstrapModal.hide();
+      document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+      document.body.classList.remove('modal-open');
+      document.body.style = '';
+
+      form.reset();
+      form.classList.remove('was-validated');
+
+      await fetchActividadesSummary(currentMateriaId);
+      await fetchActividades(currentMateriaId, currentPageActividades);
+      await loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar notas también por si acaso
+    } catch (error) {
+      console.error('Error al añadir actividad:', error);
+      mostrarAlerta(error.message || 'Ocurrió un error al añadir la actividad.', 'danger');
+    }
+  }
+
+  async function handleEditActividad(event) {
+    const actividadId = event.currentTarget.dataset.id;
+    try {
+      const response = await fetch(`${API_BASE_URL}/actividades/${actividadId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const actividad = await response.json();
+
+      document.getElementById('editActividadId').value = actividad.id_actividad;
+      document.getElementById('editNombreActividad').value = actividad.nombre_actividad;
+      document.getElementById('editDescripcionActividad').value = actividad.descripcion || '';
+      document.getElementById('editFechaEntrega').value = actividad.fecha_creacion ? new Date(actividad.fecha_creacion).toISOString().split('T')[0] : '';
+      document.getElementById('editPonderacion').value = actividad.ponderacion ? actividad.ponderacion.toFixed(2) : '';
+
+      const modalElement = document.getElementById('modalEditarActividad');
+      const bootstrapModal = new bootstrap.Modal(modalElement);
+      bootstrapModal.show();
+
+    } catch (error) {
+      console.error('Error al cargar datos para editar actividad:', error);
+      mostrarAlerta('Error al cargar los datos de la actividad para edición.', 'danger');
+    }
+  }
+
+  async function editarActividad(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const actividadId = form.elements['editActividadId'].value;
+    const nombreActividad = form.elements['editNombreActividad'].value.trim();
+    const descripcionActividad = form.elements['editDescripcionActividad'].value.trim();
+    const fechaEntrega = form.elements['editFechaEntrega'].value;
+    const ponderacion = parseFloat(form.elements['editPonderacion'].value);
+
+    if (!nombreActividad || !fechaEntrega || isNaN(ponderacion) || ponderacion < 0 || ponderacion > 100) {
+      form.classList.add('was-validated');
+      mostrarAlerta('Por favor, completa todos los campos obligatorios y asegúrate de que la ponderación sea un número entre 0 y 100.', 'danger');
+      return;
+    }
+
+    const data = {
+      nombre_actividad: nombreActividad,
+      descripcion: descripcionActividad,
+      fecha_creacion: fechaEntrega, // Usar fecha_creacion como campo de actualización también
+      ponderacion: ponderacion
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/actividades/${actividadId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al actualizar la actividad.');
+      }
+
+      const result = await response.json();
+      mostrarAlerta(result.message, 'success');
+
+      const modalElement = document.getElementById('modalEditarActividad');
+      const bootstrapModal = bootstrap.Modal.getInstance(modalElement);
+      if (bootstrapModal) bootstrapModal.hide();
+
+      form.classList.remove('was-validated');
+      await fetchActividadesSummary(currentMateriaId);
+      await fetchActividades(currentMateriaId, currentPageActividades);
+      await loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar notas también
+    } catch (error) {
+      console.error('Error al actualizar actividad:', error);
+      mostrarAlerta(error.message || 'Ocurrió un error al actualizar la actividad.', 'danger');
+    }
+  }
+
+  async function handleDeleteActividad(event) {
+    const actividadId = event.currentTarget.dataset.id;
+
+    const confirmacion = await mostrarConfirmacion(
+      `¿Estás seguro de que quieres eliminar esta actividad? Esto también eliminará todas las calificaciones asociadas. Esta acción es irreversible.`,
+      `Eliminar Actividad`
+    );
+
+    if (confirmacion) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/actividades/${actividadId}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al eliminar la actividad.');
+        }
+
+        const result = await response.json();
+        mostrarAlerta(result.message, 'success');
+        await fetchActividadesSummary(currentMateriaId);
+        await fetchActividades(currentMateriaId, currentPageActividades);
+        await loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar notas también
+      } catch (error) {
+        console.error('Error al eliminar actividad:', error);
+        mostrarAlerta(error.message || 'Ocurrió un error al eliminar la actividad.', 'danger');
+      }
+    }
+  }
+
+  async function abrirModalCalificarEstudiantes(idActividad) {
+    let actividad = {};
+    try {
+      const respAct = await fetch(`${API_BASE_URL}/actividades/${idActividad}`);
+      if (respAct.ok) actividad = await respAct.json();
+    } catch {}
+    document.getElementById('nombreActividadCalificar').textContent = actividad.nombre_actividad || 'Sin nombre';
+    document.getElementById('nombreMateriaCalificar').textContent = currentMateriaNombre || 'Sin materia';
+
+    const estudiantes = await fetch(`${API_BASE_URL}/materias/${currentMateriaId}/estudiantes`).then(r => r.json());
+    const notasResp = await fetch(`${API_BASE_URL}/notas/actividad/${idActividad}`).then(r => r.json());
+    const notasMap = {};
+    (notasResp.notas || []).forEach(n => { notasMap[n.id_estudiante] = n; });
+
+    const cont = document.getElementById('listaEstudiantesNotas');
+    if (!estudiantes.length) {
+      cont.innerHTML = '<div class="alert alert-warning">No hay estudiantes asociados a esta materia.</div>';
+    } else {
+      cont.innerHTML = estudiantes.map(est => {
+        const nota = notasMap[est.id_usuario]?.nota ?? '';
+        const comentario = notasMap[est.id_usuario]?.comentarios ?? '';
+        return `<div class='row align-items-center mb-2'>
+          <div class='col-5'><strong>${est.primer_nombre} ${est.primer_apellido}</strong> <span class='text-muted'>(${est.cedula})</span></div>
+          <div class='col-3'><input type='number' class='form-control' name='nota_${est.id_usuario}' value='${nota}' min='0' max='20' step='0.01' placeholder='Nota (0-20)' autocomplete='off'></div>
+          <div class='col-4'><input type='text' class='form-control' name='comentario_${est.id_usuario}' value='${comentario}' placeholder='Comentario (opcional)' autocomplete='off'></div>
+        </div>`;
+      }).join('');
+    }
+
+    const form = document.getElementById('formCalificarEstudiantes');
+    form.onsubmit = async function(ev) {
+      ev.preventDefault();
+      let hayError = false;
+      estudiantes.forEach(est => {
+        const input = form[`nota_${est.id_usuario}`];
+        let valor = input.value.replace(',', '.');
+        if (valor !== '') {
+          const num = parseFloat(valor);
+          if (isNaN(num) || num < 0 || num > 20) {
+            input.classList.add('is-invalid');
+            hayError = true;
+          } else {
+            input.classList.remove('is-invalid');
+          }
+        } else {
+          input.classList.remove('is-invalid');
+        }
+      });
+      if (hayError) {
+        mostrarAlerta('Corrige las notas inválidas (deben ser números entre 0 y 20).', 'danger');
+        return;
+      }
+      const notas = estudiantes.map(est => {
+        let notaRaw = form[`nota_${est.id_usuario}`].value;
+        if (typeof notaRaw === 'string') notaRaw = notaRaw.replace(',', '.');
+        const nota = notaRaw === '' ? null : parseFloat(notaRaw);
+        const comentarios = form[`comentario_${est.id_usuario}`].value;
+        return { id_estudiante: est.id_usuario, nota: isNaN(nota) ? null : nota, fecha_registro: (new Date()).toISOString().slice(0,10), comentarios };
+      }).filter(n => n.nota !== null);
+      try {
+        const resp = await fetch(`${API_BASE_URL}/notas/actividad/${idActividad}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notas })
+        });
+        if (!resp.ok) throw new Error('Error al guardar notas');
+        mostrarAlerta('Notas guardadas correctamente', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('modalCalificarEstudiantes')).hide();
+        fetchActividadesSummary(currentMateriaId);
+        fetchActividades(currentMateriaId, currentPageActividades);
+        loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar notas también
+      } catch (err) {
+        mostrarAlerta('Error al guardar notas', 'danger');
+      }
+    };
+    new bootstrap.Modal(document.getElementById('modalCalificarEstudiantes')).show();
+  }
+
+  // ==========================================================
+  // MANEJO DE FORMULARIOS Y ACCIONES DE NOTAS
+  // ==========================================================
+
+  function attachNotasEventListeners() {
+      // En la nueva tabla consolidada, no hay acciones de nota individuales por fila.
+      // Acciones como 'ver-mas', 'editar', 'eliminar' ahora se gestionan a través del modal 'Calificar Estudiantes'
+      // o a través de un modal 'Añadir Nota' separado.
+      // Esta función puede mantenerse vacía o eliminarse según el nuevo diseño de la tabla.
+  }
+
+  async function loadEstudiantesModal(idMateria, targetSelect) {
+    if (!idMateria) {
+      targetSelect.innerHTML = '<option value="">Seleccione un estudiante</option>';
+      targetSelect.disabled = true;
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/estudiantes`); // Reutilizar la ruta existente
+      if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
+      const estudiantes = await response.json();
+      targetSelect.innerHTML = '<option value="">Seleccione un estudiante</option>' +
+                               estudiantes.map(e => `<option value="${e.id_usuario}">${e.primer_nombre} ${e.primer_apellido}</option>`).join('');
+      targetSelect.disabled = false;
+    }
+    catch (error) {
+      console.error('Error al cargar estudiantes para el modal:', error);
+      mostrarAlerta('No se pudieron cargar los estudiantes para la materia seleccionada en el modal.', 'danger');
+      targetSelect.innerHTML = '<option value="">Error al cargar estudiantes</option>';
+      targetSelect.disabled = true;
+    }
+  }
+
+  async function loadActividadesModal(idMateria, targetSelect) {
+    if (!idMateria) {
+      targetSelect.innerHTML = '<option value="">Seleccione una actividad</option>';
+      targetSelect.disabled = true;
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/actividades`);
+      if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
+      const data = await response.json(); // La API de actividades devuelve { actividades: [...] }
+      const actividades = data.actividades || [];
+      targetSelect.innerHTML = '<option value="">Seleccione una actividad</option>' +
+                               activities.map(a => `<option value="${a.id_actividad}">${a.nombre_actividad}</option>`).join('');
+      targetSelect.disabled = false;
+    } catch (error) {
+      console.error('Error al cargar actividades para el modal:', error);
+      mostrarAlerta('No se pudieron cargar las actividades para la materia seleccionada en el modal.', 'danger');
+      targetSelect.innerHTML = '<option value="">Error al cargar actividades</option>';
+      targetSelect.disabled = true;
+    }
+  }
+
+  async function anadirNota(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const selectAnadirEstudiante = document.getElementById('selectAnadirEstudiante');
+    const selectAnadirActividad = document.getElementById('selectAnadirActividad');
+    const anadirNotaValor = document.getElementById('anadirNotaValor');
+    const anadirFechaRegistro = document.getElementById('anadirFechaRegistro');
+    const anadirComentarios = document.getElementById('anadirComentarios');
+
+    let valid = true;
+    if (selectAnadirEstudiante.value === '') {
+      mostrarError(selectAnadirEstudiante, 'El estudiante es obligatorio.');
+      valid = false;
+    } else {
+      limpiarError(selectAnadirEstudiante);
+    }
+    if (selectAnadirActividad.value === '') {
+      mostrarError(selectAnadirActividad, 'La actividad es obligatoria.');
+      valid = false;
+    } else {
+      limpiarError(selectAnadirActividad);
+    }
+    if (anadirNotaValor.value.trim() === '' || isNaN(parseFloat(anadirNotaValor.value)) || parseFloat(anadirNotaValor.value) < 0 || parseFloat(anadirNotaValor.value) > 20) {
+      mostrarError(anadirNotaValor, 'La nota es obligatoria y debe ser un número entre 0 y 20.');
+      valid = false;
+    } else {
+      limpiarError(anadirNotaValor);
+    }
+    if (anadirFechaRegistro.value === '') {
+      mostrarError(anadirFechaRegistro, 'La fecha de registro es obligatoria.');
+      valid = false;
+    } else {
+      limpiarError(anadirFechaRegistro);
+    }
+
+    if (!valid) {
+      return;
+    }
+
+    const confirmResult = await mostrarConfirmacion(
+          `¿Estás seguro de que quieres añadir esta nota para el estudiante seleccionado?`
+      );
+      
+    if (!confirmResult) {
+      return;
+    }
+    
+    const btnGuardarNota = document.getElementById('btnGuardarNota');
+    btnGuardarNota.disabled = true;
+    btnGuardarNota.innerHTML = `
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      Guardando...
+    `;
+
+    try {
+      const formData = {
+        id_estudiante: parseInt(selectAnadirEstudiante.value),
+        id_actividad: parseInt(selectAnadirActividad.value),
+        nota: parseFloat(anadirNotaValor.value),
+        fecha_registro: anadirFechaRegistro.value,
+        comentarios: anadirComentarios.value.trim() || null
+      };
+
+      const response = await fetch(`${API_BASE_URL}/notas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al añadir la nota');
+      }
+
+      mostrarAlerta('Nota añadida exitosamente', 'success');
+      
+      const modal = bootstrap.Modal.getInstance(document.getElementById('modalAnadirNota'));
+      if (modal) {
+        modal.hide();
+      }
+
+      loadNotasFiltradas(currentMateriaId, currentPageNotas);
+
+    } catch (error) {
+      console.error('❌ Error en la adición de la nota (frontend):', error); 
+      mostrarAlerta(`Error al añadir nota: ${error.message}`, 'danger');
+    } finally {
+      btnGuardarNota.disabled = false;
+      btnGuardarNota.textContent = 'Guardar Nota';
+    }
+  }
+
+  async function mostrarModalVerMasInformacionNota(idNota) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/notas/${idNota}`);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `No se pudo obtener la información de la nota (status: ${response.status})`);
+        }
+
+        const data = await response.json();
+        
+        if (!data || !data.nota) {
+            throw new Error('La respuesta del servidor no tiene el formato esperado.');
+        }
+        const nota = data.nota;
+
+        document.getElementById('detalleEstudianteNombre').textContent = `${nota.nombre_estudiante || 'N/A'} ${nota.apellido_estudiante || ''}`;
+        document.getElementById('detalleEstudianteID').textContent = nota.cedula || 'N/A';
+        document.getElementById('detalleMateriaNombre').textContent = nota.nombre_materia || 'N/A';
+        document.getElementById('detalleMateriaID').textContent = nota.id_materia || 'N/A';
+        document.getElementById('detalleActividadNombre').textContent = nota.nombre_actividad || 'N/A';
+        document.getElementById('detalleActividadID').textContent = nota.id_actividad || 'N/A';
+        document.getElementById('detalleNotaValor').textContent = nota.nota !== null ? parseFloat(nota.nota).toFixed(2) : 'N/A';
+        document.getElementById('detalleFechaRegistro').textContent = nota.fecha_registro ? new Date(nota.fecha_registro).toLocaleDateString() : 'N/A';
+        document.getElementById('detalleComentarios').textContent = nota.comentarios || 'Sin comentarios';
+        
+        document.getElementById('detalleCursoNombre').textContent = nota.nombre_curso || 'N/A';
+        document.getElementById('detalleCursoID').textContent = nota.id_curso || 'N/A';
+        document.getElementById('detallePeriodoNombre').textContent = nota.nombre_periodo || 'N/A';
+        document.getElementById('detallePeriodoID').textContent = nota.id_periodo || 'N/A';
+        
+        document.getElementById('detalleSeccionNombre').textContent = nota.nombre_seccion || 'N/A';
+        document.getElementById('detalleSeccionID').textContent = nota.id_seccion || 'N/A';
+        
+        document.getElementById('detalleActividadDescripcion').textContent = nota.descripcion_actividad || 'Sin descripción';
+
+        const modalElement = document.getElementById('modalVerMasInformacionNota');
+        const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+        modal.show();
+
+    } catch (error) {
+        console.error('Error en mostrarModalVerMasInformacionNota:', error);
+        mostrarAlerta(error.message || 'No se pudo cargar la información de la nota.', 'danger');
+    }
+  }
+
+  async function editarNota(notaId) {
+      try {
+          const response = await fetch(`${API_BASE_URL}/notas/${notaId}`);
+          if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+          const data = await response.json();
+          const detallesCompletos = data.nota;
+
+          document.getElementById('editIdNota').value = detallesCompletos.id_nota;
+          document.getElementById('editIdActividad').value = detallesCompletos.id_actividad || '';
+          document.getElementById('editNotaValor').value = detallesCompletos.nota !== null ? parseFloat(detallesCompletos.nota).toFixed(2) : '';
+          document.getElementById('editFechaRegistro').value = detallesCompletos.fecha_registro ? new Date(detallesCompletos.fecha_registro).toISOString().split('T')[0] : '';
+          document.getElementById('editComentarios').value = detallesCompletos.comentarios || '';
+
+          limpiarErroresFormulario(document.getElementById('formEditarNota'));
+          
+          const modalElement = document.getElementById('modalEditarNota');
+          const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+          modal.show();
+
+      } catch (error) {
+          console.error('❌ Error al cargar detalles para edición de nota:', error);
+          mostrarAlerta('Error al cargar la información de la nota para edición. Intente nuevamente.', 'danger');
+      }
+  }
+
+  async function editarNotaSubmit(e) { // Renombrado para no chocar con la función de abrir modal
+    e.preventDefault();
+
+    const form = e.target;
+    const id_nota = document.getElementById('editIdNota').value;
+    const editIdActividad = document.getElementById('editIdActividad');
+    const editNotaValor = document.getElementById('editNotaValor');
+    const editFechaRegistro = document.getElementById('editFechaRegistro');
+    const editComentarios = document.getElementById('editComentarios');
+
+    let valid = true;
+    if (editIdActividad.value.trim() === '') {
+      mostrarError(editIdActividad, 'El ID de la actividad es obligatorio.');
+      valid = false;
+    } else {
+      limpiarError(editIdActividad);
+    }
+    if (editNotaValor.value.trim() === '' || isNaN(parseFloat(editNotaValor.value)) || parseFloat(editNotaValor.value) < 0 || parseFloat(editNotaValor.value) > 20) {
+      mostrarError(editNotaValor, 'La nota es obligatoria y debe ser un número entre 0 y 20.');
+      valid = false;
+    } else {
+      limpiarError(editNotaValor);
+    }
+    if (editFechaRegistro.value === '') {
+      mostrarError(editFechaRegistro, 'La fecha de registro es obligatoria.');
+      valid = false;
+    } else {
+      limpiarError(editFechaRegistro);
+    }
+
+    if (!valid) {
+      return;
+    }
+
+    const confirmResult = await mostrarConfirmacion(
+          `¿Estás seguro de guardar los cambios para esta nota?`
+      );
+    if (!confirmResult) {
+      return;
+    }
+
+    const btnGuardarEdicionNota = document.getElementById('btnGuardarEdicionNota');
+    btnGuardarEdicionNota.disabled = true;
+    btnGuardarEdicionNota.innerHTML = `
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      Guardando...
+    `;
+
+    try {
+      const formData = {
+        id_actividad: parseInt(editIdActividad.value),
+        nota: parseFloat(editNotaValor.value),
+        fecha_registro: editFechaRegistro.value,
+        comentarios: editComentarios.value.trim() || null
+      };
+
+      const response = await fetch(`${API_BASE_URL}/notas/${id_nota}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al actualizar la nota');
+      }
+
+      mostrarAlerta('Nota actualizada correctamente', 'success');
+      
+      const modal = bootstrap.Modal.getInstance(document.getElementById('modalEditarNota'));
+      if(modal) {
+          modal.hide();
+      }
+      
+      loadNotasFiltradas(currentMateriaId, currentPageNotas);
+
+    } catch (error) {
+      console.error('❌ Error en la actualización de la nota (frontend):', error);
+      mostrarAlerta(`Error al actualizar nota: ${error.message}`, 'danger');
+    } finally {
+      btnGuardarEdicionNota.disabled = false;
+      btnGuardarEdicionNota.textContent = 'Guardar Cambios';
+    }
+  }
+
+  async function eliminarNota(notaId) {
+      const confirmResult = await mostrarConfirmacion(
+          `¿Estás seguro de que quieres eliminar la nota con ID ${notaId}? Esta acción es irreversible.`
+      );
+
+      if (!confirmResult) return;
+
+      try {
+          const response = await fetch(`${API_BASE_URL}/notas/${notaId}`, {
+              method: 'DELETE',
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+              throw new Error(data.error || 'Error al eliminar la nota');
+          }
+
+          mostrarAlerta(`Nota con ID ${notaId} eliminada exitosamente.`, 'success');
+          loadNotasFiltradas(currentMateriaId, currentPageNotas);
+      } catch (error) {
+          console.error('Error al eliminar nota:', error);
+          mostrarAlerta(`Error al eliminar la nota: ${error.message}`, 'danger');
+      }
+  }
+
+  // Funciones auxiliares para validación de formularios
+  function mostrarError(elemento, mensaje) {
+    elemento.classList.add('is-invalid');
+    const errorElement = elemento.nextElementSibling; 
+    if (errorElement && errorElement.classList.contains('invalid-feedback')) {
+      errorElement.textContent = mensaje;
+      errorElement.style.display = 'block';
+    }
+  }
+
+  function limpiarError(elemento) {
+    elemento.classList.remove('is-invalid');
+    const errorElement = elemento.nextElementSibling; 
+    if (errorElement && errorElement.classList.contains('invalid-feedback')) {
+      errorElement.textContent = '';
+      errorElement.style.display = 'none';
+    }
+  }
+
+  function limpiarErroresFormulario(formElement) {
+      formElement.querySelectorAll('.is-invalid').forEach(el => limpiarError(el));
+  }
+
+  // ==========================================================
+  // Lógica de Gestión de Estudiantes y Profesores para la materia actual
+  // ==========================================================
+
+  async function abrirModalGestionarEstudiantes(idMateria) {
+    const listaEstudiantesCont = document.getElementById('listaEstudiantesGestion');
+    const buscarEstudianteInput = document.getElementById('buscarEstudianteGestion');
+    listaEstudiantesCont.innerHTML = '<div class="text-center text-muted">Cargando estudiantes...</div>';
+    buscarEstudianteInput.value = ''; // Limpiar búsqueda previa
+
+    try {
+      const allEstudiantes = await fetchEstudiantesActivos(); // Obtener todos los estudiantes activos
+      
+      const renderEstudiantes = (estudiantesToRender) => {
+        listaEstudiantesCont.innerHTML = '';
+        if (estudiantesToRender.length === 0) {
+          listaEstudiantesCont.innerHTML = '<div class="text-center text-muted">No se encontraron estudiantes.</div>';
+          return;
+        }
+        estudiantesToRender.forEach(est => {
+          const div = document.createElement('div');
+          div.className = 'usuario-item';
+          div.dataset.id = est.id_usuario;
+          // Usar un checkbox visualmente para la selección
+          div.innerHTML = `
+            <label class="d-flex align-items-center w-100 mb-0">
+              <input type="checkbox" class="form-check-input me-2" value="${est.id_usuario}" ${estudiantesEnMateriaCache.includes(String(est.id_usuario)) ? 'checked' : ''}>
+              <span>${est.primer_nombre} ${est.primer_apellido} (${est.cedula})</span>
+            </label>
+          `;
+          listaEstudiantesCont.appendChild(div);
+        });
+      };
+
+      renderEstudiantes(allEstudiantes); // Renderizar todos al inicio
+
+      buscarEstudianteInput.onkeyup = () => {
+        const searchTerm = buscarEstudianteInput.value.toLowerCase();
+        const results = allEstudiantes.filter(est => 
+          est.nombre_completo.toLowerCase().includes(searchTerm) || 
+          String(est.cedula).toLowerCase().includes(searchTerm) // Permitir buscar por cédula
+        );
+        renderEstudiantes(results);
+      };
+
+      const form = document.getElementById('formGestionarEstudiantes');
+      form.onsubmit = async (ev) => {
+        ev.preventDefault();
+        // Recoger los IDs de los checkboxes seleccionados
+        const estudiantesSeleccionados = Array.from(listaEstudiantesCont.querySelectorAll('input[type="checkbox"]:checked')).map(input => Number(input.value));
+        await guardarAsignacionEstudiantes(idMateria, estudiantesSeleccionados);
+      };
+
+    } catch (error) {
+      console.error('Error al abrir modal de gestión de estudiantes:', error);
+      listaEstudiantesCont.innerHTML = '<div class="text-center text-danger">Error al cargar estudiantes.</div>';
+      mostrarAlerta('Error al cargar estudiantes para la gestión.', 'danger');
+    }
+  }
+
+  async function abrirModalAsignarProfesor(idMateria) {
+    const listaProfesoresCont = document.getElementById('listaProfesoresAsignar');
+    const buscarProfesorInput = document.getElementById('buscarProfesorAsignar');
+    listaProfesoresCont.innerHTML = '<div class="text-center text-muted">Cargando profesores...</div>';
+    buscarProfesorInput.value = ''; // Limpiar búsqueda previa
+
+    try {
+      const allProfesores = await fetchProfesoresActivos(); 
+      
+      const renderProfesores = (profesoresToRender) => {
+        listaProfesoresCont.innerHTML = '';
+        if (profesoresToRender.length === 0) {
+          listaProfesoresCont.innerHTML = '<div class="text-center text-muted">No se encontraron profesores.</div>';
+          return;
+        }
+        profesoresToRender.forEach(prof => {
+          const div = document.createElement('div');
+          div.className = 'usuario-item';
+          div.dataset.id = prof.id_usuario;
+          div.innerHTML = `
+            <label class="d-flex align-items-center w-100 mb-0">
+              <input type="radio" name="profesorSeleccionadoModal" value="${prof.id_usuario}" ${profesorEnMateriaCache === String(prof.id_usuario) ? 'checked' : ''}> 
+              <span>${prof.primer_nombre} ${prof.primer_apellido} (${prof.cedula})</span>
+            </label>
+          `;
+          listaProfesoresCont.appendChild(div);
+        });
+      };
+
+      renderProfesores(allProfesores);
+
+      buscarProfesorInput.onkeyup = () => {
+        const searchTerm = buscarProfesorInput.value.toLowerCase();
+        const results = allProfesores.filter(prof => 
+          prof.nombre_completo.toLowerCase().includes(searchTerm) || 
+          String(prof.cedula).toLowerCase().includes(searchTerm) // Permitir buscar por cédula
+        );
+        renderProfesores(results);
+      };
+
+      const form = document.getElementById('formAsignarProfesor');
+      form.onsubmit = async (ev) => {
+        ev.preventDefault();
+        const profesorSeleccionadoRadio = form.querySelector('input[name="profesorSeleccionadoModal"]:checked');
+        const nuevoProfesorId = profesorSeleccionadoRadio ? Number(profesorSeleccionadoRadio.value) : null;
+        
+        let confirmado = true;
+        let nombreProfesorActual = document.getElementById('profesorAsignadoNombre').textContent;
+        const nuevoProfesorNombre = profesorSeleccionadoRadio ? profesorSeleccionadoRadio.nextElementSibling.textContent : 'Nadie';
+
+        if (profesorEnMateriaCache !== String(nuevoProfesorId) && nuevoProfesorId !== null) { // Si el profesor cambió y no es nulo
+            confirmado = await mostrarConfirmacion(
+                `¿Estás seguro de asignar a <b>${nuevoProfesorNombre}</b> como profesor de esta materia? El profesor actual es: <b>${nombreProfesorActual}</b>.`,
+                'Confirmar Cambio de Profesor'
+            );
+        } else if (profesorEnMateriaCache !== null && nuevoProfesorId === null) { // Si se está desasignando un profesor
+             confirmado = await mostrarConfirmacion(
+                `¿Estás seguro de desasignar al profesor <b>${nombreProfesorActual}</b> de esta materia?`,
+                'Confirmar Desasignación de Profesor'
+            );
+        } else if (profesorEnMateriaCache === null && nuevoProfesorId === null) { // Si no había profesor y se intenta asignar a nadie
+             mostrarAlerta('No se ha seleccionado ningún profesor para asignar.', 'info');
+             return;
+        }
+
+        if (confirmado) {
+            await guardarAsignacionProfesor(idMateria, nuevoProfesorId);
+        }
+      };
+
+    } catch (error) {
+      console.error('Error al abrir modal de asignar profesor:', error);
+      listaProfesoresCont.innerHTML = '<div class="text-center text-danger">Error al cargar profesores.</div>';
+      mostrarAlerta('Error al cargar profesores para la asignación.', 'danger');
+    }
+  }
+
+  // **NUEVA FUNCIÓN** para guardar solo estudiantes
+  async function guardarAsignacionEstudiantes(materiaId, estudiantesIds) {
+    try {
+      const payload = {
+        estudiantes: estudiantesIds,
+        profesores: profesorEnMateriaCache ? [Number(profesorEnMateriaCache)] : [], // Mantenemos el profesor actual
+      };
+
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}/asignar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al guardar asignación de estudiantes.');
+      }
+
+      mostrarAlerta('Asignación de estudiantes guardada exitosamente.', 'success');
+      
+      const modalGestionEst = bootstrap.Modal.getInstance(document.getElementById('modalGestionarEstudiantes'));
+      if (modalGestionEst) modalGestionEst.hide();
+
+      await fetchMateriaDetails(currentMateriaId); // Actualizar cachés y UI
+      await fetchActividadesSummary(currentMateriaId); // Para actualizar conteo de estudiantes
+
+    } catch (error) {
+      console.error('Error al guardar asignación de estudiantes:', error);
+      mostrarAlerta(error.message || 'Ocurrió un error al guardar la asignación de estudiantes.', 'danger');
+    }
+  }
+
+  // **NUEVA FUNCIÓN** para guardar solo profesor
+  async function guardarAsignacionProfesor(materiaId, profesorId) {
+    try {
+      const payload = {
+        estudiantes: estudiantesEnMateriaCache.map(Number), // Mantenemos los estudiantes actuales
+        profesores: profesorId ? [profesorId] : [], // Si es null, enviamos un array vacío para desasignar
+      };
+
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}/asignar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al guardar asignación de profesor.');
+      }
+
+      mostrarAlerta('Asignación de profesor guardada exitosamente.', 'success');
+      
+      const modalAsignProf = bootstrap.Modal.getInstance(document.getElementById('modalAsignarProfesor'));
+      if (modalAsignProf) modalAsignProf.hide();
+
+      await fetchMateriaDetails(currentMateriaId); // Actualizar cachés y UI
+
+    } catch (error) {
+      console.error('Error al guardar asignación de profesor:', error);
+      mostrarAlerta(error.message || 'Ocurrió un error al guardar la asignación de profesor.', 'danger');
+    }
+  }
+
+  async function fetchEstudiantesActivos() {
+    const response = await fetch(`${API_BASE_URL}/estudiantes?estado=activo&limit=9999`);
+    const data = await response.json();
+    return data.estudiantes.map(est => ({
+      id_usuario: est.id_usuario,
+      cedula: est.cedula,
+      nombre_completo: `${est.primer_nombre} ${est.primer_apellido} (${est.cedula})` // Agregado (cedula)
+    }));
+  }
+
+  async function fetchProfesoresActivos() {
+    const response = await fetch(`${API_BASE_URL}/profesores?estado=activo&limit=9999`);
+    const data = await response.json();
+    return data.profesores.map(prof => ({
+      id_usuario: prof.id_usuario,
+      cedula: prof.cedela, // Corregido: 'cedela' a 'cedula'
+      nombre_completo: `${prof.primer_nombre} ${prof.primer_apellido} (${prof.cedula})` // Agregado (cedula)
+    }));
+  }
+
+</script>

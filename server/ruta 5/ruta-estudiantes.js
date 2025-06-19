@@ -70,7 +70,7 @@ router.get('/estudiantes', async (req, res) => {
         LEFT JOIN
             direccion d ON u.id_direccion = d.id_direccion
         WHERE
-            u.rol = 'estudiante'
+            u.rol = 'estudiante' AND u.estado = '1'
         GROUP BY
             u.id_usuario
         ORDER BY

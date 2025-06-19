@@ -594,17 +594,9 @@ import "../../style/style-admin/materias.css";
             <span>${materia.estado === 1 ? 'Activo' : (materia.estado === 0 ? 'Inactivo' : 'Desconocido')}</span>
           </td>
           <td>
-            <div class="dropdown">
-              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton${materia.id_materia}" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class='bx bx-dots-vertical-rounded'></i>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${materia.id_materia}">
-                <li><a class="dropdown-item asignar-usuarios-btn" href="#" data-id="${materia.id_materia}"><i class='bx bx-user-plus'></i> Agregar estudiantes y profesores</a></li>
-                <li><a class="dropdown-item editar-usuarios-btn" href="#" data-id="${materia.id_materia}"><i class='bx bx-edit-alt'></i> Editar estudiantes y profesores</a></li>
-                <li><a class="dropdown-item delete-materia-btn" href="#" data-id="${materia.id_materia}"><i class='bx bx-trash'></i> Eliminar</a></li>
-                <li><a class="dropdown-item gestionar-notas-btn" href="#"><i class='bx bx-spreadsheet'></i> Gestionar Actividades/Notas</a></li>
-              </ul>
-            </div>
+            <a href="/Admin-Control/actividades-notas?materiaId=${materia.id_materia}" class="btn btn-primary btn-sm">
+              <i class='bx bx-list-check me-1'></i> Ver Actividades/Notas
+            </a>
           </td>
         `;
       });

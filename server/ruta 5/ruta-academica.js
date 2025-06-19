@@ -714,24 +714,25 @@ router.get('/cursos-academicos', (req, res) => {
     // Consulta principal para obtener los cursos con sus detalles
     let cursosQuery = `
         SELECT
-            c.id_curso,
-            c.curso AS nombre_curso,
-            c.activo AS estado,
-            GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.fechaInicio DESC SEPARATOR ', ') AS nombre_periodo,
-            IFNULL(s.seccion, 'N/A') AS nombre_seccion,
-            (
-                SELECT COUNT(DISTINCT m.id_materia)
-                FROM materias m
-                WHERE m.id_curso = c.id_curso
-            ) AS total_materias_curso
-        FROM cursos c
-        LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
-        LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
-        LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
-        LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
-        WHERE c.curso LIKE ?
-        GROUP BY c.id_curso
-        LIMIT ?, ?;
+    c.id_curso,
+    c.curso AS nombre_curso,
+    c.activo AS estado,
+    p.periodo AS nombre_periodo, -- Aquí ya no se usa GROUP_CONCAT
+    IFNULL(s.seccion, 'N/A') AS nombre_seccion,
+    (
+        SELECT COUNT(DISTINCT m.id_materia)
+        FROM materias m
+        WHERE m.id_curso = c.id_curso
+    ) AS total_materias_curso
+FROM cursos c
+LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
+LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
+LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
+WHERE c.curso LIKE ?
+-- No hay GROUP BY por id_curso en este caso, o se agrupa por id_curso y p.periodo
+ORDER BY c.id_curso, p.fechaInicio DESC -- Opcional: ordenar para agrupar visualmente cursos y sus períodos
+LIMIT ?, ?;
     `;
     db.query(cursosQuery, [searchTerm, offset, parseInt(limit)], (errCursos, cursos) => {
       if (errCursos) {
@@ -1398,62 +1399,88 @@ router.delete('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) 
 
 // Agregar estudiantes y profesor a una materia (sin eliminar los existentes) - versión conexión única
 router.post('/materias-academicas/:id/asignar', (req, res) => {
-    const { id } = req.params;
-    const { estudiantes = [], profesores = [] } = req.body;
-    console.log('[API] POST /materias-academicas/:id/asignar - Recibido:', { id, estudiantes, profesores });
+  const { id: idMateria } = req.params;
+  const { estudiantes = [], profesores = [] } = req.body;
+  console.log('[API] POST /materias-academicas/:id/asignar - Recibido:', { idMateria, estudiantes, profesores });
 
-    db.beginTransaction((txErr) => {
-        if (txErr) {
-            console.error('[API] Error al iniciar transacción:', txErr);
-            return res.status(500).json({ error: 'Error al iniciar transacción.' });
-        }
+  if (!Array.isArray(estudiantes) || !Array.isArray(profesores)) {
+      return res.status(400).json({ error: 'Formato de datos incorrecto. Se esperan arrays para estudiantes y profesores.' });
+  }
 
-        function agregarUsuarios(usuarios, done) {
-            if (!usuarios || usuarios.length === 0) return done();
-            let i = 0;
-            function next() {
-                if (i >= usuarios.length) return done();
-                const id_usuario = usuarios[i++];
-                db.query('SELECT 1 FROM usuario_materias WHERE id_usuario = ? AND id_materia = ?', [id_usuario, id], (selErr, rows) => {
-                    if (selErr) return done(selErr);
-                    if (rows.length === 0) {
-                        db.query('INSERT INTO usuario_materias (id_usuario, id_materia) VALUES (?, ?)', [id_usuario, id], (insErr) => {
-                            if (insErr) return done(insErr);
-                            console.log(`[API] Asignado usuario ${id_usuario} a materia ${id}`);
-                            next();
-                        });
-                    } else {
-                        next();
-                    }
-                });
-            }
-            next();
-        }
+  db.beginTransaction((txErr) => {
+      if (txErr) {
+          console.error('[API] Error al iniciar transacción:', txErr);
+          return res.status(500).json({ error: 'Error al iniciar transacción.', detalle: txErr.message });
+      }
 
-        agregarUsuarios(estudiantes, (errEst) => {
-            if (errEst) {
-                return db.rollback(() => {
-                    console.error('[API] Error al asignar estudiantes:', errEst);
-                    res.status(500).json({ error: 'Error al asignar estudiantes', detalle: errEst.message });
-                });
-            }
-            agregarUsuarios(profesores, (errProf) => {
-                if (errProf) {
-                    return db.rollback(() => {
-                        console.error('[API] Error al asignar profesores:', errProf);
-                        res.status(500).json({ error: 'Error al asignar profesores', detalle: errProf.message });
-                    });
-                }
-                db.commit((commitErr) => {
-                    if (commitErr) {
-                        console.error('[API] Error al hacer commit:', commitErr);
-                        return res.status(500).json({ error: 'Error al guardar asignaciones', detalle: commitErr.message });
-                    }
-                    res.json({ message: 'Asignaciones agregadas exitosamente.' });
-                });
-            });
-        });
-    });
+      // Paso 1: Eliminar asignaciones existentes para esta materia
+      // Esto es crucial para que la asignación sea "establecer" y no "añadir"
+      const deleteSql = 'DELETE FROM usuario_materias WHERE id_materia = ?';
+      db.query(deleteSql, [idMateria], (deleteErr, deleteResult) => {
+          if (deleteErr) {
+              return db.rollback(() => {
+                  console.error('[API] Error al eliminar asignaciones existentes:', deleteErr);
+                  res.status(500).json({ error: 'Error al eliminar asignaciones existentes.', detalle: deleteErr.message });
+              });
+          }
+          console.log(`[API] Eliminadas asignaciones existentes para materia ${idMateria}. Filas afectadas: ${deleteResult.affectedRows}`);
+
+          // Paso 2: Insertar nuevos estudiantes
+          if (estudiantes.length > 0) {
+              const estudianteValues = estudiantes.map(id_usuario => [id_usuario, idMateria]);
+              const insertEstudiantesSql = 'INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?';
+              db.query(insertEstudiantesSql, [estudianteValues], (insertEstErr, insertEstResult) => {
+                  if (insertEstErr) {
+                      return db.rollback(() => {
+                          console.error('[API] Error al insertar estudiantes:', insertEstErr);
+                          res.status(500).json({ error: 'Error al insertar estudiantes.', detalle: insertEstErr.message });
+                      });
+                  }
+                  console.log(`[API] Asignados ${insertEstResult.affectedRows} estudiantes a materia ${idMateria}`);
+                  
+                  // Paso 3: Insertar nuevo profesor (si hay uno)
+                  // Asumimos que solo un profesor puede ser asignado por materia.
+                  handleProfessorAssignment(idMateria, profesores, res, txErr);
+              });
+          } else {
+              console.log(`[API] No hay estudiantes para asignar a materia ${idMateria}`);
+              // Si no hay estudiantes, proceder directamente a manejar el profesor
+              handleProfessorAssignment(idMateria, profesores, res, txErr);
+          }
+      });
+  });
+
+  function handleProfessorAssignment(idMateria, profesores, res, txErr) {
+      if (profesores.length > 0) {
+          const id_profesor = profesores[0]; // Solo tomamos el primer profesor si hay varios
+          const insertProfesorSql = 'INSERT INTO usuario_materias (id_usuario, id_materia) VALUES (?, ?)';
+          db.query(insertProfesorSql, [id_profesor, idMateria], (insertProfErr, insertProfResult) => {
+              if (insertProfErr) {
+                  return db.rollback(() => {
+                      console.error('[API] Error al insertar profesor:', insertProfErr);
+                      res.status(500).json({ error: 'Error al insertar profesor.', detalle: insertProfErr.message });
+                  });
+              }
+              console.log(`[API] Asignado profesor ${id_profesor} a materia ${idMateria}`);
+              finalizeTransaction(res, txErr);
+          });
+      } else {
+          console.log(`[API] No hay profesor para asignar a materia ${idMateria} (o se ha desasignado)`);
+          finalizeTransaction(res, txErr);
+      }
+  }
+
+  function finalizeTransaction(res, txErr) {
+      db.commit((commitErr) => {
+          if (commitErr) {
+              return db.rollback(() => {
+                  console.error('[API] Error al hacer commit:', commitErr);
+                  res.status(500).json({ error: 'Error al guardar asignaciones', detalle: commitErr.message });
+              });
+          }
+          res.json({ message: 'Asignaciones actualizadas exitosamente.' });
+      });
+  }
 });
 
 export default router;

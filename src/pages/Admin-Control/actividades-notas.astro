@@ -2,10 +2,10 @@
 import AdminDashboard from "../../layouts/Admin/AdminDashboard.astro";
 import Sidebar from "../../components/Sidebar.astro";
 import NavigationBar from "../../components/NavigationBar.astro";
-import SectionActividades from "../../components/components-admin/Section-actividades.astro";
+import SectionActividadesNotas from "../../components/components-admin/Section-actividades-notas.astro";
 ---
 
-<AdminDashboard title="Actividades">
+<AdminDashboard title="Actividades/Notas">
   <NavigationBar />
   <!-- Crear dos comnunas para ambos -->
   <div class="Layout-grid-area">
@@ -13,7 +13,7 @@ import SectionActividades from "../../components/components-admin/Section-activi
       <Sidebar />
     </div>
     <div class="Layout-grid-area--content">
-      <SectionActividades />
+      <SectionActividadesNotas />
     </div>
   </div>
 
