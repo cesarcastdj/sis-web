@@ -695,12 +695,23 @@ router.get('/notas/actividad/:id_actividad', async (req, res) => {
 });
 
 // Guardar o actualizar notas y comentarios de varios estudiantes para una actividad
-router.post('/notas/actividad/:id_actividad', (req, res) => {
+router.post('/notas/actividad/:id_actividad', (req, res) => { 
   try {
     console.log('********* LLEGÓ PETICIÓN A /notas/actividad/:id_actividad *********');
     console.log('BODY RECIBIDO:', JSON.stringify(req.body));
     const { id_actividad } = req.params;
     let { notas } = req.body;
+
+    // Get the sender's user ID from the session (Ahora obtenemos directamente de req.session.usuario)
+    const id_usuario_remitente = req.session.usuario?.id;
+    console.log('DEBUG: ID del usuario remitente desde la sesión:', id_usuario_remitente);
+
+
+    if (!id_usuario_remitente) {
+      console.error("Error: ID del usuario remitente no encontrado en la sesión o inválido. No se pueden guardar comentarios.");
+      return res.status(401).json({ error: "No autorizado: ID del usuario remitente no disponible. Por favor, inicia sesión de nuevo." });
+    }
+
     if (!Array.isArray(notas) || notas.length === 0) {
       console.log('❌ Array de notas vacío o no enviado');
       return res.status(400).json({ error: 'Debes enviar un array de notas.' });
@@ -747,24 +758,44 @@ router.post('/notas/actividad/:id_actividad', (req, res) => {
               if (existe.length > 0) {
                 pool.query('UPDATE notas SET nota = ? WHERE id_nota = ?', [n.nota, existe[0].id_nota], (err) => {
                   if (err) { console.error('Error en UPDATE:', err); errores.push(err); }
-                  guardarComentario();
+                  // Solo llamar a guardarComentario si hay comentarios para guardar
+                  if (n.comentarios && n.comentarios.trim() !== '') {
+                      guardarComentario();
+                  } else {
+                      procesados++; // Incrementar procesados si no hay comentario para esta nota
+                      if (procesados === notas.length) finalizar();
+                  }
                 });
               } else {
                 pool.query('INSERT INTO notas (id_actividad, id_estudiante, nota) VALUES (?, ?, ?)', [id_actividad, n.id_estudiante, n.nota], (err) => {
                   if (err) { console.error('Error en INSERT:', err); errores.push(err); }
-                  guardarComentario();
+                  // Solo llamar a guardarComentario si hay comentarios para guardar
+                  if (n.comentarios && n.comentarios.trim() !== '') {
+                      guardarComentario();
+                  } else {
+                      procesados++; // Incrementar procesados si no hay comentario para esta nota
+                      if (procesados === notas.length) finalizar();
+                  }
                 });
               }
             }
             function guardarComentario() {
-              if (n.comentarios && n.comentarios.trim() !== '') {
-                pool.query('INSERT INTO comentarios (id_estudiante, mensaje, fecha_hora) VALUES (?, ?, NOW())', [n.id_estudiante, n.comentarios], (err) => {
-                  if (err) { console.error('Error en INSERT comentario:', err); errores.push(err); }
-                  procesados++;
+              // Asegúrate de que n.comentarios sea null si está vacío, para evitar errores de tipo en la BD
+              const comentarioMensaje = n.comentarios && n.comentarios.trim() !== '' ? n.comentarios.trim() : null;
+              
+              // Solo intentar insertar si el comentario no es null (después del trim)
+              if (comentarioMensaje) {
+                // MODIFIED: Added id_usuario to the INSERT query for comments
+                pool.query('INSERT INTO comentarios (id_estudiante, id_usuario, mensaje, fecha_hora, id_actividad) VALUES (?, ?, ?, NOW(), ?)', [n.id_estudiante, id_usuario_remitente, comentarioMensaje, id_actividad], (err) => {
+                  if (err) {
+                    console.error('Error en INSERT comentario:', err);
+                    errores.push(err);
+                  }
+                  procesados++; // Incrementar procesados en ambos casos (éxito o error de comentario)
                   if (procesados === notas.length) finalizar();
                 });
               } else {
-                procesados++;
+                procesados++; // Incrementar procesados si no hay comentario para esta nota
                 if (procesados === notas.length) finalizar();
               }
             }
@@ -825,24 +856,43 @@ router.post('/notas/actividad/:id_actividad', (req, res) => {
                 if (existe.length > 0) {
                   conn.query('UPDATE notas SET nota = ? WHERE id_nota = ?', [n.nota, existe[0].id_nota], (err) => {
                     if (err) { console.error('Error en UPDATE:', err); errores.push(err); }
-                    guardarComentario();
+                    // Solo llamar a guardarComentario si hay comentarios para guardar
+                    if (n.comentarios && n.comentarios.trim() !== '') {
+                        guardarComentario();
+                    } else {
+                        procesados++; // Incrementar procesados si no hay comentario para esta nota
+                        if (procesados === notas.length) finalizar();
+                    }
                   });
                 } else {
                   conn.query('INSERT INTO notas (id_actividad, id_estudiante, nota) VALUES (?, ?, ?)', [id_actividad, n.id_estudiante, n.nota], (err) => {
                     if (err) { console.error('Error en INSERT:', err); errores.push(err); }
-                    guardarComentario();
+                    // Solo llamar a guardarComentario si hay comentarios para guardar
+                    if (n.comentarios && n.comentarios.trim() !== '') {
+                        guardarComentario();
+                    } else {
+                        procesados++; // Incrementar procesados si no hay comentario para esta nota
+                        if (procesados === notas.length) finalizar();
+                    }
                   });
                 }
               }
               function guardarComentario() {
-                if (n.comentarios && n.comentarios.trim() !== '') {
-                  conn.query('INSERT INTO comentarios (id_estudiante, mensaje, fecha_hora) VALUES (?, ?, NOW())', [n.id_estudiante, n.comentarios], (err) => {
-                    if (err) { console.error('Error en INSERT comentario:', err); errores.push(err); }
-                    procesados++;
+                // Asegúrate de que n.comentarios sea null si está vacío, para evitar errores de tipo en la BD
+                const comentarioMensaje = n.comentarios && n.comentarios.trim() !== '' ? n.comentarios.trim() : null;
+
+                if (comentarioMensaje) { // Solo intentar insertar si el comentario no es null (después del trim)
+                  // MODIFIED: Added id_usuario to the INSERT query for comments
+                  conn.query('INSERT INTO comentarios (id_estudiante, id_usuario, mensaje, fecha_hora) VALUES (?, ?, ?, NOW())', [n.id_estudiante, id_usuario_remitente, comentarioMensaje], (err) => {
+                    if (err) {
+                      console.error('Error en INSERT comentario:', err);
+                      errores.push(err);
+                    }
+                    procesados++; // Incrementar procesados en ambos casos (éxito o error de comentario)
                     if (procesados === notas.length) finalizar();
                   });
                 } else {
-                  procesados++;
+                  procesados++; // Incrementar procesados si no hay comentario para esta nota
                   if (procesados === notas.length) finalizar();
                 }
               }
@@ -874,6 +924,8 @@ router.post('/notas/actividad/:id_actividad', (req, res) => {
     res.status(500).json({ error: 'Error inesperado en el endpoint', detalle: error.message });
   }
 });
+
+
 
 router.get('/materias/:id_materia/estudiantes', async (req, res) => {
   const { id_materia } = req.params;
@@ -983,10 +1035,10 @@ router.get('/materias/:id/actividades/resumen', async (req, res) => {
 
     // Lista de estudiantes únicos relacionados con la materia
     const [estudiantes] = await db.promise().query(
-      `SELECT DISTINCT u.id_usuario AS id_estudiante
+      `SELECT DISTINCT u.id_usuario AS id_estudiante 
        FROM usuarios u
        JOIN usuario_materias um ON u.id_usuario = um.id_usuario
-       WHERE um.id_materia = ?`, [id]
+       WHERE um.id_materia = ? AND u.rol = 'estudiante'`, [id]
     );
 
     // Actividades con ponderación

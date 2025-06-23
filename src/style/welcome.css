@@ -107,7 +107,7 @@ body {
     left: 0;
     width: 100%;
     /* Gradiente para el nav */
-    background: linear-gradient(90deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
+    background: linear-gradient(90deg, #000000 0%, #A421BD 100%);
     backdrop-filter: blur(15px); /* Más blur */
     -webkit-backdrop-filter: blur(15px);
     padding: 1rem 0;
@@ -572,7 +572,7 @@ body {
 /* Pie de página (Footer) */
 .footer-gllr {
     /* Gradiente para el footer */
-    background: linear-gradient(90deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
+    background: linear-gradient(90deg, #000000 0%, #A421BD 100%);
     padding: 2rem 0;
     text-align: center; /* Centra el contenido del footer, incluyendo el logo */
     color: var(--color-tertiary);

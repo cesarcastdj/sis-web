@@ -2,17 +2,21 @@
 // Sidebar.astro
 import "../../style/sidebar.css";
 
-// Obtenemos la ruta actual desde Astro
+// We get the current path from Astro
 const currentPath: string = Astro.url.pathname;
 
-// Definimos la interfaz y estructura del menú
+// Base URL for your API, make sure it is correct.
+const API_BASE_URL = 'http://localhost:3001/api';
+
+// Define the menu interface and structure
 interface MenuItem {
   label: string;
   icon: string;
   href: string;
-  subitems?: MenuItem[];
+  subitems?: MenuItem[]; // Optional sub-items for nested menus
 }
 
+// Initial sidebar menu structure
 const sidebarMenu: MenuItem[] = [
   {
     label: "Página Principal",
@@ -20,21 +24,13 @@ const sidebarMenu: MenuItem[] = [
     href: "/Profesor-Control/Profesor-Control",
   },
   {
-    label: "Notas",
-    icon: "bx bxs-calculator",
-    href: "/Profesor-Control/Notas",
-  },
-  {
-    label: "Papelera",
-    icon: "bx bx-trash",
-    href: "/papelera",
+    // New "Subjects" entry. It will have dynamic subitems handled by JS.
+    label: "Materias",
+    icon: "bx bxs-book-alt", // Using a book icon for subjects
+    href: "javascript:void(0);", // Prevent default navigation for expander
+    subitems: [], // This will be populated dynamically by JS
   },
 ];
-
-// Función simple para determinar si un enlace debe estar "activo"
-function isActive(link: string): boolean {
-  return currentPath === link;
-}
 ---
 
 <section class="bar-home-content">
@@ -46,86 +42,46 @@ function isActive(link: string): boolean {
       <div class="list-bar">
         <ul>
           {
-            /*
-            Renderizamos los tres primeros elementos en la primera lista.
-            Se aplica la clase "active" si el href coincide con currentPath o si
-            alguno de sus subitems es activo.
-          */
-          }
-          {
-            sidebarMenu.slice(0, 3).map((item) => {
+            // Render all menu items, handling sub-items
+            sidebarMenu.map((item) => {
+              // isActive will be defined in the script block now, but Astro needs it here for initial render.
+              // For static parts, we'll keep the direct check. For dynamic, JS will handle.
               const itemActive =
-                isActive(item.href) ||
+                currentPath === item.href ||
                 (item.subitems &&
-                  item.subitems.some((sub) => isActive(sub.href)));
+                  item.subitems.some((sub) => currentPath === sub.href || (sub.href !== 'javascript:void(0);' && currentPath.startsWith(sub.href))));
+
               return (
                 <li
                   class={
-                    item.subitems
+                    // Apply 'list-item__sub' only if it's the 'Materias' item
+                    item.label === "Materias"
                       ? `list-item list-item__sub ${itemActive ? "active" : ""}`
                       : `list-item ${itemActive ? "active" : ""}`
                   }
+                  data-label={item.label}
                 >
-                  <a href={item.href}>
-                    <i class={item.icon} />
-                    <span>{item.label}</span>
-                  </a>
-                  {item.subitems && (
-                    <ul class="sublist">
-                      {item.subitems.map((sub) => (
-                        <li
-                          class={`sublist-item ${isActive(sub.href) ? "active" : ""}`}
-                        >
-                          <a href={sub.href} tabindex="0">
-                            <i class={sub.icon} />
-                            <span>{sub.label}</span>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
+                  {/* If it's the 'Materias' item, add toggle functionality */}
+                  {item.label === "Materias" ? (
+                    <a href={item.href} class="toggle-sublist">
+                      <i class={item.icon} />
+                      <span>{item.label}</span>
+                      <i class='bx bx-chevron-down toggle-icon'></i> {/* Chevron icon for toggle */}
+                    </a>
+                  ) : (
+                    <a href={item.href}>
+                      <i class={item.icon} />
+                      <span>{item.label}</span>
+                    </a>
                   )}
-                </li>
-              );
-            })
-          }
-        </ul>
-        <ul>
-          {
-            /*
-            Renderizamos los elementos restantes en la segunda lista.
-          */
-          }
-          {
-            sidebarMenu.slice(3).map((item) => {
-              const itemActive =
-                isActive(item.href) ||
-                (item.subitems &&
-                  item.subitems.some((sub) => isActive(sub.href)));
-              return (
-                <li
-                  class={
-                    item.subitems
-                      ? `list-item list-item__sub ${itemActive ? "active" : ""}`
-                      : `list-item ${itemActive ? "active" : ""}`
-                  }
-                >
-                  <a href={item.href}>
-                    <i class={item.icon} />
-                    <span>{item.label}</span>
-                  </a>
-                  {item.subitems && (
-                    <ul class="sublist">
-                      {item.subitems.map((sub) => (
-                        <li
-                          class={`sublist-item ${isActive(sub.href) ? "active" : ""}`}
-                        >
-                          <a href={sub.href} tabindex="0">
-                            <i class={sub.icon} />
-                            <span>{sub.label}</span>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
+
+                  {/* Placeholder for dynamic Materias sublist.
+                      JavaScript will inject content into this div. */}
+                  {item.label === "Materias" && (
+                    <div id="materias-sublist-container">
+                      {/* Initial loading message, will be replaced by JS */}
+                      <p class="sublist-message">Cargando materias...</p>
+                    </div>
                   )}
                 </li>
               );
@@ -139,3 +95,219 @@ function isActive(link: string): boolean {
     Minimizar<i class="bx bx-left-arrow-circle"></i>
   </button>
 </section>
+
+<script type="module">
+  const API_BASE_URL = 'http://localhost:3001/api';
+  let globalMostrarAlerta; // Declared globally for accessibility
+
+  // IMPORTANT: Moved isActive function here so it's accessible within the module script.
+  function isActive(link) {
+    const currentPath = window.location.pathname; // Get current path from client-side
+    return currentPath === link || (link !== 'javascript:void(0);' && currentPath.startsWith(link));
+  }
+
+  // --- Bootstrap Loading Logic ---
+  // This promise will resolve when Bootstrap's JS is confirmed to be loaded.
+  const loadBootstrapPromise = new Promise((resolve, reject) => {
+    // Check immediately if Bootstrap is already available
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal && bootstrap.Alert) {
+      console.log("Bootstrap already loaded in global scope.");
+      resolve();
+      return;
+    }
+
+    // Create script element to load Bootstrap
+    const script = document.createElement('script');
+    script.src = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js";
+    script.integrity = "sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz";
+    script.crossOrigin = "anonymous";
+    script.onload = () => {
+      console.log("Bootstrap JS loaded dynamically.");
+      // Small delay to ensure all Bootstrap components are initialized in the global scope
+      setTimeout(resolve, 50); 
+    };
+    script.onerror = (e) => {
+      console.error("Failed to load Bootstrap JS script:", e);
+      reject(new Error("Bootstrap script failed to load. Check network and CDN URL."));
+    };
+    document.head.appendChild(script);
+  });
+  // --- End Bootstrap Loading Logic ---
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const API_BASE_URL = 'http://localhost:3001/api';
+    try {
+      await loadBootstrapPromise; // Wait for Bootstrap to fully load and initialize
+      console.log("Bootstrap JS is now available and initialized.");
+
+      // Define globalMostrarAlerta ONLY after Bootstrap is confirmed to be loaded.
+      globalMostrarAlerta = function(mensaje, tipo, duracion = 5000) {
+        if (typeof bootstrap === 'undefined' || !bootstrap.Alert) {
+            console.error("Bootstrap Alert is not available, cannot display alert. Falling back to native alert.");
+            alert(`Alerta: ${mensaje}`); // Fallback to native alert
+            return;
+        }
+
+        const alertContainer = document.getElementById('alertContainer') || (() => {
+          const div = document.createElement('div');
+          div.id = 'alertContainer';
+          div.style.position = 'fixed';
+          div.style.top = '20px';
+          div.style.left = '50%';
+          div.style.transform = 'translateX(-50%)';
+          div.style.zIndex = '9999';
+          div.style.width = 'auto';
+          div.style.maxWidth = '90%';
+          document.body.appendChild(div);
+          return div;
+        })();
+
+        const alertElement = document.createElement('div');
+        alertElement.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertElement.role = 'alert';
+        alertElement.textContent = mensaje;
+
+        alertContainer.appendChild(alertElement);
+
+        setTimeout(() => {
+          const bsAlert = new bootstrap.Alert(alertElement);
+          bsAlert.dispose();
+        }, duracion);
+      };
+
+      // Load professor's subjects for the sidebar
+      await fetchMateriasSidebar();
+
+      // Logic for minimize/maximize sidebar button
+      const closeSidebarBtn = document.querySelector('.close-sidebar');
+      const sidebar = document.querySelector('.bar-home-content');
+      if (closeSidebarBtn && sidebar) {
+        closeSidebarBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('minimized');
+        });
+      }
+
+      // Add event listener to the "Materias" toggle link
+      const materiasListItem = document.querySelector('li[data-label="Materias"]');
+      const toggleLink = materiasListItem?.querySelector('.toggle-sublist');
+      if (toggleLink) {
+        toggleLink.addEventListener('click', handleMateriasToggle);
+      }
+
+    } catch (error) {
+      console.error("Error during DOMContentLoaded or Bootstrap loading:", error);
+      // Fallback alert if Bootstrap fails to load or other critical error occurs
+      alert("Error crítico: No se pudo cargar la librería de Bootstrap o hubo un problema inicial. Algunas funcionalidades podrían no estar disponibles. Detalles: " + error.message);
+    }
+  });
+
+  /**
+   * @function fetchMateriasSidebar
+   * @description Fetches the subjects assigned to the logged-in professor and populates the "Materias" sub-menu in the sidebar.
+   */
+  async function fetchMateriasSidebar() {
+    const materiasSublistContainer = document.getElementById('materias-sublist-container');
+    if (!materiasSublistContainer) {
+      console.error("The 'materias-sublist-container' was not found in the DOM.");
+      // Use globalMostrarAlerta only if it's defined
+      if (globalMostrarAlerta) {
+        globalMostrarAlerta("Error interno: El contenedor de materias en el sidebar no se encontró.", "danger");
+      }
+      return;
+    }
+
+    // Display loading message
+    materiasSublistContainer.innerHTML = '<p class="sublist-message">Cargando materias...</p>';
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/profesor/sidebard`, {
+        method: 'GET',
+        credentials: 'include' // Important for sending session cookies
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => "No response text"); // Get raw text for better debugging
+        console.error('Error HTTP when loading professor subjects:', res.status, res.statusText, 'Response Text:', errorText);
+        let errorMessage = `HTTP error! Status: ${res.status}.`;
+        try {
+            const errorData = JSON.parse(errorText);
+            errorMessage += ` Detalles: ${errorData.error || errorText}`;
+        } catch (parseError) {
+            errorMessage += ` Respuesta: ${errorText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const materias = await res.json();
+      console.log("Professor subjects for sidebar received:", materias);
+
+      // Clear previous content
+      materiasSublistContainer.innerHTML = '';
+
+      if (materias.length === 0) {
+        materiasSublistContainer.innerHTML = '<p class="sublist-message">No se encontraron materias.</p>';
+        return;
+      }
+
+      // Create and populate the sublist <ul>
+      const sublistUl = document.createElement('ul');
+      sublistUl.className = 'sublist';
+      
+      materias.forEach((materia) => { // Removed type annotation for client-side JS
+        const sublistItem = document.createElement('li');
+        const materiaHref = `/Profesor-Control/actividades-notas?materiaId=${materia.id_materia}`;
+        const isActiveSub = isActive(materiaHref);
+        
+        sublistItem.className = `sublist-item ${isActiveSub ? "active" : ""}`;
+        sublistItem.innerHTML = `
+            <a href="${materiaHref}" tabindex="0">
+                <i class='bx bx-book-bookmark'></i>
+                <span>${materia.nombre_materia}</span>
+            </a>
+        `;
+        sublistUl.appendChild(sublistItem);
+      });
+
+      materiasSublistContainer.appendChild(sublistUl);
+
+    } catch (error) {
+      console.error('Error loading subjects for sidebar:', error);
+      materiasSublistContainer.innerHTML = '<p class="sublist-message">Error al cargar materias.</p>';
+      if (globalMostrarAlerta) {
+          globalMostrarAlerta(`No se pudieron cargar las materias para el sidebar. Asegúrate de que el backend esté funcionando en ${API_BASE_URL} (Error: ${error.message}).`, 'danger');
+      } else {
+          alert(`No se pudieron cargar las materias para el sidebar. Error: ${error.message}`);
+      }
+    }
+  }
+
+  // Handle the click event for the "Materias" toggle
+  function handleMateriasToggle(e) {
+    e.preventDefault();
+    const listItem = e.currentTarget.closest('.list-item__sub');
+    // The sublist is now inside a div with id 'materias-sublist-container'
+    const targetSublistContainer = listItem?.querySelector('#materias-sublist-container');
+    const targetSublist = targetSublistContainer?.querySelector('.sublist');
+    const toggleIcon = e.currentTarget.querySelector('.toggle-icon');
+
+    if (targetSublist) {
+      targetSublist.classList.toggle('visible');
+      if (toggleIcon) {
+        toggleIcon.classList.toggle('bx-chevron-down');
+        toggleIcon.classList.toggle('bx-chevron-up');
+      }
+      listItem.classList.toggle('expanded'); // Toggle expanded class for styling
+    }
+  }
+
+  // --- IMPORTANT COMMENT: This `cargarNombreUsuario` function is not included here
+  // If the `cargarNombreUsuario` function is not globally defined in another script
+  // that is already loaded on this page, you will need to copy it here for `DOMContentLoaded`
+  // to be able to call it. Otherwise, it will cause a "ReferenceError".
+  // For example, if you have a `global-utils.js` file that contains it,
+  // make sure it is imported or loaded before this script.
+  // To avoid errors in this Canvas, I have included a minimal version of 'mostrarAlerta' here.
+  // The complete `cargarNombreUsuario` function is not included in this Canvas
+  // because it is assumed to exist elsewhere, such as in `proff.txt` that you provided earlier.
+  // If you need it, you should integrate it in a way that avoids duplicates.
+</script>

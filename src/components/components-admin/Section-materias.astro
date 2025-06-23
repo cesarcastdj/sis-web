@@ -217,7 +217,7 @@ import "../../style/style-admin/materias.css";
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
 <script is:inline>
-  const API_BASE_URL = 'http://localhost:3001/api'; // Asegúrate de que esta URL sea correcta
+  const API_BASE_URL = 'http://localhost:3001/api'; // Ajusta esto a la URL de tu backend
 
   // ==========================================================
   // FUNCIONES DE UTILIDAD PARA MODALES DE CONFIRMACIÓN Y ALERTA
@@ -341,7 +341,7 @@ import "../../style/style-admin/materias.css";
 
   document.addEventListener('DOMContentLoaded', async () => {
     await fetchMateriasSummary();
-    await fetchMaterias(currentPage);
+    await fetchMaterias(currentPage); // Carga inicial sin término de búsqueda
     await loadSelectOptions();
 
     // Event listener para el formulario de añadir materia
@@ -357,19 +357,26 @@ import "../../style/style-admin/materias.css";
     }
 
     // Agregar lógica para guardar la asignación de estudiantes y profesor
-    // Esperar a que el DOM esté listo
     const modalAsignar = document.getElementById('modalAsignarUsuarios');
     if (modalAsignar) {
       const form = modalAsignar.querySelector('form');
       if (form) {
         form.addEventListener('submit', guardarAsignacionUsuarios);
       } else {
-        // Si no hay <form>, agregar el evento al botón
         const btnGuardar = modalAsignar.querySelector('button[type="submit"]');
         if (btnGuardar) {
           btnGuardar.addEventListener('click', guardarAsignacionUsuarios);
         }
       }
+    }
+
+    // Event listener para el campo de búsqueda
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            currentPage = 1; // Reiniciar a la primera página en cada búsqueda
+            fetchMaterias(currentPage, searchInput.value.trim());
+        });
     }
   });
 
@@ -554,9 +561,14 @@ import "../../style/style-admin/materias.css";
     }
   }
 
-  async function fetchMaterias(page = 1) {
+  async function fetchMaterias(page = 1, searchTerm = '') {
     try {
-      const response = await fetch(`${API_BASE_URL}/materias-academicas?page=${page}&limit=${itemsPerPage}`);
+      let url = `${API_BASE_URL}/materias-academicas?page=${page}&limit=${itemsPerPage}`;
+      if (searchTerm) {
+        url += `&search=${encodeURIComponent(searchTerm)}`;
+      }
+
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -565,6 +577,12 @@ import "../../style/style-admin/materias.css";
       const tableBody = document.getElementById('materiasTableBody');
       tableBody.innerHTML = '';
       
+      if (!data.materias || data.materias.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="9" class="text-center">No se encontraron materias que coincidan con "${searchTerm}".</td></tr>`;
+        updatePagination(0, 1); // Reset pagination if no results
+        return;
+      }
+
       data.materias.forEach((materia, index) => {
         // Inicializar arrays si no existen
         if (!Array.isArray(materia.estudiantes_info)) materia.estudiantes_info = [];
@@ -593,12 +611,12 @@ import "../../style/style-admin/materias.css";
           <td>
             <span>${materia.estado === 1 ? 'Activo' : (materia.estado === 0 ? 'Inactivo' : 'Desconocido')}</span>
           </td>
-          <td class="d-flex align-items-center flex-wrap gap-2">
+          <td>
             <a href="/Admin-Control/actividades-notas?materiaId=${materia.id_materia}" class="btn btn-primary btn-sm">
               <i class='bx bx-list-check me-1'></i> Ver Actividades/Notas
             </a>
             ${materia.estado === 1 ? `
-              <button type="button" class="btn btn-warning btn-sm desactivar-materia-btn" data-id="${materia.id_materia}">
+              <button type="button" class="btn btn-primary btn-sm desactivar-materia-btn" data-id="${materia.id_materia}">
                 <i class='bx bx-pause me-1'></i> Desactivar Materia
               </button>
             ` : ''}
@@ -606,7 +624,7 @@ import "../../style/style-admin/materias.css";
         `;
       });
 
-      // Actualizar paginación
+      // Actualizar paginación con el total de resultados de la búsqueda
       updatePagination(data.total, page);
       
       // Adjuntar event listeners
@@ -680,7 +698,7 @@ import "../../style/style-admin/materias.css";
         const page = parseInt(e.target.closest('.page-link').dataset.page);
         if (!isNaN(page) && page !== currentPage) {
           currentPage = page;
-          fetchMaterias(page);
+          fetchMaterias(page, document.getElementById('searchInput').value.trim()); // Mantener el término de búsqueda al cambiar de página
         }
       });
     });
@@ -700,19 +718,9 @@ import "../../style/style-admin/materias.css";
         idCursoSelect.innerHTML += `<option value="${curso.id_curso}">${curso.nombre_curso} - ${curso.nombre_periodo}</option>`;
       });
 
-      // Asegurarse de que el select de edición también se cargue
-      if (editIdCursoSelect) {
-        editIdCursoSelect.innerHTML = '<option value="">Selecciona una opción</option>';
-        cursos.forEach(curso => {
-          editIdCursoSelect.innerHTML += `<option value="${curso.id_curso}">${curso.nombre_curso} - ${curso.nombre_periodo}</option>`;
-        });
-      }
-
-
       // Obtener periodos (solo activos)
       const periodosResponse = await fetch(`${API_BASE_URL}/periodos`);
       const periodos = await periodosResponse.json();
-      idPeriodoSelect.innerHTML = '<option value="">Selecciona un período</option>'; // Reiniciar para evitar duplicados
       periodos.forEach(periodo => {
         idPeriodoSelect.innerHTML += `<option value="${periodo.id_periodo}">${periodo.periodo}</option>`;
       });
@@ -720,7 +728,7 @@ import "../../style/style-admin/materias.css";
       // Obtener secciones
       const seccionesResponse = await fetch(`${API_BASE_URL}/secciones`);
       const secciones = await seccionesResponse.json();
-      idSeccionSelect.innerHTML = '<option value="">Selecciona una sección</option>'; // Reiniciar para evitar duplicados
+      idSeccionSelect.innerHTML = '<option value="">Selecciona una sección</option>';
       secciones.forEach(seccion => {
         idSeccionSelect.innerHTML += `<option value="${seccion.id_seccion}">${seccion.seccion}</option>`;
       });
@@ -731,6 +739,16 @@ import "../../style/style-admin/materias.css";
     }
   }
 
+  function populateSelect(selectElement, items, idKey, nameKey) {
+    selectElement.innerHTML = '<option value="">Selecciona una opción</option>'; // Restablecer a la opción por defecto
+    items.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item[idKey];
+      option.textContent = item[nameKey];
+      selectElement.appendChild(option);
+    });
+  }
+
   function attachTableEventListeners() {
     // Event listeners para botones de editar
     document.querySelectorAll('.edit-materia-btn').forEach(button => {
@@ -738,7 +756,7 @@ import "../../style/style-admin/materias.css";
       button.addEventListener('click', handleEditMateria);
     });
 
-    // Event listeners para botones de cambiar estado (mantengo el nombre aunque desactivar es más específico aquí)
+    // Event listeners para botones de cambiar estado
     document.querySelectorAll('.estado-materia-btn').forEach(button => {
       button.removeEventListener('click', handleChangeMateriaEstado); // Evitar duplicados
       button.addEventListener('click', handleChangeMateriaEstado);

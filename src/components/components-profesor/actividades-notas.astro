@@ -81,13 +81,6 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         <div class="professor-info">
           <span id="profesorAsignadoNombre" class="profesor-name">Sin asignar</span>
         </div>
-        <div class="mt-3 text-center">
-          <div class="btn-accion-control">
-            <button class="btn btn-card" id="btnAsignarProfesor">
-              <i class='bx bxs-user-plus me-2'></i>Asignar Profesor
-            </button>
-          </div>
-        </div>
       </div>
 
       <!-- Nuevo Card de Notas -->
@@ -595,7 +588,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
     // Listener para el botón de volver a materias
     document.getElementById('btnVolverMaterias').addEventListener('click', () => {
-      window.location.href = '/Admin-Control/Materias';
+      window.location.href = '/Profesor-Control/Profesor-Control';
     });
 
     // Enlazar el formulario de añadir actividad
@@ -1682,7 +1675,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           div.innerHTML = `
             <label class="d-flex align-items-center w-100 mb-0">
               <input type="checkbox" class="form-check-input me-2" value="${est.id_usuario}" ${estudiantesEnMateriaCache.includes(String(est.id_usuario)) ? 'checked' : ''}>
-              <span>${est.primer_nombre} ${est.primer_apellido} (${est.cedula})</span>
+              <span>${est.primer_nombre || ''} ${est.primer_apellido || ''} (${est.cedula || 'N/A'})</span>
             </label>
           `;
           listaEstudiantesCont.appendChild(div);
@@ -1865,6 +1858,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     return data.estudiantes.map(est => ({
       id_usuario: est.id_usuario,
       cedula: est.cedula,
+      primer_nombre: est.primer_nombre,
+      primer_apellido: est.primer_apellido,
       nombre_completo: `${est.primer_nombre} ${est.primer_apellido} (${est.cedula})` // Agregado (cedula)
     }));
   }
@@ -1874,7 +1869,9 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     const data = await response.json();
     return data.profesores.map(prof => ({
       id_usuario: prof.id_usuario,
-      cedula: prof.cedela, // Corregido: 'cedela' a 'cedula'
+      cedula: prof.cedula, // Corregido: 'cedela' a 'cedula'
+      primer_nombre: prof.primer_nombre,
+      primer_apellido: prof.primer_apellido,
       nombre_completo: `${prof.primer_nombre} ${prof.primer_apellido} (${prof.cedula})` // Agregado (cedula)
     }));
   }

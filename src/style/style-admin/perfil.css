@@ -1,0 +1,659 @@
+@import '../variables.css'; 
+@import '../global.css';
+
+/* Contenedor principal de la sección de perfil */
+.profile-content-section {
+    padding: 20px;
+    background-color: var(--color-GRIS); /* Fondo oscuro similar al de tus otras secciones */
+    color: var(--color-quaternary); /* Texto blanco */
+    border-radius: var(--border-radius-8);
+    box-shadow: var(--box-shadow-button1);
+    margin-bottom: 20px;
+    height: auto;
+    min-height: calc(100vh - 2rem);
+    margin-right: 24px;
+    border-top-right-radius: var(--border-radius-16);
+    border-top-left-radius: var(--border-radius-16);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin-top: 0;
+}
+
+/* Encabezado de la tarjeta de perfil */
+.profile-header-card {
+    background-color: var(--color-tertiary); /* Fondo blanco para la tarjeta */
+    padding: var(--spacing-24) var(--spacing-60);
+    border-radius: var(--border-radius-16); /* Bordes redondeados */
+    box-shadow: var(--box-shadow-button1); /* Sombra sutil */
+    margin-bottom: var(--spacing-24); /* Espacio debajo de la tarjeta del encabezado */
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.1); /* Borde sutil */
+    position: relative;
+    overflow: hidden;
+    width: 100%; /* Asegura que ocupe todo el ancho disponible */
+    /* Bordes inferiores se mantienen redondeados para el 'glow' si se quiere mantener */
+    border-top-left-radius: var(--border-radius-16);
+    border-top-right-radius: var(--border-radius-16);
+    border-bottom-left-radius: 0; /* Se une con el contenido de abajo */
+    border-bottom-right-radius: 0; /* Se une con el contenido de abajo */
+    padding-bottom: var(--spacing-24) !important;
+}
+
+/* Añadir un efecto de "glow" o borde inferior estilizado al encabezado */
+.profile-header-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 5px; /* Altura del "glow" */
+    background: linear-gradient(to right, var(--color-primary), var(--color-pink-hover)); /* Gradiente de glow */
+    box-shadow: 0 0 15px var(--color-primary), 0 0 15px var(--color-pink-hover); /* Sombra de glow */
+    border-bottom-left-radius: var(--border-radius-16); /* Mantener el redondeo del glow */
+    border-bottom-right-radius: var(--border-radius-16);
+    z-index: 1; /* Asegura que esté por encima de la tarjeta */
+}
+
+
+.profile-header-card .welcome-search-data__title {
+    margin: 0;
+    font-size: 2.5em; /* Título más grande */
+    font-weight: var(--font-weight-700);
+    font-family: var(--font-family-titlesub);
+    color: var(--color-quaternary);
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Sombra de texto suave */
+}
+
+/* Sección de contenido de información */
+.content-info-data {
+    padding: 1rem var(--spacing-24); /* Ajusta el padding para que coincida con el padding de la sección general */
+    margin-top: 0;
+    display: flex; /* Para centrar la tarjeta */
+    justify-content: center; /* Centra la tarjeta horizontalmente */
+    width: 100%; /* Asegura que el contenedor abarque todo el ancho */
+    background: none; /* Eliminar fondo y sombra para que la tarjeta interna tenga su propio estilo */
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+}
+
+/* Contenedor flexible para centrar la tarjeta de perfil */
+.data-general-control {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+
+/* Estilos de la tarjeta de visualización de perfil */
+/* Eliminando la apariencia de tarjeta rígida, ahora es un contenedor flexible */
+.profile-card {
+    display: flex;
+    flex-direction: column; /* Cambiado a columna para apilar elementos */
+    align-items: flex-start; /* Alinea los elementos al inicio */
+    padding: 30px;
+    border-radius: var(--border-radius-16); /* Mantener esquinas redondeadas si se desea */
+    background: var(--color-tertiary); /* Fondo más claro para que se vea más como un bloque de texto */
+    box-shadow: none; /* Eliminar sombra de tarjeta */
+    border: none; /* Eliminar borde de tarjeta */
+    width: 100%; /* Ocupa todo el ancho disponible */
+    max-width: 800px; /* Ancho máximo para el contenido */
+    margin-bottom: 1.5rem;
+    color: var(--color-quaternary);
+}
+
+/* Nuevo contenedor para la imagen y el nombre/cédula */
+.profile-main-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px; /* Espacio entre el encabezado y los detalles */
+    width: 100%;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: var(--border-radius-50);
+    object-fit: cover;
+    border: 4px solid var(--color-primary); /* Borde púrpura */
+    margin-right: 25px; /* Espacio a la derecha de la imagen */
+    box-shadow: 0 0 15px var(--color-pink-hover); /* Sombra neón para el icono */
+    flex-shrink: 0; /* Evita que la imagen se encoja */
+}
+
+.profile-text-header {
+    display: flex;
+    flex-direction: column;
+    text-align: left; /* Alinea el texto a la izquierda */
+}
+
+.profile-name {
+    font-size: 2.2em;
+    font-weight: var(--font-weight-700);
+    color: var(--color-quaternary);
+    margin-bottom: 5px; /* Espacio entre nombre y cédula */
+    letter-spacing: 0.5px;
+    font-family: var(--font-family-titlesub);
+    text-align: left;
+}
+
+.profile-cedula-display {
+    font-size: 1.1em;
+    margin-bottom: 0; /* Elimina margen inferior */
+    color: var(--color-quaternary);
+    font-family: var(--font-family-Paragraph);
+    text-align: left;
+}
+
+
+.profile-details p {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    color: var(--color-quaternary);
+    text-align: left; /* Alinea los detalles a la izquierda */
+    width: 100%; /* Ocupa todo el ancho disponible */
+    font-family: var(--font-family-Paragraph);
+}
+
+/* Esto asegura que la etiqueta fuerte esté en la misma línea que el valor */
+.profile-details p strong {
+    color: var(--color-pink-hover); /* Color púrpura para las etiquetas */
+    display: inline; /* Mantener en línea */
+    margin-right: 5px; /* Pequeño espacio entre la etiqueta y el valor */
+    min-width: unset; /* Eliminar min-width que usábamos en el estilo de tarjeta */
+}
+
+.profile-actions {
+    margin-top: 30px;
+    width: 100%; /* Ocupa todo el ancho para centrar el botón */
+    text-align: center; /* Centra el botón */
+}
+
+/* Estilos del botón Editar/Guardar */
+.btn-primary-custom {
+    background: var(--color-tertiary); /* Fondo blanco */
+    color: var(--color-primary); /* Texto morado */
+    border: 1px solid var(--color-primary); /* Borde morado */
+    box-shadow: var(--box-shadow-button1); /* Sombra sutil */
+    padding: 12px 30px;
+    border-radius: var(--border-radius-25);
+    font-size: 1.1em;
+    font-weight: var(--font-weight-600);
+    transition: all 0.3s ease;
+    font-family: var(--font-family-Paragraph);
+}
+
+.btn-primary-custom:hover {
+    background: var(--color-primary); /* Fondo morado al pasar el ratón */
+    color: var(--color-quaternary); /* Texto blanco al pasar el ratón */
+    transform: translateY(-2px);
+    box-shadow: 0 0 10px var(--color-primary); /* Sombra morada al pasar el ratón */
+}
+
+small.form-text {
+    color: var(--color-quaternary) !important;
+    font-size: var(--font-size-medium-12) !important;
+    margin-top: 0.25rem;
+    font-family: var(--font-family-Paragraph) !important;
+}
+
+.profile-edit-form {
+    padding: 30px;
+    border-radius: var(--border-radius-16);
+    background: var(--color-tertiary); /* Fondo del formulario de edición */
+    box-shadow: var(--box-shadow-button1);
+    border: 1px solid var(--color-primary); /* Borde */
+    color: var(--color-quaternary);
+    width: 100%; /* Ocupa todo el ancho disponible */
+    max-width: 600px; /* Ancho máximo para el formulario */
+    margin: 0 auto; /* Centrar el formulario */
+}
+
+.profile-header-edit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.edit-title {
+    font-size: 2.2em;
+    font-weight: var(--font-weight-700);
+    color: var(--color-quaternary);
+    margin-bottom: 30px;
+    text-align: center;
+    font-family: var(--font-family-titlesub);
+}
+
+.form-label {
+    font-weight: var(--font-weight-500);
+    color: var(--color-quaternary);
+    font-family: var(--font-family-Paragraph);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border-radius: var(--border-radius-12);
+    border: 1px solid var(--color-primary);
+    color: var(--color-quaternary); /* Color del texto que se escribe */
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-300);
+    font-family: var(--font-family-Paragraph);
+    background: rgba(255, 255, 255, 0.05); /* Fondo ligeramente transparente */
+    transition: 0.3s linear;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.form-control::placeholder {
+    color: var(--color-quaternary); /* Color del texto del placeholder */
+    opacity: 1; /* Mantener un poco de opacidad para distinguirlo del texto real */
+}
+/* Para navegadores basados en Webkit (Chrome, Safari, etc.) */
+.form-control::-webkit-input-placeholder {
+    color: var(--color-quaternary);
+    opacity: 1;
+}
+/* Para Mozilla Firefox */
+.form-control::-moz-placeholder {
+    color: var(--color-quaternary);
+    opacity: 1;
+}
+/* Para Microsoft Edge */
+.form-control:-ms-input-placeholder {
+    color: var(--color-quaternary);
+    opacity: 1;
+}
+/* Para Internet Explorer 10-11 */
+.form-control::placeholder {
+    color: var(--color-quaternary);
+    opacity: 1;
+}
+
+
+.form-control:focus {
+    outline: none;
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.8); /* Glow púrpura en foco */
+    border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-quaternary);
+}
+
+.form-text {
+    color: var(--color-quaternary) !important;
+    font-family: var(--font-family-Paragraph) !important;
+    font-size: var(--font-size-medium-12) !important;
+}
+
+.btn-secondary-custom {
+    background-color: var(--color-primary); /* Color primario morado para el botón "Cambiar Foto" */
+    border: none;
+    padding: 8px 20px;
+    border-radius: var(--border-radius-25);
+    font-size: 0.95em;
+    color: var(--color-quaternary);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 15px;
+    font-family: var(--font-family-Paragraph);
+    box-shadow: var(--box-shadow-button-gradient);
+}
+
+.btn-secondary-custom:hover {
+    background-color: var(--color-pink-hover); /* Rosa al pasar el ratón */
+    box-shadow: 0 0 10px var(--color-pink-hover); /* Sombra rosa al pasar el ratón */
+}
+
+/* Estilos para los botones del formulario de edición (Guardar) */
+.profile-edit-form .btn-primary-custom {
+    width: 100%; /* Ocupa todo el ancho en el formulario */
+    max-width: 250px; /* Limita el ancho máximo */
+    margin-top: 20px;
+}
+
+/* Estilos para los modales (adaptados de perf.txt) */
+.modal-dialog-custom-width {
+    max-width: 750px;
+}
+.modal-dialog.modal-lg {
+    max-width: 80% !important;
+}
+.modal-content {
+    border-radius: var(--border-radius-24);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+    background: #191919 !important;
+    border: 1px solid var(--color-primary);
+    color: var(--color-tertiary);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    background-color: #191919;
+    color: var(--color-tertiary);
+    border-bottom: 1px solid var(--color-primary);
+    border-radius: var(--border-radius-24) var(--border-radius-24) 0 0;
+    padding: 1.5rem 2.5rem;
+}
+
+.modal-header .btn-close {
+    position: absolute;
+    top: 1.8rem;
+    right: 1.8rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--color-pink-hover) !important;
+    border: 1px solid var(--color-pink-hover);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 0 15px rgba(255, 105, 180, 0.9);
+    opacity: 1;
+}
+
+.modal-header .btn-close i {
+    color: var(--color-tertiary) !important;
+    font-size: 1.5rem;
+    text-shadow: none;
+}
+
+.modal-header .btn-close:hover {
+    background: var(--color-pink-hover) !important;
+    box-shadow: 0 0 20px rgba(255, 105, 180, 1);
+    border-color: var(--color-primary) !important;
+    transform: scale(1.1);
+}
+
+.modal-title {
+    font-weight: var(--font-weight-700);
+    font-size: 2.5rem;
+    color: var(--color-tertiary) !important;
+    text-align: center;
+    margin-bottom: 0.8rem;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    font-family: var(--font-family-titlesub);
+}
+
+.modal-body {
+    padding: 2.5rem;
+    font-family: var(--font-family-Paragraph);
+    color: var(--color-tertiary) !important;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+.modal-body form {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-body label {
+    font-size: var(--font-size-medium-12);
+    font-weight: var(--font-weight-500);
+    font-family: var(--font-family-Paragraph);
+    color: var(--color-quaternary) !important; /* Cambiado a quaternary para mejor contraste */
+    margin-bottom: 0.5rem;
+}
+
+.modal-body .section-title {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-700);
+    color: var(--color-quaternary) !important; /* Cambiado a quaternary */
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 0.5rem;
+}
+
+/* Modales: Inputs y selects */
+.modal-body input:not(.form-check-input),
+.modal-body textarea,
+.modal-body select {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border-radius: var(--border-radius-12);
+    border: 1px solid var(--color-primary);
+    color: var(--color-quaternary) !important; /* Cambiado a quaternary */
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-300);
+    font-family: var(--font-family-Paragraph);
+    background: rgba(255, 255, 255, 0.05);
+    transition: 0.3s linear;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilo para las opciones del select (dropdown) */
+.modal-body select option {
+    background: #191919;
+    color: var(--color-quaternary); /* Cambiado a quaternary */
+}
+
+/* Asegurar que el texto visible en el select sea blanco cuando no está abierto */
+.modal-body select {
+    color: var(--color-quaternary); /* Cambiado a quaternary */
+}
+/* Asegurar que el color del texto del placeholder en el select sea consistente */
+.modal-body select:invalid {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Estilo para el select multiple de Materias en el modal de edición */
+#modalEditarEstudiante #editMaterias,
+#modalAgregar #materias { /* Aplica a los modales de añadir y editar */
+    min-height: 120px; /* Suficiente altura para mostrar varias opciones */
+    overflow-y: auto; /* Permite scroll si hay muchas materias seleccionadas */
+    height: auto; /* Permite que la altura se ajuste según el contenido */
+    display: block; /* Asegura que se comporte como un elemento de bloque */
+    -webkit-appearance: none; /* Elimina el estilo predeterminado para una mejor consistencia */
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none; /* Elimina la flecha desplegable predeterminada */
+}
+
+.modal-body input:hover,
+.modal-body input:focus,
+.modal-body textarea:hover,
+.modal-body textarea:focus,
+.modal-body select:hover,
+.modal-body select:focus {
+    outline: none;
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.8); /* Glow púrpura en foco */
+    border-color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-quaternary);
+}
+
+.modal-body input::placeholder,
+.modal-body textarea::placeholder {
+    color: var(--color-quaternary) !important; /* Más visible */
+    opacity: 1;
+    font-size: var(--font-size-medium-12);
+    font-weight: var(--font-weight-400);
+}
+
+.modal-body .invalid-feedback {
+    color: var(--color-pink-hover) !important;
+    font-weight: bold !important;
+    font-size: 0.875em;
+    margin-top: 0.25rem;
+    display: none;
+}
+
+.modal-body input.is-invalid,
+.modal-body select.is-invalid,
+.modal-body textarea.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Botones de formulario dentro del modal */
+.modal-body .d-flex.justify-content-between.mt-4 button {
+    width: 45%; /* Ajuste para que los dos botones se distribuyan */
+    flex-wrap: wrap;
+    margin: 0; /* Eliminar margen auto si se usan flex justify-content-between */
+    padding: 1rem 2.5rem;
+    font-size: 1.2rem;
+    font-weight: var(--font-weight-700);
+    border-radius: var(--border-radius-12);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+
+.modal-body form button[type="submit"] {
+    background-color: var(--color-primary); /* Color primario morado */
+    color: var(--color-quaternary); /* Texto claro */
+    border: none;
+    box-shadow: var(--box-shadow-button-gradient);
+}
+
+.modal-body form button[type="submit"]:hover {
+    background-color: var(--color-pink-hover); /* Rosa al pasar el ratón */
+    box-shadow: 0 0 10px var(--color-pink-hover); /* Sombra rosa al pasar el ratón */
+    transform: translateY(-3px) scale(1.02);
+}
+
+.modal-body form button[type="reset"] {
+    background-color: transparent; /* Fondo transparente */
+    color: var(--color-pink-hover); /* Texto rosa */
+    border: 2px solid var(--color-pink-hover); /* Borde rosa */
+    box-shadow: var(--box-shadow-button-pink-hover);
+}
+
+.modal-body form button[type="reset"]:hover {
+    background-color: var(--color-primary); /* Morado al pasar el ratón */
+    color: var(--color-quaternary); /* Texto blanco */
+    border: 2px solid var(--color-primary); /* Borde morado */
+    box-shadow: var(--box-shadow-button-gradient);
+    transform: translateY(-3px) scale(1.02);
+}
+
+.form-check-input:checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(147, 51, 234, .25); /* Usar variable para color-primary-rgb */
+}
+
+.campo-obligatorio {
+    color: var(--color-pink-hover);
+    font-size: 1rem;
+}
+
+.separador-telefono {
+    color: var(--color-tertiary);
+    font-size: var(--font-size-base);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .profile-content-section {
+        margin-right: 0;
+        border-radius: 0;
+        padding: 1rem;
+    }
+    .profile-header-card { /* Ajustes para que cubra todo el ancho en pantallas pequeñas */
+        width: calc(100% + (1rem * 2)); /* Ajusta para padding de 1rem en el padre */
+        margin-left: -1rem;
+        margin-right: -1rem;
+        padding: var(--spacing-16) var(--spacing-24);
+        margin-bottom: var(--spacing-16);
+        border-radius: 0; /* Eliminar redondeos superiores para que se ajuste al borde de la pantalla */
+        border-bottom-left-radius: var(--border-radius-16); /* Restaurar redondeo abajo si es necesario */
+        border-bottom-right-radius: var(--border-radius-16);
+    }
+    .profile-header-card::after {
+        border-bottom-left-radius: var(--border-radius-16); /* Restaurar redondeo del glow */
+        border-bottom-right-radius: var(--border-radius-16);
+    }
+
+    .profile-header-card .welcome-search-data__title {
+        font-size: 2rem;
+    }
+    .profile-card {
+        padding: 1rem 1.5rem;
+        width: 100%; /* Ocupa todo el ancho en móviles */
+        max-width: none; /* Eliminar max-width */
+        flex-direction: column; /* Apilar en móviles */
+        align-items: center; /* Centrar elementos en móviles */
+        text-align: center;
+    }
+    .profile-main-info {
+        flex-direction: column; /* Apilar avatar y texto en móviles */
+        align-items: center;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    .profile-avatar {
+        margin-right: 0; /* Eliminar margen derecho en móviles */
+        margin-bottom: 15px; /* Añadir margen inferior */
+    }
+    .profile-name, .profile-cedula-display {
+        text-align: center; /* Centrar texto en móviles */
+    }
+    .profile-details p {
+        font-size: 1em;
+        text-align: center; /* Centrar todos los detalles en móviles */
+    }
+    .profile-details strong {
+        display: block; /* Mostrar etiqueta y valor en líneas separadas en móviles */
+        margin-right: 0;
+    }
+    .profile-edit-form {
+        padding: 1rem 1.5rem;
+        width: 100%;
+        max-width: none;
+    }
+
+    .profile-name, .edit-title {
+        font-size: 1.8em;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+    }
+
+
+    .modal-dialog-custom-width, .modal-dialog.modal-lg {
+        max-width: 95% !important;
+    }
+    .modal-body form button {
+        width: 100%;
+        margin-bottom: 0.8rem;
+    }
+    .modal-body .d-flex.justify-content-between.mt-4 {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .modal-dialog .btn-close {
+        top: 1rem;
+        right: 1rem;
+        font-size: 0.9rem;
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .modal-header .modal-title {
+        font-size: 1.5rem;
+    }
+    .modal-body .section-title {
+        font-size: 1.2rem;
+    }
+}

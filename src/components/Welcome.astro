@@ -365,6 +365,7 @@ import '../style/welcome.css';
                         showCustomAlert('Tu cuenta está pendiente de aprobación. Por favor, espera a que un administrador la apruebe.');
                     } else {
                     showCustomAlert('Inicio de sesión exitoso.', () => {
+                        localStorage.setItem('currentUserId', data.id); // 'data.id' es el ID de usuario devuelto por tu backend
                         setTimeout(() => {
                             if (data.rol === 'admin') {
                                 window.location.href = '/Admin-Control/Admin-home';

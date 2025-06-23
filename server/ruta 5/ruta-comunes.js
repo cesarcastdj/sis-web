@@ -9,6 +9,11 @@ const router = express.Router();
 
 // Obtener notificaciones pendientes
 router.get('/notificaciones', isAuthenticated, (req, res) => {
+  // Check if user role is 'admin'
+  if (!req.session.usuario || req.session.usuario.rol !== 'admin') {
+    return res.status(403).json({ error: 'Access denied: Only administrators can view notifications.' });
+  }
+
   db.query(`
     SELECT 
       n.id_notificacion,
@@ -31,6 +36,59 @@ router.get('/notificaciones', isAuthenticated, (req, res) => {
     res.json({ notificaciones: results });
   });
 });
+
+router.get('/comentarios', isAuthenticated, async (req, res) => {
+  // 1. Verificación de rol: Solo estudiantes pueden acceder a sus comentarios.
+  if (!req.session.usuario || req.session.usuario.rol !== 'estudiante') {
+    console.warn(`Intento de acceso no autorizado a /comentarios por usuario con rol: ${req.session.usuario?.rol || 'N/A'}`);
+    return res.status(403).json({ error: 'Acceso denegado: Solo los estudiantes pueden ver sus comentarios.' });
+  }
+
+  // 2. Obtener el ID del estudiante desde la sesión del usuario autenticado.
+  const id_estudiante_actual = req.session.usuario.id; 
+
+  if (!id_estudiante_actual) {
+      console.error("Error: ID de estudiante no encontrado en la sesión para /comentarios.");
+      return res.status(400).json({ error: 'ID de estudiante no disponible en la sesión.' });
+  }
+
+  console.log(`DEBUG: Obteniendo comentarios para el estudiante con ID: ${id_estudiante_actual}`);
+
+  try {
+    // 3. Consulta SQL para obtener los comentarios dirigidos a este estudiante,
+    // incluyendo la información del REMITENTE (profesor/administrador).
+    // Asume que la tabla 'comentarios' tiene una columna 'id_usuario' que guarda el ID del usuario remitente.
+    const query = `
+      SELECT 
+        c.id_comentario,
+        c.id_estudiante,
+        c.id_actividad,
+        a.nombre_actividad,
+        c.mensaje,
+        DATE_FORMAT(c.fecha_hora, '%d/%m/%Y %H:%i') AS fecha_hora_formateada, -- Formatear fecha/hora
+        u_emisor.primer_nombre AS nombre_emisor,
+        u_emisor.primer_apellido AS apellido_emisor,
+        u_emisor.rol AS rol_emisor,
+        u_emisor.cedula AS cedula_emisor
+      FROM comentarios c
+      JOIN actividades a ON c.id_actividad = a.id_actividad
+      JOIN usuarios u_emisor ON c.id_usuario = u_emisor.id_usuario -- Unir con usuarios para obtener datos del remitente (id_usuario en lugar de id_emisor)
+      WHERE c.id_estudiante = ?
+      ORDER BY c.fecha_hora DESC;
+    `;
+    
+    const [results] = await db.promise().query(query, [id_estudiante_actual]);
+
+    // 4. Enviar los comentarios como respuesta JSON.
+    res.json({ comentarios: results });
+
+  } catch (err) {
+    console.error("❌ Error obteniendo comentarios para el estudiante:", err);
+    res.status(500).json({ error: "Error al obtener comentarios", detalle: err.message });
+  }
+});
+
+
 
 // Obtener estados
 router.get('/estados', (req, res) => { // No requiere autenticación si es para todos

@@ -325,7 +325,7 @@ import "../../style/style-admin/cursos.css";
 
   document.addEventListener('DOMContentLoaded', async () => {
     await fetchCursosSummary();
-    await fetchCursos(currentPage);
+    await fetchCursos(currentPage); // Carga inicial sin término de búsqueda
     await loadSelectOptions();
 
     // Lógica para mostrar/ocultar campos de materia según el select
@@ -354,6 +354,15 @@ import "../../style/style-admin/cursos.css";
     if (formEditarCurso) {
       formEditarCurso.addEventListener('submit', editarCurso);
     }
+
+    // Event listener para el campo de búsqueda
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            currentPage = 1; // Reiniciar a la primera página en cada búsqueda
+            fetchCursos(currentPage, searchInput.value.trim());
+        });
+    }
   });
 
 
@@ -374,14 +383,19 @@ import "../../style/style-admin/cursos.css";
     }
   }
 
-  async function fetchCursos(page) {
+  async function fetchCursos(page, searchTerm = '') {
     const tableBody = document.getElementById('cursosTableBody');
     const paginationCursos = document.getElementById('paginationCursos');
     tableBody.innerHTML = '<tr><td colspan="9" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Cargando cursos...</td></tr>';
     paginationCursos.innerHTML = '';
 
     try {
-      const response = await fetch(`${API_BASE_URL}/cursos-academicos?page=${page}&limit=${itemsPerPage}`); // Usar la nueva ruta paginada
+      let url = `${API_BASE_URL}/cursos-academicos?page=${page}&limit=${itemsPerPage}`;
+      if (searchTerm) {
+        url += `&search=${encodeURIComponent(searchTerm)}`;
+      }
+
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -389,8 +403,9 @@ import "../../style/style-admin/cursos.css";
 
       tableBody.innerHTML = ''; // Limpiar el mensaje de carga
 
-      if (data.cursos.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="9" class="text-center">No se encontraron cursos.</td></tr>';
+      if (!data.cursos || data.cursos.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="9" class="text-center">No se encontraron cursos que coincidan con "${searchTerm}".</td></tr>`;
+        setupPagination(0, 1, paginationCursos, 'curso'); // Reiniciar paginación si no hay resultados
         return;
       }
 
@@ -430,7 +445,7 @@ import "../../style/style-admin/cursos.css";
         `;
       });
 
-      setupPagination(data.totalPages, page);
+      setupPagination(data.totalPages, page, paginationCursos, 'curso', searchTerm); // Pasa searchTerm a setupPagination
       attachTableEventListeners(); // Attach event listeners after content is loaded
 
     } catch (error) {
@@ -440,8 +455,7 @@ import "../../style/style-admin/cursos.css";
     }
   }
 
-  function setupPagination(totalPages, currentPage) {
-    const paginationContainer = document.getElementById('paginationCursos');
+  function setupPagination(totalPages, currentPage, paginationContainer, type, searchTerm = '') {
     paginationContainer.innerHTML = ''; // Limpiar paginación existente
 
     let startPage = Math.max(1, currentPage - 2);
@@ -480,9 +494,9 @@ import "../../style/style-admin/cursos.css";
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const page = parseInt(e.target.dataset.page);
-        if (page && page !== currentPage) {
+        if (!isNaN(page) && page !== currentPage) {
           currentPage = page;
-          fetchCursos(currentPage);
+          if (type === 'curso') fetchCursos(currentPage, searchTerm); // Pasa searchTerm
         }
       });
     });

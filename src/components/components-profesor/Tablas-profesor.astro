@@ -1,5 +1,5 @@
 ---
-// Importa tus estilos CSS aquí.
+// Import your CSS styles here.
 import "../../style/style-profesor/seccion.css";
 ---
 
@@ -11,7 +11,7 @@ import "../../style/style-profesor/seccion.css";
     </div>
   </section>
 
-  <!-- Contenedor para las tarjetas de materias generadas dinámicamente -->
+  <!-- Container for dynamically generated subject cards -->
   <section id="materias-container" class="info-cards-section">
     <p id="loading-materias" class="loading-message">Cargando materias del profesor...</p>
     <p id="error-materias" class="error-message hidden">Error al cargar las materias. Inténtalo de nuevo más tarde.</p>
@@ -21,37 +21,37 @@ import "../../style/style-profesor/seccion.css";
 
 <script type="module">
   document.addEventListener('DOMContentLoaded', async () => {
-    // Cargar el nombre de usuario primero
+    // Load user name first
     await cargarNombreUsuario();
-    // Luego, cargar las materias del profesor logueado
-    cargarMateriasProfesor(); // Ya no necesita un ID, el backend lo obtiene de la sesión
+    // Then, load the logged-in professor's subjects
+    cargarMateriasProfesor(); // No longer needs an ID, the backend gets it from the session
   });
 
   /**
    * @function cargarNombreUsuario
-   * @description Carga el nombre y la última conexión del usuario autenticado desde el backend
-   * y los muestra en la interfaz. Asume que la API de usuario usa la sesión.
+   * @description Loads the authenticated user's name and last connection from the backend
+   * and displays them on the interface. Assumes the user API uses the session.
    */
   async function cargarNombreUsuario() {
     try {
-      // Realiza una solicitud GET a tu endpoint de usuario.
-      // Se asume que este endpoint devuelve { id, primer_nombre, primer_apellido, ultima_conexion }.
+      // Make a GET request to your user endpoint.
+      // Assumes this endpoint returns { id, primer_nombre, primer_apellido, ultima_conexion }.
       const res = await fetch('http://localhost:3001/usuario', {
         method: 'GET',
-        credentials: 'include' // Importante para enviar cookies de sesión
+        credentials: 'include' // Important for sending session cookies
       });
       const data = await res.json();
 
-      console.log("Datos del usuario recibidos:", data);
+      console.log("User data received:", data);
 
       if (!res.ok || !data.id) {
-        console.warn('No se pudieron obtener los datos del usuario logueado o el usuario no está autenticado.');
+        console.warn('Could not get logged-in user data or user is not authenticated.');
         document.getElementById('name-user').textContent = 'Usuario Invitado';
         document.getElementById('ultima-conexion').textContent = '';
         return null;
       }
 
-      // Actualiza el contenido del DOM con los datos del usuario
+      // Update the DOM content with user data
       document.getElementById('name-user').textContent = `Bienvenido/a ${data.primer_nombre} ${data.primer_apellido}`;
       if (data.ultima_conexion) {
         const fecha = new Date(data.ultima_conexion).toLocaleString('es-ES', {
@@ -64,7 +64,7 @@ import "../../style/style-profesor/seccion.css";
       }
       return data.id;
     } catch (error) {
-      console.error('Error al cargar el nombre de usuario:', error);
+      console.error('Error loading user name:', error);
       document.getElementById('name-user').textContent = 'Error al cargar usuario';
       document.getElementById('ultima-conexion').textContent = '';
       return null;
@@ -73,9 +73,9 @@ import "../../style/style-profesor/seccion.css";
 
   /**
    * @function cargarMateriasProfesor
-   * @description Obtiene las materias asignadas al profesor logueado desde la API del backend
-   * y crea dinámicamente tarjetas para mostrarlas. No necesita un ID explícito,
-   * ya que el backend lo obtendrá de la sesión.
+   * @description Gets the subjects assigned to the logged-in professor from the backend API
+   * and dynamically creates cards to display them. It does not need an explicit ID,
+   * as the backend will get it from the session.
    */
   async function cargarMateriasProfesor() {
     const materiasContainer = document.getElementById('materias-container');
@@ -83,21 +83,21 @@ import "../../style/style-profesor/seccion.css";
     const errorMessage = document.getElementById('error-materias');
     const noMateriasMessage = document.getElementById('no-materias');
 
-    materiasContainer.innerHTML = ''; // Limpiar cualquier contenido previo
-    loadingMessage.classList.remove('hidden'); // Mostrar mensaje de carga
+    materiasContainer.innerHTML = ''; // Clear any previous content
+    loadingMessage.classList.remove('hidden'); // Show loading message
     errorMessage.classList.add('hidden');
     noMateriasMessage.classList.add('hidden');
 
     try {
-      // Realiza la solicitud a la ruta del backend sin incluir el ID en la URL
+      // Make the request to the backend route without including the ID in the URL
       const res = await fetch('http://localhost:3001/api/profesor/mis-materias', {
         method: 'GET',
-        credentials: 'include' // Importante para enviar la cookie de sesión/autenticación
+        credentials: 'include' // Important for sending the session/authentication cookie
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        // Si la respuesta es 401 (No autorizado), mostrar un mensaje más específico.
+        // If the response is 401 (Unauthorized), show a more specific message.
         if (res.status === 401) {
             throw new Error(`Acceso denegado: ${errorData.error || 'No autenticado. Por favor, inicia sesión.'}`);
         }
@@ -107,22 +107,23 @@ import "../../style/style-profesor/seccion.css";
       const materias = await res.json();
       console.log("Materias del profesor recibidas:", materias);
 
-      loadingMessage.classList.add('hidden'); // Ocultar mensaje de carga
+      loadingMessage.classList.add('hidden'); // Hide loading message
 
       if (materias.length === 0) {
-        noMateriasMessage.classList.remove('hidden'); // Mostrar mensaje de no hay materias
+        noMateriasMessage.classList.remove('hidden'); // Show no subjects message
         return;
       }
 
-      // Generar y añadir tarjetas para cada materia
+      // Generate and add cards for each subject
       materias.forEach(materia => {
         const card = document.createElement('a');
-        card.href = `/Students-Control/Materia/${materia.id_materia}`; // Enlace a una página de detalle de materia (ajusta según tu ruta)
-        card.className = 'card-item materia-card'; // Aplicar la clase específica para tarjetas de materia
+        // MODIFICACIÓN CLAVE: Enlace a la página de actividades y notas con el ID de la materia
+        card.href = `/Profesor-Control/actividades-notas?materiaId=${materia.id_materia}`;
+        card.className = 'card-item materia-card'; // Apply the specific class for subject cards
 
         card.innerHTML = `
           <div class="card-icon-wrapper">
-            <i class='bx bxs-book-alt card-icon'></i> <!-- Icono para la materia -->
+            <i class='bx bxs-book-alt card-icon'></i> <!-- Icon for the subject -->
           </div>
           <h3 class="card-title">${materia.nombre_materia}</h3>
           <div class="materia-details">
@@ -137,8 +138,8 @@ import "../../style/style-profesor/seccion.css";
 
     } catch (error) {
       console.error('Error al cargar las materias del profesor:', error);
-      loadingMessage.classList.add('hidden'); // Ocultar mensaje de carga
-      errorMessage.classList.remove('hidden'); // Mostrar mensaje de error
+      loadingMessage.classList.add('hidden'); // Hide loading message
+      errorMessage.classList.remove('hidden'); // Show error message
       errorMessage.textContent = `Error al cargar las materias: ${error.message}`;
     }
   }

@@ -436,6 +436,59 @@ router.get('/profesor/mis-materias', /*isAuthenticated,*/ async (req, res) => {
   }
 });
 
+router.get('/profesor/sidebard', /*isAuthenticated,*/ async (req, res) => {
+  // If your isAuthenticated middleware attaches the user ID as req.user.id_usuario, use it directly.
+  // If you don't have authentication yet or for testing, you can use a fixed ID:
+  const id_profesor = req.session.usuario ? req.session.usuario.id : null; 
+
+  console.log("DEBUG: Professor ID from session:", id_profesor); // For debugging
+
+  if (!id_profesor) {
+      // If there's no professor ID in the session, the user is not authorized
+      return res.status(401).json({ error: 'Unauthorized: Professor ID not available in session. Please log in.' });
+  }
+
+
+  console.log(`DEBUG: Getting subjects for professor with ID: ${id_profesor}`);
+
+  try {
+      const query = `
+          SELECT
+              m.id_materia,
+              m.materia AS nombre_materia,
+              c.id_curso,
+              c.curso AS nombre_curso,
+              s.id_seccion,
+              s.seccion AS nombre_seccion,
+              p.id_periodo,
+              p.periodo AS nombre_periodo,
+              (
+                  SELECT COUNT(DISTINCT um_est.id_usuario)
+                  FROM usuario_materias um_est
+                  JOIN usuarios u_est ON um_est.id_usuario = u_est.id_usuario
+                  WHERE um_est.id_materia = m.id_materia AND u_est.rol = 'estudiante'
+              ) AS total_estudiantes
+          FROM materias m
+          JOIN usuario_materias um ON m.id_materia = um.id_materia
+          JOIN usuarios u ON um.id_usuario = u.id_usuario
+          LEFT JOIN cursos c ON m.id_curso = c.id_curso
+          LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia
+          LEFT JOIN seccion s ON ms.id_seccion = s.id_seccion
+          LEFT JOIN materias_periodo mp ON m.id_materia = mp.id_materia
+          LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
+          WHERE u.rol = 'profesor' AND u.id_usuario = ?
+          GROUP BY m.id_materia, c.id_curso, s.id_seccion, p.id_periodo
+          ORDER BY m.materia; -- Corrected 'm.nombre_materia' to 'm.materia'
+      `;
+      // Using db.promise().query for consistency with other routes in this file
+      const [results] = await db.promise().query(query, [id_profesor]);
+      res.json(results);
+
+  } catch (error) {
+      console.error("❌ Error getting professor's subjects:", error);
+      res.status(500).json({ error: "Error getting professor's subjects", detalle: error.message });
+  }
+});
 
 
 export default router;

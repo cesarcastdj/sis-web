@@ -210,7 +210,7 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
           </div>
           <hr />
           <div class="edit-close-perfil">
-            <button class="btn-edit-perfil">
+            <button class="btn-edit-perfil" id="editProfileNavButton">
               <i class="bx bx-pencil"></i> Editar
             </button>
             <button class="btn-close-perfil" id="logoutButton">
@@ -332,6 +332,13 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
     cargarNotificaciones();
     configurarLogout();
     configurarAsignacion();
+    const editProfileNavButton = document.getElementById('editProfileNavButton');
+    if (editProfileNavButton) {
+      editProfileNavButton.addEventListener('click', () => {
+        // Redirige a la página de perfil al hacer clic en el botón
+        window.location.href = '/Profesor-Control/Editar-perfil'; 
+      });
+    }
   });
 
   // Función para mostrar un toast de error
