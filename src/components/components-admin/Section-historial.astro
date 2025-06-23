@@ -1,33 +1,32 @@
 ---
 import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.txt */
 ---
-
 <section class="data-content-section">
-  <!-- Nueva sección del Título "Estudiantes" con el estilo de la tarjeta de bienvenida -->
   <section class="estudiantes-header-card">
     <div class="welcome-search-data">
       <h2 class="welcome-search-data__title">Historial</h2>
     </div>
   </section>
 
-
-  <!-- La tabla de Estudiantes -->
   <div class="display-table" id="table1">
     <div class="tabla-info-person">
       <table class="table table-dark table-hover table-striped">
         <thead>
           <tr>
-            <th scope="col">Nº</th>
-            <th scope="col">Usuario</th>
-            <th scope="col">Datos anteriores</th>
-            <th scope="col">Dactos nuevos</th>
-            <th scope="col">Fecha y hora</th>
-            <th scope="col">Acciones</th>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Acción</th>
+            <th>Tabla afectada</th>
+            <th>ID registro</th>
+            <th>Datos anteriores</th>
+            <th>Datos nuevos</th>
+            <th>Fecha y hora</th>
+            <th>IP</th>
           </tr>
         </thead>
-        <tbody id="studentsTableBody">
+        <tbody id="historialTableBody">
           <tr>
-            <td colspan="8" class="text-center">Cargando Historial...</td>
+            <td colspan="9" class="text-center">Cargando Historial...</td>
           </tr>
         </tbody>
       </table>
@@ -36,554 +35,91 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
   </div>
 </section>
 
-<!-- Modal para Ver Más Información del Estudiante -->
-<div class="modal fade" id="modalVerMasInformacionEstudiante" tabindex="-1" aria-labelledby="modalVerMasInformacionEstudianteLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-custom-width modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalVerMasInformacionEstudianteLabel">Detalles del Estudiante</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal">
-          <i class='bx bx-x'></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <h6 class="section-title">Información Personal</h6>
-        <p><strong>Cédula:</strong> <span id="detalleCedula"></span></p>
-        <p><strong>Nombre Completo:</strong> <span id="detalleNombreCompleto"></span></p>
-        <p><strong>Correo:</strong> <span id="detalleCorreo"></span></p>
-        <p><strong>Teléfono:</strong> <span id="detalleTelefono"></span></p>
-        <p><strong>Dirección:</strong> <span id="detalleDireccion"></span></p>
-        <p><strong>Estado del Estudiante:</strong> <span id="detalleEstadoEstudiante"></span></p>
-        <p><strong>Última Conexión:</strong> <span id="detalleUltimaConexion"></span></p>
-
-        <h6 class="section-title mt-4">Información Académica</h6>
-        <div id="tablaAcademicaEstudiante"></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal para Editar Estudiantes -->
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script is:inline>
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     let currentPage = 1;
-    const itemsPerPage = 5; 
-    const studentsTableBody = document.getElementById('studentsTableBody');
+    const itemsPerPage = 10;
+    const historialTableBody = document.getElementById('historialTableBody');
     const paginationControls = document.getElementById('paginationControls');
 
-    // Contadores de estudiantes
-    const totalStudentsCount = document.getElementById('totalStudentsCount');
-    const activeStudentsCount = document.getElementById('activeStudentsCount');
-    const inactiveStudentsCount = document.getElementById('inactiveStudentsCount');
-
-
-    // Elementos del modal "Ver Más Información"
-    const modalVerMasInformacionEstudiante = new bootstrap.Modal(document.getElementById('modalVerMasInformacionEstudiante'));
-    const detalleCedula = document.getElementById('detalleCedula');
-    const detalleNombreCompleto = document.getElementById('detalleNombreCompleto');
-    const detalleCorreo = document.getElementById('detalleCorreo');
-    const detalleTelefono = document.getElementById('detalleTelefono');
-    const detalleDireccion = document.getElementById('detalleDireccion');
-    const detalleEstadoEstudiante = document.getElementById('detalleEstadoEstudiante');
-    const detalleUltimaConexion = document.getElementById('detalleUltimaConexion');
-    const detallePeriodoAcademico = document.getElementById('detallePeriodoAcademico');
-    const detalleSeccion = document.getElementById('detalleSeccion');
-    const detalleCursos = document.getElementById('detalleCursos');
-    const detalleMaterias = document.getElementById('detalleMaterias');
-    const detalleEstadoMateria = document.getElementById('detalleEstadoMateria');
-
-    // Elementos del Modal Editar Estudiantes
-    const modalEditarEstudiante = new bootstrap.Modal(document.getElementById('modalEditarEstudiante'));
-    const formEditarEstudiante = document.getElementById('formEditarEstudiante');
-    const editIdUsuario = document.getElementById('editIdUsuario');
-    const editCedula = document.getElementById('editCedula');
-    const editCorreo = document.getElementById('editCorreo');
-    const editPrimerNombre = document.getElementById('editPrimerNombre');
-    const editSegundoNombre = document.getElementById('editSegundoNombre');
-    const editPrimerApellido = document.getElementById('editPrimerApellido');
-    const editSegundoApellido = document.getElementById('editSegundoApellido');
-    const editCodigoAreaSelect = document.querySelector('#modalEditarEstudiante .codigo-area-edit');
-    const editNumeroTelefonoInput = document.querySelector('#modalEditarEstudiante .numero-telefono-edit');
-    const editDireccion = document.getElementById('editDireccion');
-    const editPeriodoAcademico = document.getElementById('editPeriodoAcademico'); 
-    const editCurso = document.getElementById('editCurso');
-    const editMaterias = document.getElementById('editMaterias');
-    const editSeccion = document.getElementById('editSeccion');
-    const btnGuardarEdicion = document.getElementById('btnGuardarEdicion');
-
-    // Cargar datos al abrir el modal de Editar Estudiantes
-    modalEditarEstudiante._element.addEventListener('shown.bs.modal', async function() {
-      await cargarPeriodos('edit'); 
-      await cargarCursos('edit'); 
-      await cargarSecciones('edit'); 
-    });
-
-    // Función para cargar periodos académicos
-    async function cargarPeriodos(prefix = '') {
-      const targetPeriodoSelect = prefix === 'edit' ? editPeriodoAcademico : null; 
-      if (!targetPeriodoSelect) return; 
-
-      targetPeriodoSelect.disabled = true;
-      targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Cargando periodos...</option>';
+    function formatearJson(texto) {
+      if (!texto) return 'N/A';
       try {
-        const response = await fetch('http://localhost:3001/api/periodos');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const periodos = await response.json();
-        targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Seleccione un periodo</option>';
-        periodos.forEach(periodo => {
-          const option = document.createElement('option');
-          option.value = periodo.id_periodo;
-          option.textContent = periodo.periodo; 
-          targetPeriodoSelect.appendChild(option);
-        });
-        targetPeriodoSelect.disabled = false;
-      } catch (error) {
-        console.error('Error cargando periodos:', error);
-        targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Error al cargar periodos</option>';
-        mostrarErrorAlUsuario('Error al cargar periodos académicos. Intente recargar la página.');
+        const datos = JSON.parse(texto);
+        return Object.entries(datos)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join('<br>');
+      } catch {
+        return texto;
       }
     }
 
+    async function loadHistorial(page) {
+  historialTableBody.innerHTML = `<tr><td colspan="9" class="text-center">Cargando historial...</td></tr>`;
+  paginationControls.innerHTML = '';
 
-    // Función para cargar cursos
-    async function cargarCursos(prefix = '') {
-      const targetCursoSelect = prefix === 'edit' ? editCurso : null; 
-      if (!targetCursoSelect) return; 
-
-      targetCursoSelect.disabled = true; 
-      targetCursoSelect.innerHTML = '<option value="" selected disabled>Cargando cursos...</option>';
-      try {
-        const response = await fetch('http://localhost:3001/api/cursos');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const cursos = await response.json();
-        targetCursoSelect.innerHTML = '<option value="" selected disabled>Seleccione un curso</option>';
-        cursos.forEach(curso => {
-          const option = document.createElement('option');
-          option.value = curso.id_curso;
-          option.textContent = curso.curso;
-          targetCursoSelect.appendChild(option);
-        });
-        targetCursoSelect.disabled = false; 
-      }
-      catch (error) {
-        console.error('Error cargando cursos:', error);
-        targetCursoSelect.innerHTML = '<option value="" selected disabled>Error al cargar cursos</option>';
-        mostrarErrorAlUsuario('Error al cargar cursos. Intente recargar la página.');
-      }
-    }
-
-    // Función para cargar secciones
-    async function cargarSecciones(prefix = '') {
-      const targetSeccionSelect = prefix === 'edit' ? editSeccion : null; 
-      if (!targetSeccionSelect) return; 
-
-      targetSeccionSelect.innerHTML = '<option value="" selected disabled>Cargando secciones...</option>';
-      targetSeccionSelect.disabled = true;
-      try {
-        const response = await fetch('http://localhost:3001/api/secciones');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const secciones = await response.json();
-        targetSeccionSelect.innerHTML = '<option value="" selected disabled>Seleccione una sección</option>';
-        if (secciones.length === 0) {
-          targetSeccionSelect.innerHTML = '<option value="" disabled>No hay secciones disponibles</option>';
-        } else {
-          secciones.forEach(seccion => {
-            const option = document.createElement('option');
-            option.value = seccion.id_seccion;
-            option.textContent = seccion.seccion;
-            targetSeccionSelect.appendChild(option);
-          });
-          targetSeccionSelect.disabled = false;
-        }
-      }
-      catch (error) {
-        console.error('Error cargando secciones:', error);
-        targetSeccionSelect.innerHTML = '<option value="" selected disabled>Error al cargar secciones</option>';
-        mostrarErrorAlUsuario('Error al cargar secciones. Intente nuevamente.');
-      }
-    }
-
-    // Validar número de teléfono para edición
-    editNumeroTelefonoInput.addEventListener('input', function() {
-      this.value = this.value.replace(/\D/g, '').slice(0, 7);
-      if (this.value.length !== 7) {
-        mostrarError(this, 'Debe contener 7 dígitos');
-      } else {
-        limpiarError(this);
+  try {
+    const response = await fetch(`http://localhost:3001/api/historial?pagina=${page}&porPagina=${itemsPerPage}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
       }
     });
 
-    // Manejar envío del formulario de Edición de Estudiante
-    formEditarEstudiante.addEventListener('submit', async function(e) {
-      e.preventDefault();
-
-      const confirmResult = await mostrarConfirmacion(
-            `¿Estás seguro de guardar los cambios para este estudiante?`
-        );
-      if (!confirmResult) return;
-
-      const id_usuario = editIdUsuario.value;
-      const telefonoCompleto = `${editCodigoAreaSelect.value}-${editNumeroTelefonoInput.value}`;
-      if (editNumeroTelefonoInput.value.trim() !== '' && !/^\d{7}$/.test(editNumeroTelefonoInput.value)) {
-        mostrarError(editNumeroTelefonoInput, 'El teléfono debe tener 7 dígitos');
+    if (!response.ok) {
+      if (response.status === 401) {
+        window.location.href = '/login';
         return;
       }
-      
-      btnGuardarEdicion.disabled = true;
-      btnGuardarEdicion.innerHTML = `
-        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        Guardando...
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Respuesta completa del backend:", data);
+
+    // Manejo más robusto de la respuesta
+    const historial = data.datos || data.historial || data; // Intenta con varios posibles nombres
+    const pagination = data.paginacion || {
+      totalPaginas: Math.ceil((data.totalRegistros || historial.length) / itemsPerPage),
+      pagina: page
+    };
+    
+    const totalPages = pagination.totalPaginas || 1;
+    currentPage = pagination.pagina || page;
+
+    historialTableBody.innerHTML = '';
+
+    if (!historial || historial.length === 0) {
+      historialTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No se encontraron registros de historial.</td></tr>`;
+      return;
+    }
+
+    historial.forEach((registro) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${registro.id_historial}</td>
+        <td>${registro.primer_nombre || 'Usuario'} ${registro.primer_apellido || ''}</td>
+        <td>${registro.accion}</td>
+        <td>${registro.tabla_afectada || 'N/A'}</td>
+        <td>${registro.id_registro_afectado || 'N/A'}</td>
+        <td>${formatearJson(registro.datos_anteriores)}</td>
+        <td>${formatearJson(registro.datos_nuevos)}</td>
+        <td>${new Date(registro.fecha_hora).toLocaleString()}</td>
+        <td>${registro.ip || 'N/A'}</td>
       `;
-
-      try {
-        const formData = {
-          cedula: editCedula.value.trim(), 
-          correo: editCorreo.value.trim(),
-          primerNombre: document.getElementById('editPrimerNombre').value.trim(),
-          segundoNombre: document.getElementById('editSegundoNombre').value.trim(),
-          primerApellido: document.getElementById('editPrimerApellido').value.trim(),
-          segundoApellido: document.getElementById('editSegundoApellido').value.trim(),
-          telefono: telefonoCompleto,
-          direccion: editDireccion.value.trim(), 
-          periodoAcademico: editPeriodoAcademico.value && editPeriodoAcademico.value !== '' ? editPeriodoAcademico.value : undefined,
-          materias: editMaterias.value && editMaterias.value !== '' ? editMaterias.value : undefined, 
-          cursos: editCurso.value && editCurso.value !== '' ? editCurso.value : undefined, 
-          secciones: editSeccion.value && editSeccion.value !== '' ? editSeccion.value : undefined, 
-        };
-
-
-        const response = await fetch(`http://localhost:3001/api/estudiantes/${id_usuario}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          // Si la respuesta tiene el mensaje de éxito, igual muestra éxito
-          if (data && data.message && data.message.includes('actualizado')) {
-            mostrarMensajeExito(data.message);
-            setTimeout(() => {
-              modalEditarEstudiante.hide();
-              loadStudents(currentPage);
-            }, 1500);
-            return;
-          }
-          throw new Error(data.detalle || data.error || 'Error al actualizar el estudiante');
-        }
-
-        mostrarMensajeExito('Estudiante actualizado exitosamente');
-        
-        // Retraso para asegurar que el modal se oculte antes de recargar, y que el usuario vea el mensaje.
-        setTimeout(() => {
-          modalEditarEstudiante.hide();
-          loadStudents(currentPage); // Recarga la tabla para reflejar los cambios
-        }, 1500);
-
-      } catch (error) {
-        console.error('Error en la actualización del estudiante:', error);
-        mostrarErrorAlUsuario(error.message);
-      } finally {
-        btnGuardarEdicion.disabled = false;
-        btnGuardarEdicion.textContent = 'Guardar Cambios';
-      }
+      historialTableBody.appendChild(row);
     });
 
+    setupPagination(totalPages, currentPage);
+  } catch (error) {
+    console.error('Error al cargar historial:', error);
+    historialTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error al cargar historial. ${error.message}</td></tr>`;
+  }
+}
 
-    // Función para inicializar los dropdowns de Bootstrap después de cargar la tabla
-    function initializeDropdowns() {
-      console.log('window.bootstrap:', typeof window.bootstrap, window.bootstrap);
-      if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
-        const dropdownToggles = studentsTableBody.querySelectorAll('.dropdown-toggle');
-        console.log('Attempting to initialize', dropdownToggles.length, 'Bootstrap Dropdowns...');
-        dropdownToggles.forEach(button => {
-          // Destruir instancias existentes para evitar duplicados si la tabla se recarga
-          const existingDropdown = bootstrap.Dropdown.getInstance(button);
-          if (existingDropdown) {
-            existingDropdown.dispose();
-            console.log(`Disposed existing dropdown for #${button.id}`);
-          }
-          // Crear nueva instancia de Dropdown con popperConfig para evitar ser cortado
-          new bootstrap.Dropdown(button, {
-            popperConfig: function (defaultBsPopperConfig) {
-              return {
-                ...defaultBsPopperConfig,
-                placement: 'bottom-end', 
-                strategy: 'fixed', 
-                modifiers: [
-                  ...(defaultBsPopperConfig.modifiers || []),
-                  {
-                    name: 'offset',
-                    options: {
-                      offset: [0, 8] 
-                    }
-                  },
-                ],
-              };
-            }
-          });
-          console.log(`Initialized new dropdown for #${button.id}`);
-        });
-        if (dropdownToggles.length === 0) {
-            console.log('No dropdown toggles found to initialize.');
-        } else {
-            console.log(`✅ Finished initializing ${dropdownToggles.length} Bootstrap Dropdowns.`);
-        }
-      } else {
-        console.warn('⚠️ bootstrap.Dropdown no está disponible. Esto es crucial para que los dropdowns funcionen. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
-      }
-    }
-
-    // Función principal para cargar estudiantes en la tabla y actualizar contadores
-    async function loadStudents(page) {
-      studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center">Cargando estudiantes...</td></tr>`;
-      paginationControls.innerHTML = ''; 
-      totalStudentsCount.textContent = '...';
-      activeStudentsCount.textContent = '...';
-      inactiveStudentsCount.textContent = '...';
-
-      try {
-        const response = await fetch(`http://localhost:3001/api/estudiantes?page=${page}&limit=${itemsPerPage}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron estudiantes.</td></tr>`;
-            totalStudentsCount.textContent = '0';
-            activeStudentsCount.textContent = '0';
-            inactiveStudentsCount.textContent = '0';
-            return;
-          }
-          throw new Error(`Error HTTP: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const estudiantes = data.estudiantes;
-        const totalPages = data.totalPages;
-        currentPage = data.currentPage;
-
-
-        // Actualizar contadores
-        totalStudentsCount.textContent = data.totalCount || '0';
-        activeStudentsCount.textContent = data.activeCount || '0';
-        inactiveStudentsCount.textContent = data.inactiveCount || '0';
-
-        studentsTableBody.innerHTML = ''; 
-
-        if (estudiantes.length === 0) {
-          studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron estudiantes.</td></tr>`;
-          return;
-        }
-
-        // Procesar los resultados para asegurar que los arrays de IDs y nombres sean vacíos si no hay datos
-        const processedEstudiantes = estudiantes.map(estudiante => ({
-          ...estudiante,
-          // Aseguramos que `periodoAcademicoNames` sea un array, incluso si viene vacío de la DB
-          // Si el backend envía "N/A", lo convertimos en un array que contiene "N/A"
-          periodoAcademicoNames: (typeof estudiante.periodoAcademicoNames === 'string' && estudiante.periodoAcademicoNames && estudiante.periodoAcademicoNames !== 'N/A') 
-                                ? estudiante.periodoAcademicoNames.split(',').map(s => s.trim()).filter(Boolean) 
-                                : ['N/A'], // Si es N/A o vacío, lo dejamos como un array con 'N/A'
-          periodoAcademicoIds: (typeof estudiante.periodoAcademicoIds === 'string' && estudiante.periodoAcademicoIds) ? estudiante.periodoAcademicoIds.split(',').map(s => s.trim()).filter(Boolean) : [],
-          cursosNames: (typeof estudiante.cursosNames === 'string' && estudiante.cursosNames) ? estudiante.cursosNames.split(',').map(s => s.trim()).filter(Boolean) : [],
-          cursosIds: (typeof estudiante.cursosIds === 'string' && estudiante.cursosIds) ? estudiante.cursosIds.split(',').map(s => s.trim()).filter(Boolean) : [],
-          materiasNames: (typeof estudiante.materiasNames === 'string' && estudiante.materiasNames) ? estudiante.materiasNames.split(',').map(s => s.trim()).filter(Boolean) : [],
-          materiasIds: (typeof estudiante.materiasIds === 'string' && estudiante.materiasIds) ? estudiante.materiasIds.split(',').map(s => s.trim()).filter(Boolean) : [],
-          seccionNames: (typeof estudiante.seccionNames === 'string' && estudiante.seccionNames) ? estudiante.seccionNames.split(',').map(s => s.trim()).filter(Boolean) : [],
-          seccionIds: (typeof estudiante.seccionIds === 'string' && estudiante.seccionIds) ? estudiante.seccionIds.split(',').map(s => s.trim()).filter(Boolean) : [],
-          direccion: estudiante.direccion || 'N/A' 
-        }));
-
-
-        processedEstudiantes.forEach((estudiante, index) => {
-          const studentDataAttribute = JSON.stringify(estudiante);
-
-          const studentStatus = estudiante.estado === 1 ? 'Activo' : (estudiante.estado === 0 ? 'Inactivo' : 'Desconocido'); 
-          const lastConnectionText = estudiante.ultima_conexion ? new Date(estudiante.ultima_conexion).toLocaleDateString() : 'No ha ingresado a la pagina';
-
-          const row = document.createElement('tr');
-          row.dataset.id = estudiante.id_usuario;
-          row.dataset.studentData = studentDataAttribute; 
-
-
-          row.innerHTML = `
-            <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
-            <td>${estudiante.periodoAcademicoNames.join(', ')}</td> 
-            <td>${estudiante.cedula || ''}</td>
-            <td>${estudiante.primer_nombre || ''}</td>
-            <td>${estudiante.primer_apellido || ''}</td>
-            <td>${studentStatus}</td>
-            <td>${lastConnectionText}</td>
-            <td>
-              <div class="dropdown">
-                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton${estudiante.id_usuario}" data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class='bx bx-dots-vertical-rounded'></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${estudiante.id_usuario}">
-                  <li><a class="dropdown-item" href="#" data-action="ver-mas" data-id="${estudiante.id_usuario}"><i class='bx bx-info-circle me-2'></i>Ver más información</a></li>
-                  <li><a class="dropdown-item" href="#" data-action="editar" data-id="${estudiante.id_usuario}"><i class='bx bxs-edit-alt me-2'></i>Editar</a></li>
-                  <li><a class="dropdown-item" href="#" data-action="eliminar" data-id="${estudiante.id_usuario}"><i class='bx bx-trash me-2'></i>Desactivar Estudiante</a></li>
-                </ul>
-              </div>
-            </td>
-          `;
-          studentsTableBody.appendChild(row);
-        });
-
-        console.log('window.bootstrap:', typeof window.bootstrap, window.bootstrap);
-        if (typeof window.bootstrap !== 'undefined') {
-          console.log('window.bootstrap.Dropdown:', typeof window.bootstrap.Dropdown, window.bootstrap.Dropdown);
-        } else {
-          console.error('Bootstrap global object (window.bootstrap) is not found. Ensure Bootstrap JS is loaded before this script.');
-        }
-
-        initializeDropdowns();
-
-        setupPagination(totalPages, currentPage);
-        setupActionListeners(processedEstudiantes); 
-      } catch (error) {
-        console.error('Error al cargar estudiantes:', error);
-        studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar estudiantes. Intente nuevamente.</td></tr>`;
-        totalStudentsCount.textContent = '0';
-        activeStudentsCount.textContent = '0';
-        inactiveStudentsCount.textContent = '0';
-      }
-    }
-
-    // Configurar listeners para los botones de acción en cada fila
-    function setupActionListeners(estudiantesData) {
-        studentsTableBody.querySelectorAll('.dropdown-item').forEach(item => {
-            item.removeEventListener('click', handleActionClick); 
-            item.addEventListener('click', handleActionClick);
-
-            function handleActionClick(e) {
-                e.preventDefault();
-                const action = e.currentTarget.dataset.action;
-                const userId = e.currentTarget.dataset.id;
-                const student = estudiantesData.find(s => s.id_usuario.toString() === userId);
-
-                if (!student) {
-                    console.error('Estudiante no encontrado para ID:', userId);
-                    return;
-                }
-
-                switch (action) {
-                    case 'ver-mas':
-                        mostrarDetallesEstudiante(student);
-                        break;
-                    case 'editar':
-                        editarEstudiante(student);
-                        break;
-                    case 'eliminar': 
-                        desactivarEstudiante(student);
-                        break;
-                    default:
-                        console.warn('Acción desconocida:', action);
-                }
-            }
-        });
-    }
-
-    // Mostrar los detalles del estudiante en el modal
-    async function mostrarDetallesEstudiante(estudiante) {
-        // Robustez: solo asigno si el elemento existe
-        if (detalleCedula) detalleCedula.textContent = estudiante.cedula || 'N/A';
-        if (detalleNombreCompleto) detalleNombreCompleto.textContent = `${estudiante.primer_nombre || ''} ${estudiante.segundo_nombre || ''} ${estudiante.primer_apellido || ''} ${estudiante.segundo_apellido || ''}`.trim() || 'N/A';
-        if (detalleCorreo) detalleCorreo.textContent = estudiante.correo || 'N/A';
-        if (detalleTelefono) detalleTelefono.textContent = estudiante.telefono || 'N/A';
-        if (detalleDireccion) detalleDireccion.textContent = estudiante.direccion || 'N/A';
-        if (detalleEstadoEstudiante) detalleEstadoEstudiante.textContent = estudiante.estado === 1 ? 'Activo' : (estudiante.estado === 0 ? 'Inactivo' : 'N/A');
-        if (detalleUltimaConexion) detalleUltimaConexion.textContent = estudiante.ultima_conexion ? new Date(estudiante.ultima_conexion).toLocaleDateString() : 'No ha ingresado a la pagina';
-        if (detallePeriodoAcademico) detallePeriodoAcademico.textContent = (estudiante.periodoAcademicoNames && estudiante.periodoAcademicoNames.length > 0) ? estudiante.periodoAcademicoNames.join(', ') : 'N/A';
-        if (detalleSeccion) detalleSeccion.textContent = (estudiante.seccionNames && estudiante.seccionNames.length > 0) ? estudiante.seccionNames.join(', ') : 'N/A';
-        if (detalleCursos) detalleCursos.textContent = (estudiante.cursosNames && estudiante.cursosNames.length > 0) ? estudiante.cursosNames.join(', ') : 'Ninguno';
-        if (detalleMaterias) detalleMaterias.textContent = (estudiante.materiasNames && estudiante.materiasNames.length > 0) ? estudiante.materiasNames.join(', ') : 'Ninguna';
-        if (detalleEstadoMateria) detalleEstadoMateria.textContent = (estudiante.estado_materia === 'Aprobado' ? 'Aprobado' : (estudiante.estado_materia === 'Reprobado' ? 'Reprobado' : 'N/A'));
-        // Tabla académica cruzada
-        let tablaAcademica = document.getElementById('tablaAcademicaEstudiante');
-        if (tablaAcademica) {
-          tablaAcademica.innerHTML = '<div class="text-center text-muted">Cargando información académica detallada...</div>';
-          try {
-            const resp = await fetch(`http://localhost:3001/api/estudiantes/${estudiante.id_usuario}/academico`);
-            if (!resp.ok) throw new Error('Error al obtener información académica cruzada');
-            const data = await resp.json();
-            if (Array.isArray(data.academico) && data.academico.length > 0) {
-              let tabla = `<div class=\"mt-3\"><strong>Detalle Académico:</strong><div class=\"table-responsive\"><table class=\"table table-bordered table-sm table-dark\"><thead><tr><th>Período</th><th>Curso</th><th>Materia</th><th>Sección</th><th>Estado</th></tr></thead><tbody>`;
-              data.academico.forEach(row => {
-                tabla += `<tr><td>${row.nombre_periodo || 'N/A'}</td><td>${row.nombre_curso || 'N/A'}</td><td>${row.nombre_materia || 'N/A'}</td><td>${row.nombre_seccion || 'N/A'}</td><td class="${row.estado_materia === 'Aprobado' ? 'text-success' : 'text-danger'}"> ${row.estado_materia || 'N/A'}</td></tr>`;
-              });
-              tabla += '</tbody></table></div></div>';
-              tablaAcademica.innerHTML = tabla;
-            } else {
-              tablaAcademica.innerHTML = '<div class="text-center text-muted">No hay información académica cruzada registrada.</div>';
-            }
-          } catch (err) {
-            tablaAcademica.innerHTML = '<div class="text-center text-danger">Error al cargar información académica cruzada.</div>';
-          }
-        }
-        modalVerMasInformacionEstudiante.show();
-    }
-
-
-    // Función para Editar Estudiante
-    async function editarEstudiante(estudiante) {
-        if (editIdUsuario) editIdUsuario.value = estudiante.id_usuario;
-        if (editCedula) editCedula.value = estudiante.cedula || '';
-        if (editCorreo) editCorreo.value = estudiante.correo || '';
-        if (editPrimerNombre) editPrimerNombre.value = estudiante.primer_nombre || '';
-        if (editSegundoNombre) editSegundoNombre.value = estudiante.segundo_nombre || '';
-        if (editPrimerApellido) editPrimerApellido.value = estudiante.primer_apellido || '';
-        if (editSegundoApellido) editSegundoApellido.value = estudiante.segundo_apellido || '';
-        if (editDireccion) editDireccion.value = estudiante.direccion || '';
-        if (editCodigoAreaSelect && editNumeroTelefonoInput) {
-        if (estudiante.telefono) {
-            const [codigo, numero] = estudiante.telefono.split('-');
-            editCodigoAreaSelect.value = codigo || '';
-            editNumeroTelefonoInput.value = numero || '';
-        } else {
-            editCodigoAreaSelect.value = '';
-            editNumeroTelefonoInput.value = '';
-        }
-        }
-        // No referencias a campos académicos eliminados
-        modalEditarEstudiante.show();
-    }
-
-    // Función para Desactivar Estudiante (Eliminación Lógica)
-    async function desactivarEstudiante(estudiante) {
-        const confirmResult = await mostrarConfirmacion(
-            `¿Estás seguro de que quieres desactivar al estudiante ${estudiante.primer_nombre} ${estudiante.primer_apellido}? Esto cambiará su estado a "Inactivo".`
-        );
-
-        if (!confirmResult) return;
-
-        try {
-            const response = await fetch(`http://localhost:3001/api/estudiantes/${estudiante.id_usuario}/estado`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ estado: 0 }) 
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Error al desactivar el estudiante');
-            }
-
-            mostrarMensajeExito(`Estudiante ${estudiante.primer_nombre} ${estudiante.primer_apellido} ha sido desactivado exitosamente.`);
-            loadStudents(currentPage); 
-        } catch (error) {
-            console.error('Error al desactivar estudiante:', error);
-            mostrarErrorAlUsuario(`Error al desactivar al estudiante: ${error.message}`);
-        }
-    }
-
-
-    // Función de paginación (generalizada)
     function setupPagination(totalPages, currentPage) {
       paginationControls.innerHTML = '';
       if (totalPages <= 1) return;
@@ -591,182 +127,34 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       const ul = document.createElement('ul');
       ul.className = 'pagination-list flex justify-center items-center gap-2';
 
-      const prevLi = document.createElement('li');
-      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-      const prevLink = document.createElement('a');
-      prevLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
-      prevLink.href = '#';
-      prevLink.textContent = 'Anterior';
-      prevLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (currentPage > 1) {
-          loadStudents(currentPage - 1);
-        }
-      });
-      prevLi.appendChild(prevLink);
-      ul.appendChild(prevLi);
-
-      let startPage = Math.max(1, currentPage - 2);
-      let endPage = Math.min(totalPages, currentPage + 2);
-
-      if (startPage > 1) {
+      const crearLink = (text, page, disabled = false, active = false) => {
         const li = document.createElement('li');
-        li.className = 'page-item';
-        const link = document.createElement('a');
-        link.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
-        link.href = '#';
-        link.textContent = '1';
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          loadStudents(1);
-        });
-        li.appendChild(link);
-        ul.appendChild(li);
-        if (startPage > 2) {
-          const ellipsis = document.createElement('li');
-          ellipsis.className = 'page-item disabled';
-          ellipsis.innerHTML = '<span class="page-link rounded-lg px-3 py-1 bg-gray-700 text-white">...</span>';
-          ul.appendChild(ellipsis);
+        li.className = `page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}`;
+        const a = document.createElement('a');
+        a.className = `page-link rounded-lg px-3 py-1 ${active ? 'bg-purple-800' : 'bg-gray-700'} text-white hover:bg-purple-600`;
+        a.href = '#';
+        a.textContent = text;
+        if (!disabled) {
+          a.addEventListener('click', (e) => {
+            e.preventDefault();
+            loadHistorial(page);
+          });
         }
+        li.appendChild(a);
+        return li;
+      };
+
+      ul.appendChild(crearLink('Anterior', currentPage - 1, currentPage === 1));
+
+      for (let i = 1; i <= totalPages; i++) {
+        ul.appendChild(crearLink(i, i, false, i === currentPage));
       }
 
-      for (let i = startPage; i <= endPage; i++) {
-        const li = document.createElement('li');
-        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
-        const link = document.createElement('a');
-        link.className = `page-link rounded-lg px-3 py-1 ${i === currentPage ? 'bg-purple-800' : 'bg-gray-700'} text-white hover:bg-purple-600`;
-        link.href = '#';
-        link.textContent = i;
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          loadStudents(i);
-        });
-        li.appendChild(link);
-        ul.appendChild(li);
-      }
-
-      if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-          const ellipsis = document.createElement('li');
-          ellipsis.className = 'page-item disabled';
-          ellipsis.innerHTML = '<span class="page-link rounded-lg px-3 py-1 bg-gray-700 text-white">...</span>';
-          ul.appendChild(ellipsis);
-        }
-        const li = document.createElement('li');
-        li.className = 'page-item';
-        const link = document.createElement('a');
-        link.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
-        link.href = '#';
-        link.textContent = totalPages;
-        link.addEventListener('click', (e) => {
-          e.preventDefault();
-          loadStudents(totalPages);
-        });
-        li.appendChild(link);
-        ul.appendChild(li);
-      }
-
-      const nextLi = document.createElement('li');
-      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-      const nextLink = document.createElement('a');
-      nextLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
-      nextLink.href = '#';
-      nextLink.textContent = 'Siguiente';
-      nextLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (currentPage < totalPages) {
-          loadStudents(currentPage + 1);
-        }
-      });
-      nextLi.appendChild(nextLink);
-      ul.appendChild(nextLi);
+      ul.appendChild(crearLink('Siguiente', currentPage + 1, currentPage === totalPages));
 
       paginationControls.appendChild(ul);
     }
 
-    loadStudents(1); 
-
-    // Funciones auxiliares
-    function mostrarError(elemento, mensaje) {
-      elemento.classList.add('is-invalid');
-      const errorElement = elemento.nextElementSibling || elemento.parentNode.querySelector('.invalid-feedback');
-      if (errorElement) {
-        errorElement.textContent = mensaje;
-        errorElement.style.display = 'block';
-      }
-    }
-
-    function limpiarError(elemento) {
-      elemento.classList.remove('is-invalid');
-      const errorElement = elemento.nextElementSibling || elemento.parentNode.querySelector('.invalid-feedback');
-      if (errorElement) {
-        errorElement.style.display = 'none';
-      }
-    }
-
-    function mostrarMensajeExito(mensaje) {
-      const alerta = document.createElement('div');
-      alerta.className = 'alert alert-success position-fixed top-0 end-0 m-3';
-      alerta.style.zIndex = '1100';
-      alerta.textContent = mensaje;
-      document.body.appendChild(alerta);
-      
-      setTimeout(() => {
-        alerta.remove();
-      }, 3000);
-    }
-
-    function mostrarErrorAlUsuario(mensaje) {
-      const alerta = document.createElement('div');
-      alerta.className = 'alert alert-danger position-fixed top-0 end-0 m-3';
-      alerta.style.zIndex = '1100';
-      alerta.textContent = mensaje;
-      document.body.appendChild(alerta);
-      
-      setTimeout(() => {
-        alerta.remove();
-      }, 5000);
-    }
-
-    // Función para mostrar un modal de confirmación personalizado
-    function mostrarConfirmacion(mensaje) {
-      return new Promise((resolve) => {
-        const confirmModalHtml = `
-          <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="customConfirmModalLabel">Confirmación</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                  ${mensaje}
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirmar</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
-        const confirmModalElement = document.getElementById('customConfirmModal');
-        const customConfirmModal = new bootstrap.Modal(confirmModalElement);
-
-        const confirmActionBtn = document.getElementById('confirmActionBtn');
-        confirmActionBtn.addEventListener('click', () => {
-          customConfirmModal.hide();
-          resolve(true);
-        });
-
-        confirmModalElement.addEventListener('hidden.bs.modal', () => {
-          confirmModalElement.remove();
-          resolve(false); 
-        }, { once: true }); 
-
-        customConfirmModal.show();
-      });
-    }
+    loadHistorial(1);
   });
 </script>

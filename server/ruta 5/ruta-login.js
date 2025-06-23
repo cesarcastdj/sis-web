@@ -5,6 +5,7 @@ import { isAuthenticated } from '../middleware/protegerRutas.js';
 import { hashPassword } from '../f(x)/contrasenias.js';
 import { syncRelationships, syncSingleRelationship } from '../f(x)/relaciones.js';
 import bcrypt from 'bcrypt';
+import { registrarAccion } from '../middleware/historial.js';
 
 const router = express.Router();
 router.post('/login', async (req, res) => {
@@ -19,6 +20,14 @@ router.post('/login', async (req, res) => {
         const match = await comparePassword(contraseña, user.contraseña);
   
         if (!match) {
+           // Registrar intento fallido de login
+          const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+          const fechaHora = new Date().toISOString().slice(0, 19).replace('T', ' ');
+          db.query(
+            'INSERT INTO historial_acciones (id_usuario, accion, fecha_hora, ip) VALUES (?, ?, ?, ?)',
+            [user.id_usuario, 'Intento fallido de login', fechaHora, ip]
+          );
+
           return res.status(401).json({ error: 'Contraseña incorrecta' });
         }
   
@@ -49,6 +58,13 @@ router.post('/login', async (req, res) => {
           ultima_conexion: currentDateTime
         };
   
+        // Registrar login exitoso
+        const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        db.query(
+          'INSERT INTO historial_acciones (id_usuario, accion, fecha_hora, ip) VALUES (?, ?, ?, ?)',
+          [user.id_usuario, 'Login exitoso', currentDateTime, ip]
+        );
+
         return res.json({
           rol: user.rol,
           usuario: req.session.usuario
@@ -62,6 +78,17 @@ router.post('/login', async (req, res) => {
   // Logout
   router.post('/logout', (req, res) => {
     req.session.destroy(() => {
+
+      // Registrar logout
+        if (usuario) {
+            const fechaHora = new Date().toISOString().slice(0, 19).replace('T', ' ');
+            const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            db.query(
+                'INSERT INTO historial_acciones (id_usuario, accion, fecha_hora, ip) VALUES (?, ?, ?, ?)',
+                [usuario.id, 'Logout', fechaHora, ip]
+            );
+        }
+
       res.clearCookie('connect.sid');
       res.json({ message: 'Sesión cerrada' });
     });
@@ -72,7 +99,7 @@ router.post('/login', async (req, res) => {
     res.json(req.session.usuario);
   });
 
-  router.post('/register', async (req, res) => {
+  router.post('/register',registrarAccion('Registro de nuevo usuario', 'usuarios'), async (req, res) => {
     try {
       const {
         cedula, primerNombre, segundoNombre = null,
@@ -148,7 +175,7 @@ router.post('/login', async (req, res) => {
   });
   
   // Esta es una api para terminar el registro de un usuario (asignar rol, secciones, etc.)
-  router.post('/asignar-usuario', (req, res) => {
+  router.post('/asignar-usuario',isAuthenticated,registrarAccion('Asignación de rol a usuario', 'usuarios'), (req, res) => {
     // Usamos un bloque try...catch para errores de sintaxis o síncronos.
     try {
       const { id_usuario, rol, secciones = [], cursos = [], materias = [] } = req.body;
@@ -291,7 +318,7 @@ router.post('/login', async (req, res) => {
    * @param {number} req.params.id - ID del usuario a actualizar.
    * @returns {json} Mensaje de éxito o error.
    */
-  router.put('/usuarios/:id', async (req, res) => {
+  router.put('/usuarios/:id',isAuthenticated,registrarAccion('Actualización de perfil', 'usuarios'), async (req, res) => {
     const { id } = req.params;
     const {
       primer_nombre,

@@ -7,6 +7,134 @@ const router = express.Router();
 
 // --- Rutas de Comunes (API endpoints) ---
 
+// Obtener historial de acciones (solo admin)
+router.get('/historial', isAuthenticated, (req, res) => {
+    if (req.session.usuario.rol !== 'admin') {
+        return res.status(403).json({ error: 'Acceso no autorizado' });
+    }
+    
+    const { pagina = 1, porPagina = 20, id_usuario, fecha_inicio, fecha_fin, accion } = req.query;
+    const offset = (pagina - 1) * porPagina;
+    
+    let sql = `
+        SELECT h.*, u.primer_nombre, u.primer_apellido, u.rol 
+        FROM historial_acciones h
+        JOIN usuarios u ON h.id_usuario = u.id_usuario
+        WHERE 1=1
+    `;
+    const params = [];
+    
+    if (id_usuario) {
+        sql += ' AND h.id_usuario = ?';
+        params.push(id_usuario);
+    }
+    
+    if (fecha_inicio) {
+        sql += ' AND h.fecha_hora >= ?';
+        params.push(fecha_inicio);
+    }
+    
+    if (fecha_fin) {
+        sql += ' AND h.fecha_hora <= ?';
+        params.push(fecha_fin + ' 23:59:59');
+    }
+    
+    if (accion) {
+        sql += ' AND h.accion LIKE ?';
+        params.push(`%${accion}%`);
+    }
+    
+    sql += ' ORDER BY h.fecha_hora DESC LIMIT ? OFFSET ?';
+    params.push(parseInt(porPagina), parseInt(offset));
+    
+    db.query(sql, params, (err, results) => {
+        if (err) {
+            console.error('Error al obtener historial:', err);
+            return res.status(500).json({ error: 'Error al obtener historial' });
+        }
+        
+        // Obtener el total de registros para paginación
+        db.query(
+            'SELECT COUNT(*) AS total FROM historial_acciones',
+            (err, countResults) => {
+                if (err) {
+                    console.error('Error al contar historial:', err);
+                    return res.status(500).json({ error: 'Error al contar registros' });
+                }
+                
+                const total = countResults[0].total;
+                const totalPaginas = Math.ceil(total / porPagina);
+                
+                res.json({
+                    datos: results,
+                    paginacion: {
+                        pagina: parseInt(pagina),
+                        porPagina: parseInt(porPagina),
+                        total,
+                        totalPaginas
+                    }
+                });
+            }
+        );
+    });
+});
+
+// Obtener estadísticas de acciones (solo admin)
+router.get('/historial/estadisticas', isAuthenticated, (req, res) => {
+    if (req.session.usuario.rol !== 'admin') {
+        return res.status(403).json({ error: 'Acceso no autorizado' });
+    }
+    
+    const { periodo = 'dia' } = req.query; // Puede ser 'dia', 'semana', 'mes'
+    
+    let sql = '';
+    if (periodo === 'dia') {
+        sql = `
+            SELECT 
+                DATE(fecha_hora) AS fecha,
+                COUNT(*) AS total_acciones,
+                SUM(accion LIKE '%login%') AS logins,
+                SUM(accion LIKE '%elimin%') AS eliminaciones,
+                SUM(accion LIKE '%actualiz%') AS actualizaciones
+            FROM historial_acciones
+            WHERE fecha_hora >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            GROUP BY DATE(fecha_hora)
+            ORDER BY fecha DESC
+        `;
+    } else if (periodo === 'semana') {
+        sql = `
+            SELECT 
+                YEAR(fecha_hora) AS año,
+                WEEK(fecha_hora) AS semana,
+                COUNT(*) AS total_acciones
+            FROM historial_acciones
+            WHERE fecha_hora >= DATE_SUB(NOW(), INTERVAL 12 WEEK)
+            GROUP BY YEAR(fecha_hora), WEEK(fecha_hora)
+            ORDER BY año DESC, semana DESC
+        `;
+    } else { // mes
+        sql = `
+            SELECT 
+                YEAR(fecha_hora) AS año,
+                MONTH(fecha_hora) AS mes,
+                COUNT(*) AS total_acciones
+            FROM historial_acciones
+            WHERE fecha_hora >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+            GROUP BY YEAR(fecha_hora), MONTH(fecha_hora)
+            ORDER BY año DESC, mes DESC
+        `;
+    }
+    
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error al obtener estadísticas:', err);
+            return res.status(500).json({ error: 'Error al obtener estadísticas' });
+        }
+        
+        res.json(results);
+    });
+});
+
 // Obtener notificaciones pendientes
 router.get('/notificaciones', isAuthenticated, (req, res) => {
   // Check if user role is 'admin'
