@@ -310,9 +310,10 @@ import "../../style/style-admin/cursos.css";
     alertContainer.appendChild(alertElement);
 
     setTimeout(() => {
-      // Usa Bootstrap's native dismiss method
-      const bsAlert = new bootstrap.Alert(alertElement);
-      bsAlert.dispose(); // Cierra el alerta y lo remueve del DOM
+      alertElement.classList.remove('show');
+      setTimeout(() => {
+        alertElement.remove();
+      }, 150);
     }, duracion);
   }
 

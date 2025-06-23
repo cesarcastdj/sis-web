@@ -378,7 +378,18 @@ router.get('/estudiantes/:id/academico', (req, res) => {
       p.periodo AS nombre_periodo,
       c.curso AS nombre_curso,
       m.materia AS nombre_materia,
-      s.seccion AS nombre_seccion
+      s.seccion AS nombre_seccion,
+      COALESCE(
+        SUM(CASE WHEN n.nota IS NOT NULL THEN (n.nota * a.ponderacion) / 100 ELSE 0 END),
+        0.00
+      ) AS nota_final_materia,
+      CASE
+        WHEN COALESCE(
+               SUM(CASE WHEN n.nota IS NOT NULL THEN (n.nota * a.ponderacion) / 100 ELSE 0 END),
+               0.00
+             ) >= 10 THEN 'Aprobado'
+        ELSE 'Reprobado'
+      END AS estado_materia
     FROM usuario_materias um
     JOIN materias m ON um.id_materia = m.id_materia
     LEFT JOIN cursos c ON m.id_curso = c.id_curso
@@ -386,7 +397,11 @@ router.get('/estudiantes/:id/academico', (req, res) => {
     LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
     LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia
     LEFT JOIN seccion s ON ms.id_seccion = s.id_seccion
-    WHERE um.id_usuario = ?;
+    LEFT JOIN actividades a ON m.id_materia = a.id_materia
+    LEFT JOIN notas n ON a.id_actividad = n.id_actividad AND um.id_usuario = n.id_estudiante
+    WHERE um.id_usuario = ?
+    GROUP BY p.periodo, c.curso, m.materia, s.seccion, m.id_materia
+    ORDER BY p.periodo DESC, m.materia ASC;
   `;
   db.query(sql, [id], (err, results) => {
     if (err) {

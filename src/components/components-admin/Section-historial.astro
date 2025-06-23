@@ -6,36 +6,10 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
   <!-- Nueva sección del Título "Estudiantes" con el estilo de la tarjeta de bienvenida -->
   <section class="estudiantes-header-card">
     <div class="welcome-search-data">
-      <h2 class="welcome-search-data__title">Estudiantes</h2>
+      <h2 class="welcome-search-data__title">Historial</h2>
     </div>
   </section>
 
-  <!-- Sección de Tarjeta Consolidada de Resumen de Estudiantes -->
-  <section class="content-info-data">
-    <section class="data-general-control">
-      <!-- Tarjeta Consolidada de Estudiantes -->
-      <div class="registro-control consolidated-students-card">
-        <div class="card-icon-title">
-          <i class="bx bxs-group"></i> <!-- Icono para grupo de estudiantes -->
-          <h5 class="card-title">Resumen de Estudiantes</h5>
-        </div>
-        <div class="students-summary-grid">
-          <div class="summary-item">
-            <span class="summary-count" id="totalStudentsCount">0</span>
-            <span class="summary-label">Total</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-count" id="activeStudentsCount">0</span>
-            <span class="summary-label">Activos</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-count" id="inactiveStudentsCount">0</span>
-            <span class="summary-label">Inactivos</span>
-          </div>
-        </div>
-      </div>
-    </section>
-  </section>
 
   <!-- La tabla de Estudiantes -->
   <div class="display-table" id="table1">
@@ -44,18 +18,16 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         <thead>
           <tr>
             <th scope="col">Nº</th>
-            <th scope="col">Periodo Académico</th>
-            <th scope="col">Cédula</th>
-            <th scope="col">Nombre</th>
-            <th scope="col">Apellido</th>
-            <th scope="col">Estado</th>
-            <th scope="col">Última Conexión</th>
+            <th scope="col">Usuario</th>
+            <th scope="col">Datos anteriores</th>
+            <th scope="col">Dactos nuevos</th>
+            <th scope="col">Fecha y hora</th>
             <th scope="col">Acciones</th>
           </tr>
         </thead>
         <tbody id="studentsTableBody">
           <tr>
-            <td colspan="8" class="text-center">Cargando estudiantes...</td>
+            <td colspan="8" class="text-center">Cargando Historial...</td>
           </tr>
         </tbody>
       </table>
@@ -95,92 +67,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 </div>
 
 <!-- Modal para Editar Estudiantes -->
-<div class="modal fade" id="modalEditarEstudiante" tabindex="-1" aria-labelledby="modalEditarEstudianteLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-custom-width">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalEditarEstudianteLabel">Editar Estudiante</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal">
-          <i class='bx bx-x'></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form id="formEditarEstudiante">
-          <input type="hidden" id="editIdUsuario" />
-          <h6 class="section-title">Información Personal</h6>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editCedula" class="form-label">Cédula</label>
-              <input type="text" class="form-control" id="editCedula" placeholder="Ingrese su cédula" readonly />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="editCorreo" class="form-label">Correo</label>
-              <input type="email" class="form-control" id="editCorreo" placeholder="Ingrese su correo electrónico" />
-            </div>
-          </div>
 
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editPrimerNombre" class="form-label">Primer Nombre</label>
-              <input type="text" class="form-control" id="editPrimerNombre" placeholder="Ingrese su primer nombre" />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="editSegundoNombre" class="form-label">Segundo Nombre</label>
-              <input type="text" class="form-control" id="editSegundoNombre" placeholder="Ingrese su segundo nombre" />
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editPrimerApellido" class="form-label">Primer Apellido</label>
-              <input type="text" class="form-control" id="editPrimerApellido" placeholder="Ingrese su primer apellido" />
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="editSegundoApellido" class="form-label">Segundo Apellido</label>
-              <input type="text" class="form-control" id="editSegundoApellido" placeholder="Ingrese su segundo apellido" />
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editTelefono" class="form-label">Teléfono</label>
-              <div class="d-flex align-items-center gap-2">
-                  <select class="form-select codigo-area-edit" style="width: 80px;">
-                    <option value="0412">0412</option>
-                    <option value="0422">0422</option>
-                    <option value="0424">0424</option>
-                    <option value="0414">0414</option>
-                    <option value="0416">0416</option>
-                    <option value="0426">0426</option>
-                  </select>
-                  <span class="separador-telefono">-</span>
-                  <input
-                    type="tel"
-                    class="form-control numero-telefono-edit"
-                    placeholder="1234567"
-                    pattern="[0-9]{7}"
-                    title="Debe contener 7 dígitos"
-                  >
-              </div>
-            </div>
-          </div>
-
-          <h6 class="section-title mt-4">Ubicación</h6>
-          <div class="row">
-            <div class="col-md-12 mb-3">
-              <label for="editDireccion" class="form-label">Dirección</label>
-              <input type="text" class="form-control" id="editDireccion" placeholder="Ingrese su dirección" />
-            </div>
-          </div>
-          
-          <div class="d-flex justify-content-between mt-4">
-            <button type="reset" class="btn btn-secondary">Limpiar</button>
-            <button type="submit" class="btn btn-primary" id="btnGuardarEdicion">Guardar Cambios</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script is:inline>

@@ -505,8 +505,10 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     alertContainer.appendChild(alertElement);
 
     setTimeout(() => {
-      const bsAlert = new bootstrap.Alert(alertElement);
-      bsAlert.dispose();
+      alertElement.classList.remove('show');
+      setTimeout(() => {
+        alertElement.remove();
+      }, 150);
     }, duracion);
   }
 
@@ -1681,7 +1683,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           // Usar un checkbox visualmente para la selección
           div.innerHTML = `
             <label class="d-flex align-items-center w-100 mb-0">
-              <input type="checkbox" class="form-check-input me-2" value="${est.id_usuario}" ${estudiantesEnMateriaCache.includes(String(est.id_usuario)) ? 'checked' : ''}>
+              <input type="checkbox"  class="custom-select-list-item" value="${est.id_usuario}" ${estudiantesEnMateriaCache.includes(String(est.id_usuario)) ? 'checked' : ''}>
               <span>${est.primer_nombre} ${est.primer_apellido} (${est.cedula})</span>
             </label>
           `;
@@ -1865,6 +1867,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     return data.estudiantes.map(est => ({
       id_usuario: est.id_usuario,
       cedula: est.cedula,
+      primer_nombre: est.primer_nombre,
+      primer_apellido: est.primer_apellido,
       nombre_completo: `${est.primer_nombre} ${est.primer_apellido} (${est.cedula})` // Agregado (cedula)
     }));
   }
@@ -1874,7 +1878,9 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     const data = await response.json();
     return data.profesores.map(prof => ({
       id_usuario: prof.id_usuario,
-      cedula: prof.cedela, // Corregido: 'cedela' a 'cedula'
+      cedula: prof.cedula, 
+      primer_nombre: prof.primer_nombre,
+      primer_apellido: prof.primer_apellido,
       nombre_completo: `${prof.primer_nombre} ${prof.primer_apellido} (${prof.cedula})` // Agregado (cedula)
     }));
   }

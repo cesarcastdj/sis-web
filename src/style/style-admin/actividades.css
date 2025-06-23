@@ -57,6 +57,91 @@ body {
     text-transform: uppercase;
 }
 
+/* Estilos para el checkbox personalizado */
+.custom-select-list {
+    border: 1px solid var(--color-secondary); /* Darker border */
+    border-radius: var(--border-radius-12); /* Rounded corners */
+    max-height: 200px; /* Limita la altura del contenedor */
+    overflow-y: auto; /* Habilita el scroll vertical */
+    background-color: var(--theme-dark); /* Dark background */
+    font-family: var(--font-family-Paragraph);
+    padding: 0.5rem; /* Inner padding */
+    box-shadow: var(--box-shadow-button1); /* Subtle shadow */
+  }
+  .custom-select-list-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px; /* Más padding para mayor área de clic */
+    cursor: pointer;
+    border-radius: var(--border-radius-8); /* Esquinas redondeadas para los ítems */
+    margin-bottom: 4px; /* Espacio entre ítems */
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    position: relative; /* Necesario para el posicionamiento del checkbox */
+    color: var(--color-tertiary); /* Texto claro en fondo oscuro */
+  }
+  .custom-select-list-item:last-child {
+    border-bottom: none;
+  }
+  .custom-select-list-item:hover {
+    background-color: var(--color-dark-purple); /* Púrpura más oscuro al pasar el ratón */
+    transform: translateY(-1px); /* Ligero levantamiento al pasar el ratón */
+  }
+  .custom-select-list-item.selected {
+    background: linear-gradient(to right, var(--color-primary) 10%, var(--color-pink-hover) 100%); /* Fondo con gradiente */
+    color: var(--color-quaternary); /* Texto blanco al seleccionar */
+    box-shadow: 0 0 8px var(--color-primary); /* Brillo neón */
+  }
+  
+  /* Ocultar el checkbox nativo pero mantener su funcionalidad */
+  .custom-select-list-item input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    color: var(--color-primary);
+    /* Asegura que el input no capture los eventos de clic */
+    pointer-events: none;
+  }
+  
+  /* Estilo visual del checkbox personalizado */
+  .custom-select-list-item label {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    cursor: pointer;
+    margin-bottom: 0;
+    position: relative;
+    color: var(--color-primary);
+    /* Asegura que el label no capture los eventos de clic, permitiendo que el div padre los maneje */
+    pointer-events: none;
+  }
+  .custom-select-list-item label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-primary); /* Borde púrpura para desmarcado */
+    border-radius: 4px;
+    margin-right: 12px;
+    background-color: transparent;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+  .custom-select-list-item input[type="checkbox"]:checked + label::before {
+    background-color: var(--color-primary); /* Fondo púrpura al marcar */
+    border-color: var(--color-primary); /* Borde púrpura para marcado */
+  }
+  .custom-select-list-item input[type="checkbox"]:checked + label::after {
+    content: '\2713'; /* Símbolo de checkmark */
+    font-size: 16px; /* Aumentado para mejor visibilidad */
+    font-weight: bold; /* Añadido para mayor grosor */
+    color: var(--color-quaternary); /* Checkmark blanco */
+    position: absolute;
+    left: 3px; /* Ajuste de posición */
+    top: 1px; /* Ajuste para centrar verticalmente */
+    line-height: 1;
+  }
+  
 /* Estilos para el botón de volver a materias */
 .actividades-header-card .btn-outline-secondary {
     color: var(--color-quaternary);
