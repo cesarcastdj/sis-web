@@ -77,23 +77,38 @@ router.post('/login', async (req, res) => {
   
   // Logout
   router.post('/logout', (req, res) => {
-    req.session.destroy(() => {
+    // Captura la información del usuario ANTES de destruir la sesión
+    const usuarioParaLog = req.session.usuario ? { ...req.session.usuario } : null;
 
-      // Registrar logout
-        if (usuario) {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Error al destruir la sesión:', err);
+            return res.status(500).json({ error: 'Error al cerrar sesión', detalle: err.message });
+        }
+
+        // Registrar logout en el historial de acciones si la información del usuario estaba disponible
+        if (usuarioParaLog && usuarioParaLog.id) {
             const fechaHora = new Date().toISOString().slice(0, 19).replace('T', ' ');
             const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+            // Usamos db.query directamente porque no estamos en un Promise.all ni necesitamos await aquí
             db.query(
                 'INSERT INTO historial_acciones (id_usuario, accion, fecha_hora, ip) VALUES (?, ?, ?, ?)',
-                [usuario.id, 'Logout', fechaHora, ip]
+                [usuarioParaLog.id, 'Logout', fechaHora, ip],
+                (logErr) => {
+                    if (logErr) {
+                        console.error('Error al registrar logout en historial_acciones:', logErr);
+                        // A pesar del error de log, la sesión ya está destruida, así que continuamos
+                    }
+                }
             );
         }
 
-      res.clearCookie('connect.sid');
-      res.json({ message: 'Sesión cerrada' });
+        // Limpiar la cookie de sesión del lado del cliente
+        res.clearCookie('connect.sid');
+        // Enviar la respuesta de éxito al cliente
+        res.json({ message: 'Sesión cerrada' });
     });
-  });
-  
+});
   // Obtener usuario logueado
   router.get('/usuario', isAuthenticated, (req, res) => {
     res.json(req.session.usuario);
@@ -236,7 +251,7 @@ router.post('/login', async (req, res) => {
             continuarAsignaciones();
           });
         } else if(rol === 'admin') {
-          db.query('INSERT INTO administradores (id_administrador, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
+          db.query('INSERT INTO usuario_administradores (id_admin, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
             if (err) {
               console.error('Error insertando en la tabla de administradores:', err);
             }

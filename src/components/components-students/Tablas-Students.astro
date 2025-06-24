@@ -1,5 +1,6 @@
 ---
-import "../../style/style-admin/seccion.css";
+// Import your CSS styles here.
+import "../../style/style-profesor/seccion.css";
 ---
 
 <section class="data-content-section">
@@ -10,38 +11,136 @@ import "../../style/style-admin/seccion.css";
     </div>
   </section>
 
-  <section class="info-cards-section">
-    <a href="/Students-Control/Notas" class="card-item">
-      <i class="bx bxs-notepad card-icon"></i>
-      <h3 class="card-title">Notas</h3>
-    </a>
+  <!-- Container for dynamically generated subject cards -->
+  <section id="materias-container" class="info-cards-section">
+    <p id="loading-materias" class="loading-message">Cargando materias del profesor...</p>
+    <p id="error-materias" class="error-message hidden">Error al cargar las materias. Inténtalo de nuevo más tarde.</p>
+    <p id="no-materias" class="no-results-message hidden">No se encontraron materias asignadas para este profesor.</p>
   </section>
 </section>
 
 <script type="module">
-  document.addEventListener('DOMContentLoaded', () => {
-    cargarNombreUsuario();
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Load user name first
+    await cargarNombreUsuario();
+    // Then, load the logged-in professor's subjects
+    cargarMateriasProfesor(); // No longer needs an ID, the backend gets it from the session
   });
 
+  /**
+   * @function cargarNombreUsuario
+   * @description Loads the authenticated user's name and last connection from the backend
+   * and displays them on the interface. Assumes the user API uses the session.
+   */
   async function cargarNombreUsuario() {
     try {
+      // Make a GET request to your user endpoint.
+      // Assumes this endpoint returns { id, primer_nombre, primer_apellido, ultima_conexion }.
       const res = await fetch('http://localhost:3001/usuario', {
         method: 'GET',
-        credentials: 'include'
+        credentials: 'include' // Important for sending session cookies
       });
       const data = await res.json();
 
-      console.log("Datos del usuario recibidos:", data);
+      console.log("User data received:", data);
 
       if (!res.ok || !data.id) {
-        console.warn('No se pudo obtener datos del usuario logueado o el usuario no está autenticado.');
+        console.warn('Could not get logged-in user data or user is not authenticated.');
+        document.getElementById('name-user').textContent = 'Usuario Invitado';
+        document.getElementById('ultima-conexion').textContent = '';
+        return null;
+      }
+
+      // Update the DOM content with user data
+      document.getElementById('name-user').textContent = `Bienvenido/a ${data.primer_nombre} ${data.primer_apellido}`;
+      if (data.ultima_conexion) {
+        const fecha = new Date(data.ultima_conexion).toLocaleString('es-ES', {
+          year: 'numeric', month: 'long', day: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+        document.getElementById('ultima-conexion').textContent = `Última conexión: ${fecha}`;
+      } else {
+        document.getElementById('ultima-conexion').textContent = 'Última conexión: Nunca';
+      }
+      return data.id;
+    } catch (error) {
+      console.error('Error loading user name:', error);
+      document.getElementById('name-user').textContent = 'Error al cargar usuario';
+      document.getElementById('ultima-conexion').textContent = '';
+      return null;
+    }
+  }
+
+  /**
+   * @function cargarMateriasProfesor
+   * @description Gets the subjects assigned to the logged-in professor from the backend API
+   * and dynamically creates cards to display them. It does not need an explicit ID,
+   * as the backend will get it from the session.
+   */
+  async function cargarMateriasProfesor() {
+    const materiasContainer = document.getElementById('materias-container');
+    const loadingMessage = document.getElementById('loading-materias');
+    const errorMessage = document.getElementById('error-materias');
+    const noMateriasMessage = document.getElementById('no-materias');
+
+    materiasContainer.innerHTML = ''; // Clear any previous content
+    loadingMessage.classList.remove('hidden'); // Show loading message
+    errorMessage.classList.add('hidden');
+    noMateriasMessage.classList.add('hidden');
+
+    try {
+      // Make the request to the backend route without including the ID in the URL
+      const res = await fetch('http://localhost:3001/api/estudiantes/mis-materias', {
+        method: 'GET',
+        credentials: 'include' // Important for sending the session/authentication cookie
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        // If the response is 401 (Unauthorized), show a more specific message.
+        if (res.status === 401) {
+            throw new Error(`Acceso denegado: ${errorData.error || 'No autenticado. Por favor, inicia sesión.'}`);
+        }
+        throw new Error(errorData.error || `Error HTTP! estado: ${res.status}`);
+      }
+
+      const materias = await res.json();
+      console.log("Materias del profesor recibidas:", materias);
+
+      loadingMessage.classList.add('hidden'); // Hide loading message
+
+      if (materias.length === 0) {
+        noMateriasMessage.classList.remove('hidden'); // Show no subjects message
         return;
       }
 
-      document.getElementById('name-user').textContent = `Bienvenido/a ${data.primer_nombre} ${data.primer_apellido}`;
-      document.getElementById('ultima-conexion').textContent = `Última conexión: ${data.ultima_conexion}`;
+      // Generate and add cards for each subject
+      materias.forEach(materia => {
+        const card = document.createElement('a');
+        // MODIFICACIÓN CLAVE: Enlace a la página de actividades y notas con el ID de la materia
+        card.href = `/Students-Control/Notas?materiaId=${materia.id_materia}`;
+        card.className = 'card-item materia-card'; // Apply the specific class for subject cards
+
+        card.innerHTML = `
+          <div class="card-icon-wrapper">
+            <i class='bx bxs-book-alt card-icon'></i> <!-- Icon for the subject -->
+          </div>
+          <h3 class="card-title">${materia.nombre_materia}</h3>
+          <div class="materia-details">
+            <p class="detail-item"><i class='bx bx-book detail-icon'></i> Curso: <span class="detail-value">${materia.nombre_curso || 'N/A'}</span></p>
+            <p class="detail-item"><i class='bx bx-sitemap detail-icon'></i> Sección: <span class="detail-value">${materia.nombre_seccion || 'N/A'}</span></p>
+            <p class="detail-item"><i class='bx bx-calendar detail-icon'></i> Periodo: <span class="detail-value">${materia.nombre_periodo || 'N/A'}</span></p>
+            <p class="detail-item"><i class='bx bx-user detail-icon'></i> Profesor: <span class="detail-value">${materia.nombre_completo_profesor || 'N/A'}</span></p>
+          </div>
+        `;
+        materiasContainer.appendChild(card);
+      });
+
     } catch (error) {
-      console.error('Error al cargar el usuario logueado:', error);
+      console.error('Error al cargar las materias del profesor:', error);
+      loadingMessage.classList.add('hidden'); // Hide loading message
+      errorMessage.classList.remove('hidden'); // Show error message
+      errorMessage.textContent = `Error al cargar las materias: ${error.message}`;
     }
   }
 </script>
