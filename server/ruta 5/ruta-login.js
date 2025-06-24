@@ -108,13 +108,12 @@ router.post('/login', async (req, res) => {
         // Enviar la respuesta de éxito al cliente
         res.json({ message: 'Sesión cerrada' });
     });
-});
   // Obtener usuario logueado
   router.get('/usuario', isAuthenticated, (req, res) => {
     res.json(req.session.usuario);
   });
 
-  router.post('/register',registrarAccion('Registro de nuevo usuario', 'usuarios'), async (req, res) => {
+  router.post('/register', registrarAccion('Registro de nuevo usuario', 'usuarios'), async (req, res) => {
     try {
       const {
         cedula, primerNombre, segundoNombre = null,
@@ -174,11 +173,18 @@ router.post('/login', async (req, res) => {
               `, [id_usuario, 1], (err) => {
                 if (err) console.error("Error creando notificación:", err);
               });
-  
-              return res.json({
-                message: 'Usuario registrado. Espera aprobación del administrador.',
-                usuario: { id_usuario, cedula }
-              });
+              
+            const responseData = {
+          success: true,
+          message: 'Usuario registrado. Espera aprobación del administrador.',
+          usuario: { 
+            id_usuario: id_usuario, 
+            cedula: cedula 
+          }
+        };
+
+
+              return res.json(responseData);
             });
           }
         );
