@@ -10,16 +10,31 @@ export const registrarAccion = (accion, tabla = null) => {
       res.json = async (body) => {
         // Solo registrar si la acción fue exitosa (código 2xx)
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          const usuarioId = req.session?.usuario?.id || null;
+          const usuarioId = req.session?.usuario?.id || body?.usuario?.id_usuario || null;
           const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
           const fechaHora = new Date().toISOString().slice(0, 19).replace('T', ' ');
           
           // Determinar el ID del registro afectado
-          const idRegistroAfectado = req.params?.id || null;
+          let idRegistroAfectado = req.params?.id || null;
           
-          // Datos para el historial
-          let datosAnteriores = null;
+          if (req.method === 'POST' && body?.usuario?.id_usuario) {
+            idRegistroAfectado = body.usuario.id_usuario;
+          }
+          
           let datosNuevos = null;
+          if (req.method === 'POST') {
+            datosNuevos = JSON.stringify(body);
+          }
+
+          try {
+            await db.promise().query(
+              'INSERT INTO historial_acciones (id_usuario, accion, tabla_afectada, id_registro_afectado, datos_anteriores, datos_nuevos, fecha_hora, ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+              [usuarioId, accion, tabla, idRegistroAfectado, null, datosNuevos, fechaHora, ip]
+            );
+          } catch (dbError) {
+            console.error('Error al registrar acción:', dbError);
+          }
+
           
           // Para PUT/PATCH, capturamos cambios
           if (['PUT', 'PATCH'].includes(req.method)) {
