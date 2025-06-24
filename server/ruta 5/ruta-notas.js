@@ -1,7 +1,7 @@
 import express from 'express';
 import db from '../db/db.js'; // Ajusta esta ruta si es necesario
 import { isAuthenticated } from '../middleware/protegerRutas.js'; // Ajusta esta ruta si es necesario (comentado para pruebas)
-
+import { registrarAccion } from '../middleware/historial.js'; // Ajusta esta ruta si es necesario
 const router = express.Router();
 
 // Middleware de autenticación
@@ -215,33 +215,222 @@ router.get('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
  * @param {string} [req.body.comentarios] - Comentarios (opcional).
  * @returns {json} Mensaje de éxito e ID de la nueva nota.
  */
-router.post('/notas', /*isAuthenticated,*/ (req, res) => {
-  const { id_estudiante, id_actividad, nota, fecha_registro, comentarios = null } = req.body;
+router.post('/notas', isAuthenticated, registrarAccion('Registro de Nota Individual', 'notas'),(req, res) => {
+    try {
+        console.log('********* LLEGÓ PETICIÓN A /notas (individual) *********');
+        console.log('BODY RECIBIDO:', JSON.stringify(req.body));
+        
+        const { id_estudiante, id_actividad, nota, fecha_registro, comentarios = null } = req.body;
 
-  if (!id_estudiante || !id_actividad || !nota) {
-      return res.status(400).json({ error: 'ID de estudiante, actividad y nota son obligatorios.' });
-  }
+        // Obtener el ID del usuario remitente de la sesión (profesor/admin que registra la nota)
+        const id_usuario_remitente = req.session.usuario?.id;
+        console.log('DEBUG: ID del usuario remitente desde la sesión:', id_usuario_remitente);
 
-  let fechaFinal = fecha_registro || new Date().toISOString().slice(0, 10);
+        if (!id_usuario_remitente) {
+            console.error("Error: ID del usuario remitente no encontrado en la sesión o inválido. No se pueden guardar notas/comentarios.");
+            return res.status(401).json({ error: "No autorizado: ID del usuario remitente no disponible. Por favor, inicia sesión de nuevo." });
+        }
 
-  const insertNotaQuery = `
-      INSERT INTO notas (id_estudiante, id_actividad, nota, fecha_registro, comentarios)
-      VALUES (?, ?, ?, ?, ?);
-  `;
-  db.query(
-      insertNotaQuery,
-      [id_estudiante, id_actividad, nota, fechaFinal, comentarios],
-      (err, result) => {
-          if (err) {
-              console.error("❌ Error al registrar nota:", err);
-              return res.status(500).json({ error: "Error al registrar nota", detalle: err.message });
-          }
-          const nuevaNotaId = result.insertId;
-          res.status(201).json({ message: 'Nota registrada exitosamente.', id: nuevaNotaId });
-      }
-  );
+        if (!id_estudiante || !id_actividad || nota === null || nota === undefined || nota === '') {
+            console.log('❌ Campos obligatorios de nota faltantes.');
+            return res.status(400).json({ error: 'ID de estudiante, actividad y nota son obligatorios.' });
+        }
+
+        const notaValor = parseFloat(nota);
+        if (isNaN(notaValor) || notaValor < 0 || notaValor > 20) {
+            console.log('❌ Nota inválida: debe ser un número entre 0 y 20.');
+            return res.status(400).json({ error: 'La nota debe ser un número entre 0 y 20.' });
+        }
+
+        const fechaFinal = fecha_registro ? new Date(fecha_registro).toISOString().slice(0, 19).replace('T', ' ') : new Date().toISOString().slice(0, 19).replace('T', ' ');
+        const comentarioMensaje = comentarios && comentarios.trim() !== '' ? comentarios.trim() : null;
+
+        // Determinar si usar pool (con transacciones) o conexión directa
+        const usePool = typeof db.getConnection === 'function';
+        const executeQuery = (conn, sql, params, callback) => {
+            conn.query(sql, params, callback);
+        };
+
+        const handleNoteOperation = (conn) => {
+            // Paso 1: Verificar si el estudiante existe en la tabla `estudiantes`
+            executeQuery(conn, 'SELECT id_estudiante FROM estudiantes WHERE id_estudiante = ?', [id_estudiante], (err, estudianteExiste) => {
+                if (err) {
+                    console.error('Error al verificar estudiante (POST /notas):', err);
+                    return sendResponse(conn, false, 'Error al verificar la existencia del estudiante.', err);
+                }
+
+                const afterStudentCheck = () => {
+                    // Paso 2: Verificar si la nota ya existe para esta actividad y estudiante
+                    executeQuery(conn, 'SELECT id_nota FROM notas WHERE id_actividad = ? AND id_estudiante = ?', [id_actividad, id_estudiante], (err, existeNota) => {
+                        if (err) {
+                            console.error('Error al verificar nota existente (POST /notas):', err);
+                            return sendResponse(conn, false, 'Error al verificar la nota existente.', err);
+                        }
+
+                        const afterNoteAndCommentOperation = (noteError, commentError) => {
+                            if (noteError || commentError) {
+                                console.error('Errores en operaciones:', noteError, commentError);
+                                return sendResponse(conn, false, 'Error al registrar/actualizar la nota o el comentario.', noteError || commentError);
+                            }
+                            sendResponse(conn, true, 'Nota y comentario registrados/actualizados correctamente.');
+                        };
+
+                        let noteOperationDone = false;
+                        let commentOperationDone = false;
+                        let noteError = null;
+                        let commentError = null;
+
+                        const checkCompletion = () => {
+                            if (noteOperationDone && (commentOperationDone || comentarioMensaje === null)) { // Comment operation is done if no message
+                                afterNoteAndCommentOperation(noteError, commentError);
+                            }
+                        };
+
+                        if (existeNota.length > 0) {
+                            // Actualizar nota existente
+                            executeQuery(conn, 'UPDATE notas SET nota = ?, fecha_registro = ? WHERE id_nota = ?',
+                                [notaValor, fechaFinal, existeNota[0].id_nota],
+                                (err) => {
+                                    if (err) {
+                                        console.error('Error al actualizar nota (UPDATE /notas):', err);
+                                        noteError = err;
+                                    }
+                                    noteOperationDone = true;
+                                    checkCompletion();
+                                });
+                        } else {
+                            // Insertar nueva nota
+                            executeQuery(conn, 'INSERT INTO notas (id_actividad, id_estudiante, nota, fecha_registro) VALUES (?, ?, ?, ?)',
+                                [id_actividad, id_estudiante, notaValor, fechaFinal],
+                                (err) => {
+                                    if (err) {
+                                        console.error('Error al insertar nota (INSERT /notas):', err);
+                                        noteError = err;
+                                    }
+                                    noteOperationDone = true;
+                                    checkCompletion();
+                                });
+                        }
+
+                        // Manejo del comentario (siempre después de la nota, pero puede ser una operación separada)
+                        if (comentarioMensaje) {
+                            // Verificar si ya existe un comentario para esta combinación de actividad y estudiante por el remitente
+                            executeQuery(conn, 'SELECT id_comentario FROM comentarios WHERE id_estudiante = ? AND id_actividad = ? AND id_usuario = ?',
+                                [id_estudiante, id_actividad, id_usuario_remitente],
+                                (err, existeComentario) => {
+                                    if (err) {
+                                        console.error('Error al verificar comentario existente (POST /notas):', err);
+                                        commentError = err;
+                                        commentOperationDone = true;
+                                        checkCompletion();
+                                        return;
+                                    }
+
+                                    if (existeComentario.length > 0) {
+                                        // Actualizar comentario existente
+                                        executeQuery(conn, 'UPDATE comentarios SET mensaje = ?, fecha_hora = ? WHERE id_comentario = ?',
+                                            [comentarioMensaje, fechaFinal, existeComentario[0].id_comentario],
+                                            (err) => {
+                                                if (err) {
+                                                    console.error('Error al actualizar comentario (UPDATE /notas):', err);
+                                                    commentError = err;
+                                                }
+                                                commentOperationDone = true;
+                                                checkCompletion();
+                                            });
+                                    } else {
+                                        // Insertar nuevo comentario
+                                        executeQuery(conn, 'INSERT INTO comentarios (id_estudiante, id_actividad, id_usuario, mensaje, fecha_hora) VALUES (?, ?, ?, ?, ?)',
+                                            [id_estudiante, id_actividad, id_usuario_remitente, comentarioMensaje, fechaFinal],
+                                            (err) => {
+                                                if (err) {
+                                                    console.error('Error al insertar comentario (INSERT /notas):', err);
+                                                    commentError = err;
+                                                }
+                                                commentOperationDone = true;
+                                                checkCompletion();
+                                            });
+                                    }
+                                });
+                        } else {
+                            // No hay comentario para guardar, así que esta "operación" está "hecha"
+                            commentOperationDone = true;
+                            checkCompletion();
+                        }
+                    });
+                };
+
+                if (estudianteExiste.length === 0) {
+                    // Si el estudiante no existe en la tabla `estudiantes`, insertarlo
+                    executeQuery(conn, 'INSERT INTO estudiantes (id_estudiante, id_usuario) VALUES (?, ?)', [id_estudiante, id_estudiante], (err) => {
+                        if (err) {
+                            console.error('Error al insertar estudiante en tabla estudiantes (POST /notas):', err);
+                            return sendResponse(conn, false, 'Error al asegurar la existencia del estudiante.', err);
+                        }
+                        afterStudentCheck();
+                    });
+                } else {
+                    afterStudentCheck();
+                }
+            });
+        };
+
+        const sendResponse = (conn, success, message, error = null) => {
+            if (usePool) {
+                if (success) {
+                    conn.commit(err => {
+                        conn.release();
+                        if (err) {
+                            console.error('Error al confirmar transacción:', err);
+                            return res.status(500).json({ error: 'Error al confirmar transacción', detalle: err.message });
+                        }
+                        console.log(`✅ ${message}`);
+                        res.json({ message: message });
+                    });
+                } else {
+                    conn.rollback(() => {
+                        conn.release();
+                        console.error('Rollback de transacción. Error:', error);
+                        res.status(500).json({ error: message, detalle: error?.message || 'Error desconocido' });
+                    });
+                }
+            } else {
+                // Sin transacciones para conexión directa
+                if (success) {
+                    console.log(`✅ ${message}`);
+                    res.json({ message: message });
+                } else {
+                    console.error(`❌ ${message}. Error:`, error);
+                    res.status(500).json({ error: message, detalle: error?.message || 'Error desconocido' });
+                }
+            }
+        };
+
+        if (usePool) {
+            db.getConnection((err, conn) => {
+                if (err) {
+                    console.error('Error obteniendo conexión del pool (POST /notas):', err);
+                    return res.status(500).json({ error: 'Error de conexión a la base de datos', detalle: err.message });
+                }
+                conn.beginTransaction(err => {
+                    if (err) {
+                        conn.release();
+                        console.error('Error iniciando transacción (POST /notas):', err);
+                        return res.status(500).json({ error: 'Error iniciando transacción', detalle: err.message });
+                    }
+                    handleNoteOperation(conn);
+                });
+            });
+        } else {
+            // Usar la conexión directa 'db'
+            handleNoteOperation(db);
+        }
+
+    } catch (error) {
+        console.error('❌ ERROR NO CAPTURADO EN /notas (individual):', error);
+        res.status(500).json({ error: 'Error inesperado en el endpoint', detalle: error.message });
+    }
 });
-
 /**
  * @route PUT /api/notas/:id_nota
  * @description Actualiza una nota existente.

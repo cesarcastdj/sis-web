@@ -108,13 +108,14 @@ router.post('/login', async (req, res) => {
         // Enviar la respuesta de éxito al cliente
         res.json({ message: 'Sesión cerrada' });
     });
-});
+}); 
+  
   // Obtener usuario logueado
   router.get('/usuario', isAuthenticated, (req, res) => {
     res.json(req.session.usuario);
   });
 
-  router.post('/register',registrarAccion('Registro de nuevo usuario', 'usuarios'), async (req, res) => {
+  router.post('/register', registrarAccion('Registro de nuevo usuario', 'usuarios'), async (req, res) => {
     try {
       const {
         cedula, primerNombre, segundoNombre = null,
@@ -174,11 +175,18 @@ router.post('/login', async (req, res) => {
               `, [id_usuario, 1], (err) => {
                 if (err) console.error("Error creando notificación:", err);
               });
-  
-              return res.json({
-                message: 'Usuario registrado. Espera aprobación del administrador.',
-                usuario: { id_usuario, cedula }
-              });
+              
+            const responseData = {
+          success: true,
+          message: 'Usuario registrado. Espera aprobación del administrador.',
+          usuario: { 
+            id_usuario: id_usuario, 
+            cedula: cedula 
+          }
+        };
+
+
+              return res.json(responseData);
             });
           }
         );
@@ -190,8 +198,8 @@ router.post('/login', async (req, res) => {
   });
   
   // Esta es una api para terminar el registro de un usuario (asignar rol, secciones, etc.)
-  router.post('/asignar-usuario', /*isAuthenticated, registrarAccion('Asignación de rol a usuario', 'usuarios'),*/ (req, res) => {
-    // Usamos un bloque try...catch para errores de sintaxis o síncronos.
+  router.post('/asignar-usuario',isAuthenticated,registrarAccion('Asignación de rol a usuario', 'usuarios'), (req, res) => {
+     // Usamos un bloque try...catch para errores de sintaxis o síncronos.
     try {
         // Añadimos 'periodos' a la desestructuración de req.body
         const { id_usuario, rol, secciones = [], cursos = [], materias = [], periodos = [] } = req.body;
@@ -259,7 +267,7 @@ router.post('/login', async (req, res) => {
 
             // Paso 2: Insertar el usuario en la tabla específica del rol (estudiantes, profesores, administradores)
             if (rol === 'estudiante') {
-                db.query('INSERT INTO estudiantes (id_estudiante, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
+                db.query('INSERT INTO estudiantes (id_usuario) VALUES ( ?)', [id_usuario], (err) => {
                     if (err) {
                         console.error('Error insertando en la tabla de estudiantes:', err);
                         // No retornamos aquí, llamamos a continuarAsignaciones para mantener el flujo
@@ -267,14 +275,14 @@ router.post('/login', async (req, res) => {
                     continuarAsignaciones();
                 });
             } else if (rol === 'profesor') {
-                db.query('INSERT INTO profesores (id_profesor, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
+                db.query('INSERT INTO profesores (id_usuario) VALUES (?)', [id_usuario], (err) => {
                     if (err) {
                         console.error('Error insertando en la tabla de profesores:', err);
                     }
                     continuarAsignaciones();
                 });
             } else if (rol === 'admin') {
-                db.query('INSERT INTO usuario_administradores (id_admin, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
+                db.query('INSERT INTO usuario_administradores (id_usuario) VALUES (?)', [id_usuario], (err) => {
                     if (err) {
                         console.error('Error insertando en la tabla de administradores:', err);
                     }
@@ -289,8 +297,8 @@ router.post('/login', async (req, res) => {
         console.error('Error general en /asignar-usuario:', error);
         res.status(500).json({ error: 'Error interno del servidor.', detalle: error.message });
     }
-});
 
+  });
 
   router.get('/me', (req, res) => {
   if (req.session && req.session.usuario && req.session.usuario.id) {

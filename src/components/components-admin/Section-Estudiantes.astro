@@ -39,6 +39,10 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 
   <!-- La tabla de Estudiantes -->
   <div class="display-table" id="table1">
+    <!-- Campo de búsqueda para estudiantes -->
+    <div class="d-flex justify-content-end mb-3">
+      <input type="text" id="searchStudentInput" class="form-control w-25" placeholder="Buscar estudiante por nombre...">
+    </div>
     <div class="tabla-info-person">
       <table class="table table-dark table-hover table-striped">
         <thead>
@@ -194,6 +198,9 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
     const totalStudentsCount = document.getElementById('totalStudentsCount');
     const activeStudentsCount = document.getElementById('activeStudentsCount');
     const inactiveStudentsCount = document.getElementById('inactiveStudentsCount');
+
+    // Elemento del campo de búsqueda
+    const searchStudentInput = document.getElementById('searchStudentInput');
 
 
     // Elementos del modal "Ver Más Información"
@@ -455,7 +462,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
     }
 
     // Función principal para cargar estudiantes en la tabla y actualizar contadores
-    async function loadStudents(page) {
+    async function loadStudents(page, searchTerm = '') { // Añadir searchTerm como parámetro
       studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center">Cargando estudiantes...</td></tr>`;
       paginationControls.innerHTML = ''; 
       totalStudentsCount.textContent = '...';
@@ -463,7 +470,12 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       inactiveStudentsCount.textContent = '...';
 
       try {
-        const response = await fetch(`http://localhost:3001/api/estudiantes?page=${page}&limit=${itemsPerPage}`);
+        let url = `http://localhost:3001/api/estudiantes?page=${page}&limit=${itemsPerPage}`;
+        if (searchTerm) { // Añadir término de búsqueda a la URL si existe
+          url += `&search=${encodeURIComponent(searchTerm)}`;
+        }
+
+        const response = await fetch(url);
         if (!response.ok) {
           if (response.status === 404) {
             studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron estudiantes.</td></tr>`;
@@ -489,7 +501,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         studentsTableBody.innerHTML = ''; 
 
         if (estudiantes.length === 0) {
-          studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron estudiantes.</td></tr>`;
+          studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron estudiantes que coincidan con "${searchTerm}".</td></tr>`;
           return;
         }
 
@@ -556,7 +568,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 
         initializeDropdowns();
 
-        setupPagination(totalPages, currentPage);
+        setupPagination(totalPages, currentPage, searchTerm); // Pasar searchTerm a la paginación
         setupActionListeners(processedEstudiantes); 
       } catch (error) {
         console.error('Error al cargar estudiantes:', error);
@@ -688,7 +700,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
             }
 
             mostrarMensajeExito(`Estudiante ${estudiante.primer_nombre} ${estudiante.primer_apellido} ha sido desactivado exitosamente.`);
-            loadStudents(currentPage); 
+            loadStudents(currentPage, searchStudentInput.value.trim()); // Recargar con el término de búsqueda actual
         } catch (error) {
             console.error('Error al desactivar estudiante:', error);
             mostrarErrorAlUsuario(`Error al desactivar al estudiante: ${error.message}`);
@@ -697,7 +709,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 
 
     // Función de paginación (generalizada)
-    function setupPagination(totalPages, currentPage) {
+    function setupPagination(totalPages, currentPage, searchTerm = '') { // Añadir searchTerm
       paginationControls.innerHTML = '';
       if (totalPages <= 1) return;
 
@@ -713,7 +725,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       prevLink.addEventListener('click', (e) => {
         e.preventDefault();
         if (currentPage > 1) {
-          loadStudents(currentPage - 1);
+          loadStudents(currentPage - 1, searchTerm); // Pasar searchTerm
         }
       });
       prevLi.appendChild(prevLink);
@@ -731,7 +743,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         link.textContent = '1';
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          loadStudents(1);
+          loadStudents(1, searchTerm); // Pasar searchTerm
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -752,7 +764,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         link.textContent = i;
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          loadStudents(i);
+          loadStudents(i, searchTerm); // Pasar searchTerm
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -773,7 +785,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         link.textContent = totalPages;
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          loadStudents(totalPages);
+          loadStudents(totalPages, searchTerm); // Pasar searchTerm
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -788,7 +800,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       nextLink.addEventListener('click', (e) => {
         e.preventDefault();
         if (currentPage < totalPages) {
-          loadStudents(currentPage + 1);
+          loadStudents(currentPage + 1, searchTerm); // Pasar searchTerm
         }
       });
       nextLi.appendChild(nextLink);
@@ -798,6 +810,15 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
     }
 
     loadStudents(1); 
+
+    // Event listener para el campo de búsqueda de estudiantes
+    if (searchStudentInput) {
+        searchStudentInput.addEventListener('input', () => {
+            currentPage = 1; // Reiniciar a la primera página en cada búsqueda
+            loadStudents(currentPage, searchStudentInput.value.trim());
+        });
+    }
+
 
     // Funciones auxiliares
     function mostrarError(elemento, mensaje) {

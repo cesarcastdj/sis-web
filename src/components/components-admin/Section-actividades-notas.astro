@@ -301,8 +301,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           <div class="row">
             <div class="col-md-12 mb-3">
               <label for="selectAnadirEstudiante" class="form-label">Estudiante</label>
-              <select class="form-select" id="selectAnadirEstudiante" required disabled>
-                <option value="">Seleccione un estudiante</option>
+              <select class="form-select" id="selectAnadirEstudiante" required>
+                <option value="" disabled selected>Seleccione un estudiante</option>
                 <!-- Opciones de estudiantes se cargarán aquí dinámicamente -->
               </select>
               <div class="invalid-feedback"></div>
@@ -310,20 +310,20 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
             <div class="col-md-12 mb-3">
               <label for="selectAnadirActividad" class="form-label">Actividad</label>
               <select class="form-select" id="selectAnadirActividad" required disabled>
-                <option value="">Seleccione una actividad</option>
+                <option value="" disabled selected>Seleccione una actividad</option>
                 <!-- Opciones de actividades se cargarán aquí dinámicamente -->
               </select>
               <div class="invalid-feedback"></div>
             </div>
             <div class="col-md-6 mb-3">
               <label for="anadirNotaValor" class="form-label">Nota</label>
-              <input type="number" step="0.01" class="form-control" id="anadirNotaValor" placeholder="Ej. 15.50" required />
-              <div class="invalid-feedback"></div>
+              <input type="number" step="0.01" class="form-control" id="anadirNotaValor" placeholder="Ej. 15.50" required min="0" max="20" />
+              <div class="invalid-feedback">La nota debe estar entre 0 y 20.</div>
             </div>
             <div class="col-md-6 mb-3">
               <label for="anadirFechaRegistro" class="form-label">Fecha de Registro</label>
               <input type="date" class="form-control" id="anadirFechaRegistro" required />
-              <div class="invalid-feedback"></div>
+              <div class="invalid-feedback">Seleccione una fecha válida.</div>
             </div>
             <div class="col-md-12 mb-3">
               <label for="anadirComentarios" class="form-label">Comentarios (Opcional)</label>
@@ -389,12 +389,12 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           <div class="row">
             <div class="col-md-12 mb-3">
               <label for="editIdActividad" class="form-label">ID Actividad</label>
-              <input type="number" class="form-control" id="editIdActividad" placeholder="Ej. 101" required />
+              <input type="number" class="form-control" id="editIdActividad" placeholder="Ej. 101" required readonly /> <!-- Hacemos readonly -->
               <div class="invalid-feedback"></div>
             </div>
             <div class="col-md-6 mb-3">
               <label for="editNotaValor" class="form-label">Nota</label>
-              <input type="number" step="0.01" class="form-control" id="editNotaValor" placeholder="Ej. 15.50" required />
+              <input type="number" step="0.01" class="form-control" id="editNotaValor" placeholder="Ej. 15.50" required min="0" max="20" />
               <div class="invalid-feedback"></div>
             </div>
             <div class="col-md-6 mb-3">
@@ -582,6 +582,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
   document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentMateriaId = urlParams.get('materiaId');
+    currentMateriaNombre = urlParams.get('nombreMateria') || 'Materia'; // Asumo que el nombre se pasa por URL también
 
     if (!currentMateriaId) {
       mostrarAlerta('ID de materia no especificado en la URL.', 'danger');
@@ -627,19 +628,66 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     }
 
     // Event listener para el botón "Añadir Nota" del card de notas
-    document.getElementById('btnAnadirNotaCard').addEventListener('click', function() {
+    document.getElementById('btnAnadirNotaCard').addEventListener('click', async function() {
         formAnadirNota.reset(); // Limpia el formulario
         limpiarErroresFormulario(formAnadirNota);
-        // Cargar estudiantes y actividades basándose en la materia actual
-        loadEstudiantesModal(currentMateriaId, document.getElementById('selectAnadirEstudiante'));
-        loadActividadesModal(currentMateriaId, document.getElementById('selectAnadirActividad'));
-        document.getElementById('selectAnadirEstudiante').value = '';
-        document.getElementById('selectAnadirActividad').value = '';
+        // Establecer la fecha actual por defecto
+        document.getElementById('anadirFechaRegistro').valueAsDate = new Date();
+        document.getElementById('anadirNotaValor').value = ''; // Limpiar nota
+        document.getElementById('anadirComentarios').value = ''; // Limpiar comentarios
+
+        // Cargar estudiantes para el select
+        await loadEstudiantesModal(currentMateriaId, document.getElementById('selectAnadirEstudiante'));
+        document.getElementById('selectAnadirEstudiante').value = ''; // Asegurar que no hay estudiante pre-seleccionado
+
+        // Deshabilitar y limpiar actividades hasta que se seleccione un estudiante
+        document.getElementById('selectAnadirActividad').innerHTML = '<option value="" disabled selected>Seleccione una actividad</option>';
+        document.getElementById('selectAnadirActividad').disabled = true;
+        
         // Mostrar el modal
         const modalElement = document.getElementById('modalAnadirNota');
         const bsModal = new bootstrap.Modal(modalElement);
         bsModal.show();
     });
+
+    // Event listener para cuando cambia la selección de ESTUDIANTE en el modal "Añadir Nota"
+    document.getElementById('selectAnadirEstudiante').addEventListener('change', async function() {
+        const selectedEstudianteId = this.value;
+        const selectAnadirActividad = document.getElementById('selectAnadirActividad');
+        
+        // Limpiar campos de nota, comentario y fecha
+        document.getElementById('anadirNotaValor').value = '';
+        document.getElementById('anadirComentarios').value = '';
+        document.getElementById('anadirFechaRegistro').valueAsDate = new Date();
+
+        if (selectedEstudianteId) {
+            // Cargar actividades para la materia actual
+            await loadActividadesModal(currentMateriaId, selectAnadirActividad);
+            selectAnadirActividad.disabled = false;
+            selectAnadirActividad.value = ''; // Asegurar que no haya actividad pre-seleccionada
+        } else {
+            // Si no hay estudiante seleccionado, deshabilitar actividades
+            selectAnadirActividad.innerHTML = '<option value="" disabled selected>Seleccione una actividad</option>';
+            selectAnadirActividad.disabled = true;
+        }
+    });
+
+    // Event listener para cuando cambia la selección de ACTIVIDAD en el modal "Añadir Nota"
+    document.getElementById('selectAnadirActividad').addEventListener('change', async function() {
+        const selectedEstudianteId = document.getElementById('selectAnadirEstudiante').value;
+        const selectedActividadId = this.value;
+
+        if (selectedEstudianteId && selectedActividadId) {
+            // Llamar a la función para prellenar la nota y el comentario si existen
+            await fetchExistingNoteForModal(selectedEstudianteId, selectedActividadId);
+        } else {
+            // Limpiar campos si no hay un estudiante o actividad válidos seleccionados
+            document.getElementById('anadirNotaValor').value = '';
+            document.getElementById('anadirComentarios').value = '';
+            document.getElementById('anadirFechaRegistro').valueAsDate = new Date(); // Resetear a la fecha actual
+        }
+    });
+
 
     // Event listener para el botón "Gestionar Estudiantes"
     document.getElementById('btnGestionarEstudiantes').addEventListener('click', async () => {
@@ -1007,7 +1055,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       link.addEventListener('click', (e) => {
         e.preventDefault();
         if (type === 'actividades') fetchActividades(currentMateriaId, totalPages);
-        else loadNotasFiltradas(currentMateriaId, totalPages);
+        else loadNotasFiladas(currentMateriaId, totalPages);
       });
       li.appendChild(link);
       ul.appendChild(li);
@@ -1316,22 +1364,22 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
   async function loadEstudiantesModal(idMateria, targetSelect) {
     if (!idMateria) {
-      targetSelect.innerHTML = '<option value="">Seleccione un estudiante</option>';
+      targetSelect.innerHTML = '<option value="" disabled selected>Seleccione un estudiante</option>';
       targetSelect.disabled = true;
       return;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/estudiantes`); // Reutilizar la ruta existente
+      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/estudiantes`); // Obtener estudiantes inscritos en esta materia
       if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
-      const estudiantes = await response.json();
-      targetSelect.innerHTML = '<option value="">Seleccione un estudiante</option>' +
-                               estudiantes.map(e => `<option value="${e.id_usuario}">${e.primer_nombre} ${e.primer_apellido}</option>`).join('');
+      const estudiantes = await response.json(); // Asume que devuelve directamente el array de estudiantes
+      targetSelect.innerHTML = '<option value="" disabled selected>Seleccione un estudiante</option>' +
+                               estudiantes.map(e => `<option value="${e.id_usuario}">${e.primer_nombre} ${e.primer_apellido} (${e.cedula})</option>`).join('');
       targetSelect.disabled = false;
     }
     catch (error) {
       console.error('Error al cargar estudiantes para el modal:', error);
       mostrarAlerta('No se pudieron cargar los estudiantes para la materia seleccionada en el modal.', 'danger');
-      targetSelect.innerHTML = '<option value="">Error al cargar estudiantes</option>';
+      targetSelect.innerHTML = '<option value="" disabled>Error al cargar estudiantes</option>';
       targetSelect.disabled = true;
     }
   }
@@ -1342,7 +1390,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
     if (!idMateria) {
         console.warn('idMateria es nulo o indefinido. No se cargarán actividades.');
-        targetSelect.innerHTML = '<option value="">Seleccione una actividad</option>';
+        targetSelect.innerHTML = '<option value="" disabled selected>Seleccione una actividad</option>';
         targetSelect.disabled = true;
         return;
     }
@@ -1361,16 +1409,59 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         const actividades = data.actividades || [];
         console.log('Actividades extraídas:', actividades); // Verifica si 'actividades' es un array aquí
 
-        targetSelect.innerHTML = '<option value="">Seleccione una actividad</option>' +
+        targetSelect.innerHTML = '<option value="" disabled selected>Seleccione una actividad</option>' +
                                  actividades.map(a => `<option value="${a.id_actividad}">${a.nombre_actividad}</option>`).join('');
         targetSelect.disabled = false;
     } catch (error) {
         console.error('Error al cargar actividades para el modal:', error);
         mostrarAlerta('No se pudieron cargar las actividades para la materia seleccionada en el modal.', 'danger');
-        targetSelect.innerHTML = '<option value="">Error al cargar actividades</option>';
+        targetSelect.innerHTML = '<option value="" disabled>Error al cargar actividades</option>';
         targetSelect.disabled = true;
     }
 }
+
+  // NUEVA FUNCIÓN para obtener y prellenar la nota y el comentario existentes
+  async function fetchExistingNoteForModal(idEstudiante, idActividad) {
+      const anadirNotaValor = document.getElementById('anadirNotaValor');
+      const anadirComentarios = document.getElementById('anadirComentarios');
+      const anadirFechaRegistro = document.getElementById('anadirFechaRegistro');
+
+      anadirNotaValor.value = ''; // Limpiar siempre antes de intentar cargar
+      anadirComentarios.value = '';
+      anadirFechaRegistro.valueAsDate = new Date(); // Resetear a la fecha actual
+
+      try {
+          const response = await fetch(`${API_BASE_URL}/notas/${idActividad}/${idEstudiante}`);
+          if (response.ok) {
+              const data = await response.json();
+              console.log('DEBUG: Nota existente encontrada para prellenar:', data);
+              anadirNotaValor.value = data.nota !== null ? data.nota : '';
+              anadirComentarios.value = data.comentarios || '';
+              if (data.fecha_registro) {
+                  // Los inputs type="date" esperan formato YYYY-MM-DD
+                  anadirFechaRegistro.value = new Date(data.fecha_registro).toISOString().slice(0, 10);
+              } else {
+                  anadirFechaRegistro.valueAsDate = new Date();
+              }
+              // Limpiar validación si había
+              limpiarError(anadirNotaValor);
+              limpiarError(anadirFechaRegistro);
+          } else if (response.status === 404) {
+              // No hay nota existente, los campos ya están limpios
+              console.log('DEBUG: No se encontró nota existente. Campos de nota y comentario permanecen vacíos.');
+          } else {
+              const errorData = await response.json();
+              throw new Error(errorData.message || `Error al cargar nota existente: ${response.status}`);
+          }
+      } catch (error) {
+          console.error('Error fetching existing note for modal:', error);
+          mostrarAlerta('No se pudo cargar la nota existente para esta actividad y estudiante.', 'danger');
+          // Asegurarse de que los campos estén vacíos en caso de error
+          anadirNotaValor.value = '';
+          anadirComentarios.value = '';
+          anadirFechaRegistro.valueAsDate = new Date();
+      }
+  }
 
   async function anadirNota(e) {
     e.preventDefault();
@@ -1395,7 +1486,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     } else {
       limpiarError(selectAnadirActividad);
     }
-    if (anadirNotaValor.value.trim() === '' || isNaN(parseFloat(anadirNotaValor.value)) || parseFloat(anadirNotaValor.value) < 0 || parseFloat(anadirNotaValor.value) > 20) {
+    const notaNum = parseFloat(anadirNotaValor.value);
+    if (anadirNotaValor.value.trim() === '' || isNaN(notaNum) || notaNum < 0 || notaNum > 20) {
       mostrarError(anadirNotaValor, 'La nota es obligatoria y debe ser un número entre 0 y 20.');
       valid = false;
     } else {
@@ -1413,7 +1505,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     }
 
     const confirmResult = await mostrarConfirmacion(
-          `¿Estás seguro de que quieres añadir esta nota para el estudiante seleccionado?`
+          `¿Estás seguro de que quieres guardar esta nota para el estudiante seleccionado?`
       );
       
     if (!confirmResult) {
@@ -1431,13 +1523,15 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       const formData = {
         id_estudiante: parseInt(selectAnadirEstudiante.value),
         id_actividad: parseInt(selectAnadirActividad.value),
-        nota: parseFloat(anadirNotaValor.value),
+        nota: notaNum, // Usar la nota numérica validada
         fecha_registro: anadirFechaRegistro.value,
         comentarios: anadirComentarios.value.trim() || null
       };
 
+      // Esta es la API que acabamos de modificar para manejar insert/update y comentarios
       const response = await fetch(`${API_BASE_URL}/notas`, {
         method: 'POST',
+        credentials: 'include', // Asegurarse de enviar cookies de sesión si es necesario
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
@@ -1445,21 +1539,21 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al añadir la nota');
+        throw new Error(data.error || 'Error al guardar la nota');
       }
 
-      mostrarAlerta('Nota añadida exitosamente', 'success');
+      mostrarAlerta('Nota guardada exitosamente', 'success');
       
       const modal = bootstrap.Modal.getInstance(document.getElementById('modalAnadirNota'));
       if (modal) {
         modal.hide();
       }
 
-      loadNotasFiltradas(currentMateriaId, currentPageNotas);
+      loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar la tabla de notas principal
 
     } catch (error) {
-      console.error('❌ Error en la adición de la nota (frontend):', error); 
-      mostrarAlerta(`Error al añadir nota: ${error.message}`, 'danger');
+      console.error('❌ Error en la adición/actualización de la nota (frontend):', error); 
+      mostrarAlerta(`Error al guardar nota: ${error.message}`, 'danger');
     } finally {
       btnGuardarNota.disabled = false;
       btnGuardarNota.textContent = 'Guardar Nota';
@@ -1519,7 +1613,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           const detallesCompletos = data.nota;
 
           document.getElementById('editIdNota').value = detallesCompletos.id_nota;
-          document.getElementById('editIdActividad').value = detallesCompletos.id_actividad || '';
+          document.getElementById('editIdActividad').value = detallesCompletos.id_actividad || ''; // ID de actividad readonly
           document.getElementById('editNotaValor').value = detallesCompletos.nota !== null ? parseFloat(detallesCompletos.nota).toFixed(2) : '';
           document.getElementById('editFechaRegistro').value = detallesCompletos.fecha_registro ? new Date(detallesCompletos.fecha_registro).toISOString().split('T')[0] : '';
           document.getElementById('editComentarios').value = detallesCompletos.comentarios || '';
@@ -1541,7 +1635,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
     const form = e.target;
     const id_nota = document.getElementById('editIdNota').value;
-    const editIdActividad = document.getElementById('editIdActividad');
+    const editIdActividad = document.getElementById('editIdActividad'); // Readonly, pero se usa su valor
     const editNotaValor = document.getElementById('editNotaValor');
     const editFechaRegistro = document.getElementById('editFechaRegistro');
     const editComentarios = document.getElementById('editComentarios');
@@ -1553,7 +1647,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     } else {
       limpiarError(editIdActividad);
     }
-    if (editNotaValor.value.trim() === '' || isNaN(parseFloat(editNotaValor.value)) || parseFloat(editNotaValor.value) < 0 || parseFloat(editNotaValor.value) > 20) {
+    const notaNum = parseFloat(editNotaValor.value);
+    if (editNotaValor.value.trim() === '' || isNaN(notaNum) || notaNum < 0 || notaNum > 20) {
       mostrarError(editNotaValor, 'La nota es obligatoria y debe ser un número entre 0 y 20.');
       valid = false;
     } else {
@@ -1586,8 +1681,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
     try {
       const formData = {
-        id_actividad: parseInt(editIdActividad.value),
-        nota: parseFloat(editNotaValor.value),
+        id_actividad: parseInt(editIdActividad.value), // Se mantiene para el backend
+        nota: notaNum,
         fecha_registro: editFechaRegistro.value,
         comentarios: editComentarios.value.trim() || null
       };
@@ -1611,7 +1706,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           modal.hide();
       }
       
-      loadNotasFiltradas(currentMateriaId, currentPageNotas);
+      loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar la tabla principal
 
     } catch (error) {
       console.error('❌ Error en la actualización de la nota (frontend):', error);
@@ -1624,7 +1719,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
   async function eliminarNota(notaId) {
       const confirmResult = await mostrarConfirmacion(
-          `¿Estás seguro de que quieres eliminar la nota con ID ${notaId}? Esta acción es irreversible.`
+          `¿Estás seguro de que quieres eliminar la nota con ID ${notaId}? Esto eliminará la nota y los comentarios asociados. Esta acción es irreversible.`
       );
 
       if (!confirmResult) return;
@@ -1641,7 +1736,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           }
 
           mostrarAlerta(`Nota con ID ${notaId} eliminada exitosamente.`, 'success');
-          loadNotasFiltradas(currentMateriaId, currentPageNotas);
+          loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar la tabla principal
       } catch (error) {
           console.error('Error al eliminar nota:', error);
           mostrarAlerta(`Error al eliminar la nota: ${error.message}`, 'danger');

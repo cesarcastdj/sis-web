@@ -39,6 +39,10 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
 
   <!-- La tabla de Profesores -->
   <div class="display-table" id="table1">
+    <!-- Campo de búsqueda para profesores -->
+    <div class="d-flex justify-content-end mb-3">
+      <input type="text" id="searchProfesorInput" class="form-control w-25" placeholder="Buscar profesor por nombre...">
+    </div>
     <div class="tabla-info-person">
       <table class="table table-dark table-hover table-striped">
         <thead>
@@ -198,6 +202,9 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
     const ProfesoresActivos = document.getElementById('activeProfesoresCount');
     const ProfesoresInactivos = document.getElementById('inactiveProfesoresCount');
 
+    // Elemento del campo de búsqueda (NUEVO)
+    const searchProfesorInput = document.getElementById('searchProfesorInput');
+
 
     // Elementos del modal "Ver Más Información"
     const modalVerMasInformacionProfesor = new bootstrap.Modal(document.getElementById('modalVerMasInformacionProfesor'));
@@ -235,12 +242,16 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
     // Cargar datos al abrir el modal de Editar Profesores
     modalEditarProfesor._element.addEventListener('shown.bs.modal', async function() {
       console.log("DEBUG: Modal de edición de profesor abierto. Cargando dropdowns...");
-      await cargarPeriodos('edit'); 
-      await cargarCursos('edit'); 
-      await cargarSecciones('edit'); 
+      // Estos dropdowns no son necesarios para editar profesor, solo se muestran los datos
+      // y no se permite cambiar su asignación académica directamente desde aquí,
+      // a menos que esa sea la intención y se añadan los campos al formulario.
+      // Si se necesitan, se cargarían aquí:
+      // await cargarPeriodos('edit'); 
+      // await cargarCursos('edit'); 
+      // await cargarSecciones('edit'); 
     });
 
-    // Función para cargar periodos académicos
+    // Función para cargar periodos académicos (mantenida si se usa en otros modals o en el futuro)
     async function cargarPeriodos(prefix = '') {
       const targetPeriodoSelect = prefix === 'edit' ? editPeriodoAcademico : null; 
       if (!targetPeriodoSelect) return; 
@@ -270,7 +281,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
     }
 
 
-    // Función para cargar cursos
+    // Función para cargar cursos (mantenida si se usa en otros modals o en el futuro)
     async function cargarCursos(prefix = '') {
       const targetCursoSelect = prefix === 'edit' ? editCurso : null; 
       if (!targetCursoSelect) return; 
@@ -300,7 +311,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
       }
     }
 
-    // Función para cargar secciones
+    // Función para cargar secciones (mantenida si se usa en otros modals o en el futuro)
     async function cargarSecciones(prefix = '') {
       const targetSeccionSelect = prefix === 'edit' ? editSeccion : null; 
       if (!targetSeccionSelect) return; 
@@ -399,7 +410,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
             mostrarMensajeExito(data.message);
             setTimeout(() => {
               modalEditarProfesor.hide();
-              loadProfesores(currentPage);
+              loadProfesores(currentPage, searchProfesorInput.value.trim()); // Pasar searchTerm
             }, 1500);
             return;
           }
@@ -410,7 +421,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         
         setTimeout(() => {
           modalEditarProfesor.hide();
-          loadProfesores(currentPage);
+          loadProfesores(currentPage, searchProfesorInput.value.trim()); // Pasar searchTerm
         }, 1500);
 
       } catch (error) {
@@ -469,8 +480,8 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
     }
 
     // Función principal para cargar profesores en la tabla y actualizar contadores
-    async function loadProfesores(page) {
-      console.log(`DEBUG: loadProfesores called for page ${page}.`);
+    async function loadProfesores(page, searchTerm = '') { // Añadido searchTerm como parámetro
+      console.log(`DEBUG: loadProfesores called for page ${page} with search term "${searchTerm}".`);
       profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center">Cargando profesores...</td></tr>`;
       paginationControls.innerHTML = ''; 
       TotalProfesores.textContent = '...';
@@ -478,8 +489,12 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
       ProfesoresInactivos.textContent = '...';
 
       try {
-        console.log(`DEBUG: Solicitando profesores para la página ${page} a http://localhost:3001/api/profesores?page=${page}&limit=${itemsPerPage}`);
-        const response = await fetch(`http://localhost:3001/api/profesores?page=${page}&limit=${itemsPerPage}`);
+        let url = `http://localhost:3001/api/profesores?page=${page}&limit=${itemsPerPage}`;
+        if (searchTerm) { // Añadir término de búsqueda a la URL si existe
+          url += `&search=${encodeURIComponent(searchTerm)}`;
+        }
+        console.log(`DEBUG: Solicitando profesores para la página ${page} a ${url}`);
+        const response = await fetch(url);
         
         if (!response.ok) {
           if (response.status === 404) {
@@ -503,12 +518,12 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         // Actualizar contadores
         TotalProfesores.textContent = data.totalCount || '0';
         ProfesoresActivos.textContent = data.activeCount || '0';
-        ProfesoresInactivos.textContent = data.inactiveCount || '0'; // Asegúrate de actualizar también el contador de inactivos
+        ProfesoresInactivos.textContent = data.inactiveCount || '0'; 
 
         profesoresTableBody.innerHTML = ''; // Limpiar las filas existentes
 
         if (profesores.length === 0) {
-          profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron profesores.</td></tr>`;
+          profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron profesores que coincidan con "${searchTerm}".</td></tr>`; // Mensaje con término de búsqueda
           console.log("DEBUG: Array de profesores vacío después de fetch.");
           return;
         }
@@ -563,7 +578,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         });
 
         initializeDropdowns();
-        setupPagination(totalPages, currentPage);
+        setupPagination(totalPages, currentPage, searchTerm); // Pasar searchTerm a la paginación
         setupActionListeners(processedProfesores);
         console.log("DEBUG: Renderizado de profesores completado.");
       } catch (error) {
@@ -630,7 +645,13 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         if (!tablaAcademica) {
           tablaAcademica = document.createElement('div');
           tablaAcademica.id = 'tablaAcademicaProfesor';
-          detalleMaterias.parentElement.insertAdjacentElement('afterend', tablaAcademica);
+          // Asegúrate de dónde quieres insertar esta tabla en tu HTML.
+          // Aquí la inserto después del detalleMaterias.parentElement (un <p> que contiene detalleMaterias).
+          // Es mejor si hay un contenedor específico en el HTML para esto.
+          const parentOfDetails = document.querySelector('#modalVerMasInformacionProfesor .modal-body');
+          if(parentOfDetails) {
+            parentOfDetails.appendChild(tablaAcademica);
+          }
         }
         tablaAcademica.innerHTML = '<div class="text-center text-muted">Cargando información académica detallada...</div>';
         try {
@@ -680,8 +701,6 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         }
         console.log("DEBUG: Teléfono parseado. Codigo:", editCodigoAreaSelect.value, "Numero:", editNumeroTelefonoInput.value);
 
-        // Ya no se cargan ni seleccionan periodos, cursos, materias ni secciones
-
         modalEditarProfesor.show();
         console.log("DEBUG: Modal 'Editar Profesor' mostrado.");
     }
@@ -709,7 +728,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
             }
 
             mostrarMensajeExito(`Profesor ${profesor.primer_nombre} ${profesor.primer_apellido} ha sido desactivado exitosamente.`);
-            loadProfesores(currentPage); 
+            loadProfesores(currentPage, searchProfesorInput.value.trim()); // Recargar con el término de búsqueda actual
             console.log("DEBUG: Profesor desactivado y tabla recargada.");
         } catch (error) {
             console.error('❌ Error al desactivar profesor:', error);
@@ -719,8 +738,8 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
 
 
     // Función de paginación (generalizada)
-    function setupPagination(totalPages, currentPage) {
-      console.log('DEBUG: setupPagination called. Total pages:', totalPages, 'Current page:', currentPage);
+    function setupPagination(totalPages, currentPage, searchTerm = '') { // Añadido searchTerm como parámetro
+      console.log('DEBUG: setupPagination called. Total pages:', totalPages, 'Current page:', currentPage, 'Search term:', searchTerm);
       paginationControls.innerHTML = '';
       if (totalPages <= 1) return;
 
@@ -736,7 +755,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
       prevLink.addEventListener('click', (e) => {
         e.preventDefault();
         if (currentPage > 1) {
-          loadProfesores(currentPage - 1);
+          loadProfesores(currentPage - 1, searchTerm); // Pasar searchTerm
         }
       });
       prevLi.appendChild(prevLink);
@@ -754,7 +773,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         link.textContent = '1';
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          loadProfesores(1);
+          loadProfesores(1, searchTerm); // Pasar searchTerm
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -775,7 +794,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         link.textContent = i;
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          loadProfesores(i);
+          loadProfesores(i, searchTerm); // Pasar searchTerm
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -796,7 +815,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         link.textContent = totalPages;
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          loadProfesores(totalPages);
+          loadProfesores(totalPages, searchTerm); // Pasar searchTerm
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -811,7 +830,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
       nextLink.addEventListener('click', (e) => {
         e.preventDefault();
         if (currentPage < totalPages) {
-          loadProfesores(currentPage + 1);
+          loadProfesores(currentPage + 1, searchTerm); // Pasar searchTerm
         }
       });
       nextLi.appendChild(nextLink);
@@ -822,6 +841,15 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
     }
 
     loadProfesores(1); // Carga inicial de profesores
+
+    // Event listener para el campo de búsqueda de profesores (NUEVO)
+    if (searchProfesorInput) {
+        searchProfesorInput.addEventListener('input', () => {
+            currentPage = 1; // Reiniciar a la primera página en cada búsqueda
+            loadProfesores(currentPage, searchProfesorInput.value.trim());
+        });
+    }
+
 
     // Funciones auxiliares
     function mostrarError(elemento, mensaje) {

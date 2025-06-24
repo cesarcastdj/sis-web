@@ -9,91 +9,115 @@ const router = express.Router();
 router.get('/estudiantes', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
+    // NUEVO: Captura el término de búsqueda de la URL
+    const searchTerm = req.query.search ? req.query.search.toLowerCase() : '';
     const offset = (page - 1) * limit;
 
     try {
-      // 1️⃣ Consulta para el total de estudiantes
-      const [totalStudentsResult] = await db.promise().query('SELECT COUNT(*) AS total FROM usuarios WHERE rol = "estudiante";');
-      const totalCount = totalStudentsResult[0].total;
+        let baseWhereClause = `WHERE u.rol = 'estudiante'`;
+        let countWhereClause = `WHERE rol = 'estudiante'`; // Para las consultas COUNT que no usan JOIN
+        let queryParams = []; // Parámetros para las consultas SQL
 
-      // 2️⃣ Consulta para el total de estudiantes activos
-      const [activeStudentsResult] = await db.promise().query('SELECT COUNT(*) AS active FROM usuarios WHERE rol = "estudiante" AND estado = 1;');
-      const activeCount = activeStudentsResult[0].active;
+        // Si hay un término de búsqueda, añadirlo a la cláusula WHERE
+        if (searchTerm) {
+            // Se busca en primer_nombre O primer_apellido (o ambos)
+            baseWhereClause += ` AND (LOWER(u.primer_nombre) LIKE ? OR LOWER(u.primer_apellido) LIKE ?)`;
+            countWhereClause += ` AND (LOWER(primer_nombre) LIKE ? OR LOWER(primer_apellido) LIKE ?)`;
+            queryParams.push(`%${searchTerm}%`, `%${searchTerm}%`);
+        }
 
-      // 3️⃣ Consulta para el total de estudiantes inactivos
-      const [inactiveStudentsResult] = await db.promise().query('SELECT COUNT(*) AS inactive FROM usuarios WHERE rol = "estudiante" AND estado = 0;');
-      const inactiveCount = inactiveStudentsResult[0].inactive;
+        // 1️⃣ Consulta para el total de estudiantes (con o sin filtro de búsqueda)
+        const [totalStudentsResult] = await db.promise().query(
+            `SELECT COUNT(*) AS total FROM usuarios ${countWhereClause};`,
+            queryParams
+        );
+        const totalCount = totalStudentsResult[0].total;
 
-      const totalPages = Math.ceil(totalCount / limit);
+        // 2️⃣ Consulta para el total de estudiantes activos (con o sin filtro de búsqueda)
+        const [activeStudentsResult] = await db.promise().query(
+            `SELECT COUNT(*) AS active FROM usuarios ${countWhereClause} AND estado = 1;`,
+            queryParams
+        );
+        const activeCount = activeStudentsResult[0].active;
 
-      // 4️⃣ Consulta optimizada para obtener los estudiantes con todos los detalles
-      const studentsQuery = `
-        SELECT
-            u.id_usuario,
-            u.cedula,
-            u.primer_nombre,
-            u.segundo_nombre,
-            u.primer_apellido,
-            u.segundo_apellido,
-            u.correo,
-            u.telefono,
-            d.direccion AS direccion,
-            u.estado AS estado,
-            u.ultima_conexion,
-            -- Modificación aquí para asegurar que 'periodoAcademicoNames' sea siempre el nombre del periodo o 'N/A'
-            IFNULL(GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC), 'N/A') AS periodoAcademicoNames,
-            IFNULL(GROUP_CONCAT(DISTINCT up.id_periodo ORDER BY up.id_periodo ASC), '') AS periodoAcademicoIds,
-            IFNULL(GROUP_CONCAT(DISTINCT c.curso ORDER BY c.curso ASC), '') AS cursosNames,
-            IFNULL(GROUP_CONCAT(DISTINCT uc.id_curso ORDER BY uc.id_curso ASC), '') AS cursosIds,
-            IFNULL(GROUP_CONCAT(DISTINCT m.materia ORDER BY m.materia ASC), '') AS materiasNames,
-            IFNULL(GROUP_CONCAT(DISTINCT um.id_materia ORDER BY um.id_materia ASC), '') AS materiasIds,
-            IFNULL(GROUP_CONCAT(DISTINCT s.seccion ORDER BY s.seccion ASC), '') AS seccionNames,
-            IFNULL(GROUP_CONCAT(DISTINCT us.id_seccion ORDER BY us.id_seccion ASC), '') AS seccionIds
-        FROM
-            usuarios u
-        LEFT JOIN
-            usuario_periodo up ON u.id_usuario = up.id_usuario
-        LEFT JOIN
-            periodo p ON up.id_periodo = p.id_periodo
-        LEFT JOIN
-            usuario_cursos uc ON u.id_usuario = uc.id_usuario
-        LEFT JOIN
-            cursos c ON uc.id_curso = c.id_curso
-        LEFT JOIN
-            usuario_materias um ON u.id_usuario = um.id_usuario
-        LEFT JOIN
-            materias m ON um.id_materia = m.id_materia
-        LEFT JOIN
-            usuario_seccion us ON u.id_usuario = us.id_usuario
-        LEFT JOIN
-            seccion s ON us.id_seccion = s.id_seccion
-        LEFT JOIN
-            direccion d ON u.id_direccion = d.id_direccion
-        WHERE
-            u.rol = 'estudiante' AND u.estado = '1'
-        GROUP BY
-            u.id_usuario
-        ORDER BY
-            u.primer_apellido ASC
-        LIMIT ? OFFSET ?;
-      `;
+        // 3️⃣ Consulta para el total de estudiantes inactivos (con o sin filtro de búsqueda)
+        const [inactiveStudentsResult] = await db.promise().query(
+            `SELECT COUNT(*) AS inactive FROM usuarios ${countWhereClause} AND estado = 0;`,
+            queryParams
+        );
+        const inactiveCount = inactiveStudentsResult[0].inactive;
 
-      // 🏆 Ejecutar la consulta y procesar los datos
-      const [estudiantes] = await db.promise().query(studentsQuery, [limit, offset]);
+        const totalPages = Math.ceil(totalCount / limit);
 
+        // 4️⃣ Consulta optimizada para obtener los estudiantes con todos los detalles
+        const studentsQuery = `
+            SELECT
+                u.id_usuario,
+                u.cedula,
+                u.primer_nombre,
+                u.segundo_nombre,
+                u.primer_apellido,
+                u.segundo_apellido,
+                u.correo,
+                u.telefono,
+                d.direccion AS direccion,
+                u.estado AS estado,
+                u.ultima_conexion,
+                IFNULL(GROUP_CONCAT(DISTINCT p.periodo ORDER BY p.periodo ASC), 'N/A') AS periodoAcademicoNames,
+                IFNULL(GROUP_CONCAT(DISTINCT up.id_periodo ORDER BY up.id_periodo ASC), '') AS periodoAcademicoIds,
+                IFNULL(GROUP_CONCAT(DISTINCT c.curso ORDER BY c.curso ASC), '') AS cursosNames,
+                IFNULL(GROUP_CONCAT(DISTINCT uc.id_curso ORDER BY uc.id_curso ASC), '') AS cursosIds,
+                IFNULL(GROUP_CONCAT(DISTINCT m.materia ORDER BY m.materia ASC), '') AS materiasNames,
+                IFNULL(GROUP_CONCAT(DISTINCT um.id_materia ORDER BY um.id_materia ASC), '') AS materiasIds,
+                IFNULL(GROUP_CONCAT(DISTINCT s.seccion ORDER BY s.seccion ASC), '') AS seccionNames,
+                IFNULL(GROUP_CONCAT(DISTINCT us.id_seccion ORDER BY us.id_seccion ASC), '') AS seccionIds
+            FROM
+                usuarios u
+            LEFT JOIN
+                usuario_periodo up ON u.id_usuario = up.id_usuario
+            LEFT JOIN
+                periodo p ON up.id_periodo = p.id_periodo
+            LEFT JOIN
+                usuario_cursos uc ON u.id_usuario = uc.id_usuario
+            LEFT JOIN
+                cursos c ON uc.id_curso = c.id_curso
+            LEFT JOIN
+                usuario_materias um ON u.id_usuario = um.id_usuario
+            LEFT JOIN
+                materias m ON um.id_materia = m.id_materia
+            LEFT JOIN
+                usuario_seccion us ON u.id_usuario = us.id_usuario
+            LEFT JOIN
+                seccion s ON us.id_seccion = s.id_seccion
+            LEFT JOIN
+                direccion d ON u.id_direccion = d.id_direccion
+            ${baseWhereClause}
+            GROUP BY
+                u.id_usuario
+            ORDER BY
+                u.primer_apellido ASC
+            LIMIT ? OFFSET ?;
+        `;
 
-      res.json({
-        estudiantes: estudiantes,
-        totalCount,
-        activeCount,
-        inactiveCount,
-        totalPages,
-        currentPage: page
-      });
+        // 🏆 Ejecutar la consulta y procesar los datos
+        // Asegúrate de que los parámetros para LIMIT y OFFSET estén al final
+        const [estudiantes] = await db.promise().query(
+            studentsQuery,
+            [...queryParams, parseInt(limit), offset] // Añadir los parámetros de paginación al final
+        );
+
+        res.json({
+            estudiantes: estudiantes,
+            totalCount,
+            activeCount,
+            inactiveCount,
+            totalPages,
+            currentPage: page
+        });
 
     } catch (error) {
-      console.error("❌ Error al obtener estudiantes:", error);
-      res.status(500).json({ error: "Error al cargar estudiantes", detalle: error.message });
+        console.error("❌ Error al obtener estudiantes:", error);
+        res.status(500).json({ error: "Error al cargar estudiantes", detalle: error.message });
     }
 });
 
