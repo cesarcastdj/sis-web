@@ -110,51 +110,6 @@ import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estil
             <button class="btn-view-all">Ver todas las notificaciones</button>
           </div>
         </div>
-
-        <!-- Botón de escudo de usuario (no se le agregó funcionalidad en los scripts) -->
-        <button class="bar-icons btn-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="icon icon-tabler icons-tabler-outline icon-tabler-user-shield"
-          >
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-            <path d="M6 21v-2a4 4 0 0 1 4 -4h2"></path>
-            <path
-              d="M22 16c0 4 -2.5 6 -3.5 6s-3.5 -2 -3.5 -6c1 0 2.5 -.5 3.5 -1.5c1 1 2.5 1.5 3.5 1.5z"
-            ></path>
-            <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path>
-          </svg>
-        </button>
-
-        <!-- Botón de configuración (no se le agregó funcionalidad en los scripts) -->
-        <button class="bar-icons btn-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="icon icon-tabler icons-tabler-outline icon-tabler-settings"
-          >
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-            <path
-              d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
-            ></path>
-            <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -8 0"></path>
-          </svg>
-        </button>
       </div>
 
       <!-- Imagen de perfil de usuario con offcanvas -->
@@ -222,7 +177,8 @@ import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estil
      aria-labelledby="modalAsignarUsuarioLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-body">
+      <!-- Añadir estilo para scroll al modal-body -->
+      <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
         <button type="button" class="btn-close"
                 data-bs-dismiss="modal" aria-label="Cerrar"></button>
         <!-- Logo GLLR -->
@@ -249,24 +205,38 @@ import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estil
                 <option value="admin">Administrador</option>
               </select>
             </div>
-            <div class="col-md-4">
+            
+            <!-- Contenedor para Secciones, Cursos, Materias y Periodo - Se ocultará/mostrará -->
+            <!-- Cada div individual también tendrá una clase para control granular -->
+            <div class="col-md-4 assign-field-group" id="seccionesField">
               <label for="seccionesSelect" class="form-label">Secciones <span class="campo-obligatorio">*</span></label>
               <select id="seccionesSelect" name="secciones" class="form-select" required>
-                <option value="" disabled selected>Seleccione una sección</option>
+                <option value="" disabled>Seleccione una sección</option>
               </select>
               <div class="invalid-feedback"></div>
             </div>
-            <div class="col-md-4">
+            
+            <div class="col-md-4 assign-field-group" id="cursosField">
               <label for="cursosSelect" class="form-label">Cursos <span class="campo-obligatorio">*</span></label>
               <select id="cursosSelect" name="cursos" class="form-select" required>
-                <option value="" disabled selected>Seleccione un curso</option>
+                <option value="" disabled>Seleccione un curso</option>
               </select>
               <div class="invalid-feedback"></div>
             </div>
-            <div class="col-12">
+
+            <!-- Nuevo campo para Periodo -->
+            <div class="col-md-4 assign-field-group" id="periodosField">
+              <label for="periodoSelect" class="form-label">Período <span class="campo-obligatorio">*</span></label>
+              <select id="periodoSelect" name="periodos" class="form-select" required>
+                <option value="" disabled selected>Seleccione un período</option>
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+
+            <div class="col-12 assign-field-group" id="materiasField">
               <label for="materiasSelect" class="form-label">Materias <span class="campo-obligatorio">*</span></label>
               <select id="materiasSelect" name="materias" class="form-select" required>
-                <option value="" disabled selected>Seleccione una materia</option>
+                <option value="" disabled>Seleccione una materia</option>
               </select>
               <div class="invalid-feedback"></div>
             </div>
@@ -283,6 +253,7 @@ import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estil
   </div>
 </div>
 
+<!-- Tus Toasts existentes -->
 <!-- Toast “Listo” (confirmación de éxito) -->
 <div class="toast-container position-fixed top-0 end-0 p-3">
   <div id="toastConfirmacion"
@@ -325,7 +296,7 @@ import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estil
     cargarUsuarioLogueado();
     cargarNotificaciones();
     configurarLogout();
-    configurarAsignacion();
+    configurarAsignacion(); // Esta función ahora inicializa los listeners para la visibilidad
     const editProfileNavButton = document.getElementById('editProfileNavButton');
     if (editProfileNavButton) {
       editProfileNavButton.addEventListener('click', () => {
@@ -431,28 +402,65 @@ import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estil
     document.getElementById('inputIdUsuario').value = id_usuario;
     document.getElementById('infoUsuario').textContent = `${primer_nombre} ${primer_apellido} — C.I: ${cedula}`;
 
-    // Carga los selects de secciones y cursos
+    // Restablecer los selects y campos al estado inicial (para reabrir el modal)
+    document.getElementById('formAsignacionUsuario').reset();
+    
+    // Ocultar los campos adicionales por defecto al abrir el modal
+    const assignFields = document.querySelectorAll('.assign-field-group');
+    assignFields.forEach(field => field.classList.add('d-none')); // d-none de Bootstrap para ocultar
+    document.getElementById('seccionesSelect').removeAttribute('required');
+    document.getElementById('cursosSelect').removeAttribute('required');
+    document.getElementById('materiasSelect').removeAttribute('required');
+    document.getElementById('periodoSelect').removeAttribute('required'); // Nuevo
+
+    // Carga los selects de secciones, cursos y periodos
     await cargarSelect('/api/secciones', 'seccionesSelect');
     await cargarSelect('/api/cursos', 'cursosSelect');
+    await cargarSelect('/api/periodos', 'periodoSelect'); // Nuevo: Cargar periodos
 
     // Limpia el select de materias al abrir el modal
-    document.getElementById('materiasSelect').innerHTML = '';
+    document.getElementById('materiasSelect').innerHTML = '<option value="" disabled selected>Seleccione una materia</option>';
 
     // Configura el evento change para el select de cursos para cargar materias
     document.getElementById('cursosSelect').onchange = async e => {
-      const cursoIds = Array.from(e.target.selectedOptions).map(o => o.value);
+      // Si el select es multiple, e.target.selectedOptions es una HTMLCollection.
+      // Si es single select, solo se tomará el primer valor.
+      const selectedCourseIds = Array.from(e.target.selectedOptions).map(o => o.value).filter(Boolean); // Filtrar vacíos
+      
+      const materiasSelect = document.getElementById('materiasSelect');
+      materiasSelect.innerHTML = '<option value="" disabled selected>Seleccione una materia</option>'; // Limpiar antes de cargar
+
+      if (selectedCourseIds.length === 0) {
+        return; // No hay cursos seleccionados, no cargar materias
+      }
+
       const materias = [];
-      for (let id of cursoIds) {
+      for (let id of selectedCourseIds) {
         try {
           const resp = await fetch(`http://localhost:3001/api/cursos/${id}/materias`, { credentials: 'include' });
-          const body = await resp.json();
+          if (!resp.ok) {
+              const errorData = await resp.json();
+              throw new Error(errorData.error || `Error HTTP: ${resp.status}`);
+          }
+          const body = await resp.json(); // Asumo que el body es un array de materias
           materias.push(...body);
         } catch (error) {
           console.error(`Error al cargar materias para el curso ${id}:`, error);
           mostrarToastError(`No se pudieron cargar las materias para un curso seleccionado.`);
         }
       }
-      document.getElementById('materiasSelect').innerHTML = materias
+      
+      // Asegurarse de que no haya duplicados si se seleccionan múltiples cursos que comparten materias
+      const uniqueMaterias = [];
+      const materiaIds = new Set();
+      materias.forEach(m => {
+          if (!materiaIds.has(m.id_materia)) {
+              uniqueMaterias.push(m);
+              materiaIds.add(m.id_materia);
+          }
+      });
+
+      materiasSelect.innerHTML += uniqueMaterias
         .map(m => `<option value="${m.id_materia}">${m.materia}</option>`)
         .join('');
     };
@@ -472,9 +480,40 @@ import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estil
       const items = await resp.json();
       const sel = document.getElementById(selectId);
       if (sel) {
-        sel.innerHTML = items
-          .map(it => `<option value="${it[Object.keys(it)[0]]}">${Object.values(it)[1]}</option>`)
-          .join('');
+        // Limpia las opciones existentes excepto la primera (deshabilitada/seleccionada)
+        // O limpia todas y añade la primera deshabilitada si no existe.
+        // CORRECCIÓN: Ajuste del artículo 'un'/'una' basado en el género.
+        const placeholderText = selectId.replace('Select', '').toLowerCase();
+        
+        let finalPlaceholder = placeholderText;
+        let article = 'un'; // Default to masculine 'un'
+
+        if (placeholderText === 'secciones') {
+          finalPlaceholder = 'sección';
+          article = 'una';
+        } else if (placeholderText === 'cursos') {
+          finalPlaceholder = 'curso';
+          article = 'un'; // 'curso' is masculine
+        } else if (placeholderText === 'materias') {
+          finalPlaceholder = 'materia';
+          article = 'una';
+        } else if (placeholderText === 'periodos') {
+          finalPlaceholder = 'período';
+          article = 'un'; // 'período' is masculine
+        }
+        
+        sel.innerHTML = `<option value="" disabled selected>Seleccione ${article} ${finalPlaceholder}</option>`;
+
+        if (items && items.length > 0) {
+            // Determina la clave de ID y de nombre basada en el primer objeto
+            const firstItem = items[0];
+            const idKey = Object.keys(firstItem)[0]; // e.g., 'id_seccion', 'id_curso', 'id_periodo'
+            const nameKey = Object.keys(firstItem)[1]; // e.g., 'seccion', 'curso', 'periodo'
+
+            sel.innerHTML += items
+                .map(it => `<option value="${it[idKey]}">${it[nameKey]}</option>`)
+                .join('');
+        }
       } else {
         console.warn(`Elemento select con ID '${selectId}' no encontrado.`);
       }
@@ -484,6 +523,53 @@ import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estil
     }
   }
 
+  // Lógica para mostrar/ocultar campos basada en la selección del rol
+  function setupRolChangeListener() {
+    const rolSelect = document.getElementById('rolSelect');
+    const seccionesField = document.getElementById('seccionesField');
+    const cursosField = document.getElementById('cursosField');
+    const materiasField = document.getElementById('materiasField');
+    const periodosField = document.getElementById('periodosField'); // Nuevo
+
+    const seccionesSelect = document.getElementById('seccionesSelect');
+    const cursosSelect = document.getElementById('cursosSelect');
+    const materiasSelect = document.getElementById('materiasSelect');
+    const periodoSelect = document.getElementById('periodoSelect'); // Nuevo
+
+    // Función para aplicar la visibilidad y los atributos 'required'
+    const applyVisibility = () => {
+      const selectedRol = rolSelect.value;
+      const shouldShowFields = (selectedRol === 'estudiante' || selectedRol === 'profesor');
+
+      [seccionesField, cursosField, materiasField, periodosField].forEach(field => {
+        if (shouldShowFields) {
+          field.classList.remove('d-none');
+        } else {
+          field.classList.add('d-none');
+        }
+      });
+
+      // Gestionar el atributo 'required'
+      [seccionesSelect, cursosSelect, materiasSelect, periodoSelect].forEach(select => {
+        if (shouldShowFields) {
+          select.setAttribute('required', 'true');
+        } else {
+          select.removeAttribute('required');
+          // Opcional: Limpiar las selecciones y deshabilitar si se ocultan
+          // select.value = ''; 
+          // Array.from(select.options).forEach(option => option.selected = false); // Para selects multiple
+        }
+      });
+    };
+
+    // Aplicar al cargar la página (en caso de que haya una selección inicial)
+    applyVisibility();
+
+    // Añadir listener para cuando el rol cambie
+    rolSelect.addEventListener('change', applyVisibility);
+  }
+
+
   // 5) Guardar y procesar asignación de usuario
   function configurarAsignacion() {
     const btnGuardar = document.getElementById('btnGuardarAsignacion');
@@ -492,20 +578,48 @@ import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estil
       return;
     }
 
+    // Llama a la función para configurar el listener del rol
+    setupRolChangeListener(); 
+
     btnGuardar.addEventListener('click', async () => {
       const id_usuario = parseInt(document.getElementById('inputIdUsuario').value);
       const id_notificacion = parseInt(document.getElementById('inputIdNotificacion').value);
       const rol = document.getElementById('rolSelect').value;
-      const secciones = Array.from(document.getElementById('seccionesSelect').selectedOptions).map(o => parseInt(o.value));
-      const cursos = Array.from(document.getElementById('cursosSelect').selectedOptions).map(o => parseInt(o.value));
-      const materias = Array.from(document.getElementById('materiasSelect').selectedOptions).map(o => parseInt(o.value));
+
+      // Recolectar datos solo si el rol no es 'admin'
+      let secciones = [];
+      let cursos = [];
+      let materias = [];
+      let periodos = []; // Nuevo
+
+      if (rol === 'estudiante' || rol === 'profesor') {
+        // Validación básica de Bootstrap antes de enviar
+        const form = document.getElementById('formAsignacionUsuario');
+        if (!form.checkValidity()) {
+          form.classList.add('was-validated'); // Muestra los mensajes de error de Bootstrap
+          mostrarToastError('Por favor, completa todos los campos obligatorios para Estudiante/Profesor.');
+          return;
+        }
+
+        secciones = Array.from(document.getElementById('seccionesSelect').selectedOptions).map(o => parseInt(o.value));
+        cursos = Array.from(document.getElementById('cursosSelect').selectedOptions).map(o => parseInt(o.value));
+        materias = Array.from(document.getElementById('materiasSelect').selectedOptions).map(o => parseInt(o.value));
+        periodos = Array.from(document.getElementById('periodoSelect').selectedOptions).map(o => parseInt(o.value)); // Nuevo
+
+        // Asegúrate de que las selecciones no estén vacías si son requeridas
+        if (secciones.length === 0 || cursos.length === 0 || materias.length === 0 || periodos.length === 0) {
+             mostrarToastError('Por favor, selecciona al menos una opción para cada campo requerido.');
+             return;
+        }
+      }
 
       try {
         const resp = await fetch('http://localhost:3001/asignar-usuario', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ id_usuario, rol, secciones, cursos, materias })
+          // Envía los datos condicionalmente
+          body: JSON.stringify({ id_usuario, rol, secciones, cursos, materias, periodos })
         });
         const data = await resp.json();
 
@@ -530,6 +644,9 @@ import "../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estil
         const remaining = document.querySelectorAll('.notificacion-item').length;
         // Oculta/muestra el punto de notificación
         document.querySelector('.notification').style.display = remaining > 0 ? 'block' : 'none';
+
+        // Recargar notificaciones para asegurar que el listado esté actualizado
+        cargarNotificaciones();
 
       } catch (error) {
         console.error('Error al procesar usuario:', error);

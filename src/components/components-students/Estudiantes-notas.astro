@@ -1,193 +1,603 @@
 ---
-import "../../style/style-students/notas.css";
+// src/pages/student/notas.astro (o la ruta que uses para la vista del estudiante)
+import "../../style/style-admin/actividades.css"; // Mantén tus estilos CSS
 ---
 
-<section class="notas-header-card">
-  <div class="welcome-search-data">
-    <h2 class="welcome-search-data__title">Mis Notas</h2>
-  </div>
-</section>
-
 <section class="data-content-section">
-  <section class="content-info-data">
-    <section class="data-general-control grid-layout">
-      <div class="registro-control consolidated-notas-card">
-        <div class="card-icon-title">
-          <i class='bx bxs-graduation'></i>
-          <h5 class="card-title">Resumen Académico.</h5>
-        </div>
-        <div class="notas-summary-grid">
-          <div class="summary-item">
-            <span class="summary-count" id="promedio-general">0.00</span>
-            <span class="summary-label">PROMEDIO GENERAL</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-count" id="materias-aprobadas">0</span>
-            <span class="summary-label">MATERIAS APROBADAS</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-count" id="materias-pendientes">0</span>
-            <span class="summary-label">MATERIAS PENDIENTES</span>
-          </div>
-        </div>
-        <div class="mt-3 text-center">
-          <button class="btn btn-primary" id="descargar-notas">
-            <i class='bx bx-download me-2'></i>Descargar Notas
-          </button>
-        </div>
-      </div>
-    </section>
+  <!-- Título principal de la sección -->
+  <section class="actividades-header-card mb-4">
+    <div class="welcome-search-data">
+      <h2 class="welcome-search-data__title" id="materiaTitulo">Cargando Notas de Materia...</h2>
+      <button class="btn btn-outline-secondary btn-sm ms-auto" id="btnVolverMaterias" type="button">
+        <i class='bx bx-arrow-back'></i> Volver a Mis Materias
+      </button>
+    </div>
   </section>
 
-  <div class="display-table mt-4" id="tableNotas">
-    <div class="tabla-info-person">
-      <table class="table table-dark table-hover table-striped">
-        <thead>
-          <tr>
-            <th scope="col">N°</th>
-            <th scope="col">PERIODO</th>
-            <th scope="col">MATERIA</th>
-            <th scope="col">ACTIVIDAD</th>
-            <th scope="col">NOTA</th>
-            <th scope="col">FECHA</th>
-          </tr>
-        </thead>
-        <tbody id="notas-table-body">
-          <tr>
-            <td colspan="6" class="text-center">Cargando notas...</td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- Sección de Notas: Simplificada para mostrar solo la tabla de notas del estudiante -->
+  <div id="notasSection">
+    <h3 class="mt-4 mb-3">Mis Notas en <span id="currentMateriaNameDisplay"></span></h3>
+    
+    <div class="d-flex justify-content-end mb-3">
+        <!-- Botón para descargar notas -->
+        <button class="btn btn-info btn-sm" id="btnDownloadNotes">
+            <i class='bx bxs-download me-2'></i> Descargar Notas
+        </button>
+    </div>
+
+    <div class="display-table mt-4" id="tableNotas">
+      <div class="tabla-info-person">
+        <table class="table table-dark table-hover table-striped tabla-notas-admin">
+          <thead id="notasTableHeader">
+            <!-- Headers dinámicos de las notas y actividades del estudiante -->
+            <tr>
+                <th scope="col">Nº</th>
+                <th scope="col">Actividad</th>
+                <th scope="col">Ponderación (%)</th>
+                <th scope="col">Mi Nota</th>
+                <th scope="col">Comentarios</th>
+                <th scope="col">Fecha Registro</th>
+            </tr>
+          </thead>
+          <tbody id="notasTableBody">
+            <tr>
+              <td colspan="6" class="text-center">Cargando notas...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="paginationControlsNotas" class="pagination text-center mt-3"></div>
     </div>
   </div>
 </section>
 
-<script>
-  document.addEventListener('DOMContentLoaded', async function() {
-    // Obtener referencias a los elementos DOM
-    const promedioGeneralElement = document.getElementById('promedio-general');
-    const materiasAprobadasElement = document.getElementById('materias-aprobadas');
-    const materiasPendientesElement = document.getElementById('materias-pendientes');
-    const notasTableBody = document.getElementById('notas-table-body');
-    const descargarNotasBtn = document.getElementById('descargar-notas');
+<!-- Scripts de Bootstrap y JavaScript personalizado -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
-    // Verificar que todos los elementos existen
-    if (!promedioGeneralElement || !materiasAprobadasElement || !materiasPendientesElement || !notasTableBody || !descargarNotasBtn) {
-      console.error('No se encontraron todos los elementos necesarios en el DOM');
+<script is:inline>
+  const API_BASE_URL = 'http://localhost:3001/api';
+  let currentMateriaId = null;
+  let currentMateriaNombre = '';
+  let currentUserId = null;
+  let currentPageNotas = 1;
+  const itemsPerPageNotas = 10;
+
+  // Nuevas variables globales para almacenar datos de contexto para la descarga
+  let currentStudentNombreCompleto = 'Estudiante Desconocido';
+  let currentCursoNombre = 'N/A';
+  let currentPeriodoNombre = 'N/A';
+  let currentSeccionNombre = 'N/A';
+  let allActivitiesForDownload = []; // Para almacenar todas las actividades de la materia actual
+  let allNotasForDownload = []; // Para almacenar todas las notas del estudiante actual en esta materia
+
+  let jspdfLoaded = false;
+  let autotableLoaded = false;
+
+  // Función robusta para mostrar alertas (reutilizada de tus archivos)
+  function mostrarAlerta(mensaje, tipo, duracion = 5000) {
+    const alertContainer = document.getElementById('alertContainer') || (() => {
+      const div = document.createElement('div');
+      div.id = 'alertContainer';
+      div.style.position = 'fixed';
+      div.style.top = '20px';
+      div.style.left = '50%';
+      div.style.transform = 'translateX(-50%)';
+      div.style.zIndex = '9999';
+      div.style.width = 'auto';
+      div.style.maxWidth = '90%';
+      document.body.appendChild(div);
+      return div;
+    })();
+
+    const alertElement = document.createElement('div');
+    alertElement.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertElement.role = 'alert';
+    alertElement.textContent = mensaje;
+
+    alertContainer.appendChild(alertElement);
+
+    setTimeout(() => {
+      alertElement.classList.remove('show');
+      setTimeout(() => {
+        alertElement.remove();
+      }, 150);
+    }, duracion);
+  }
+
+  // Función para habilitar el botón de descarga
+  function enableDownloadButton() {
+    const downloadButton = document.getElementById('btnDownloadNotes');
+    if (downloadButton) {
+      downloadButton.removeAttribute('disabled');
+      downloadButton.innerHTML = '<i class="bx bxs-download me-2"></i> Descargar Notas';
+    }
+  }
+
+  // Cargar jsPDF primero
+  // Apuntando a la ruta relativa desde Estudiantes-notas.astro a src/js/lib/
+  const scriptJSPDF = document.createElement('script');
+  scriptJSPDF.src = '/js/lib/jspdf.umd.min.js'; // Ruta relativa
+  scriptJSPDF.onload = () => {
+    jspdfLoaded = true;
+    console.log('jsPDF cargado correctamente.');
+
+    // Una vez que jsPDF está cargado, cargar jsPDF-AutoTable
+    // Apuntando a la ruta relativa desde Estudiantes-notas.astro a src/js/lib/
+    const scriptAutoTable = document.createElement('script');
+    scriptAutoTable.src = '/js/lib/jspdf.plugin.autotable.min.js'; // Ruta relativa
+    scriptAutoTable.onload = () => {
+      autotableLoaded = true;
+      console.log('jsPDF-AutoTable cargado correctamente.');
+       window.jspdf = window.jspdf || {};
+  window.jspdf.jsPDF = window.jspdf.jsPDF || window.jspPDF || window.jsPDF;
+  window.jspdf.AutoTable = window.jspdf.AutoTable || window.jspdf?.jsPDF?.API?.autoTable || window.jspPDF?.API?.autoTable;
+      // Ambas librerías están cargadas, habilitar el botón
+      enableDownloadButton();
+    };
+    scriptAutoTable.onerror = () => {
+      console.error('Error al cargar jsPDF-AutoTable desde la ruta relativa.');
+      mostrarAlerta('Error al cargar la librería de tablas (jsPDF-AutoTable). Verifica la ruta relativa.', 'danger');
+    };
+    document.head.appendChild(scriptAutoTable);
+  };
+  scriptJSPDF.onerror = () => {
+    console.error('Error al cargar jsPDF desde la ruta relativa.');
+    mostrarAlerta('Error al cargar la librería base de PDF (jsPDF). Verifica la ruta relativa.', 'danger');
+  };
+  document.head.appendChild(scriptJSPDF);
+
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    currentMateriaId = urlParams.get('materiaId');
+
+    currentUserId = localStorage.getItem('userId') || '18'; // Fallback para depuración
+
+    if (!currentMateriaId || !currentUserId) {
+      mostrarAlerta('ID de materia o de usuario no especificado en la URL/sesión.', 'danger');
+      document.getElementById('materiaTitulo').textContent = 'Error: Materia o Usuario no encontrados';
       return;
     }
 
-    async function cargarNotas() {
-      try {
-        const response = await fetch('http://localhost:3001/api/estudiante/notas', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json'
+    // Deshabilitar el botón de descarga inicialmente y mostrar spinner
+    const downloadButton = document.getElementById('btnDownloadNotes');
+    if (downloadButton) {
+      downloadButton.setAttribute('disabled', 'true');
+      downloadButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Cargando librerías...';
+    }
+
+    // Obtener el nombre del estudiante
+    await fetchStudentName(currentUserId);
+
+    // Inicializar todo si los IDs están presentes
+    await fetchMateriaDetails(currentMateriaId);
+    await loadNotasEstudiante(currentUserId, currentMateriaId, currentPageNotas);
+
+    // Listener para el botón de volver a las materias
+    document.getElementById('btnVolverMaterias').addEventListener('click', () => {
+      window.location.href = '/Students-Control/Students-Control'; // Asegúrate de que esta es la ruta correcta
+    });
+
+    // Listener para el botón "Descargar Notas"
+    document.getElementById('btnDownloadNotes').addEventListener('click', handleDownloadNotes);
+  });
+
+  async function fetchStudentName(id_usuario) {
+    try {
+      const res = await fetch(`${API_BASE_URL.replace('/api', '')}/usuario`, { // Asumiendo que esta API está en la raíz, no bajo /api
+        method: 'GET',
+        credentials: 'include' // Importante para las cookies de sesión
+      });
+
+      if (!res.ok) {
+        throw new Error(`Error HTTP! estado: ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data && data.primer_nombre && data.primer_apellido) {
+        currentStudentNombreCompleto = `${data.primer_nombre} ${data.primer_apellido}`;
+      } else {
+        currentStudentNombreCompleto = 'Estudiante (ID: ' + id_usuario + ')';
+      }
+    } catch (error) {
+      console.error('Error al obtener el nombre del estudiante:', error);
+      mostrarAlerta('No se pudo cargar el nombre del estudiante.', 'danger');
+      currentStudentNombreCompleto = 'Estudiante (ID: ' + id_usuario + ')';
+    }
+  }
+
+  async function fetchMateriaDetails(id) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${id}`);
+      if (!response.ok) {
+        throw new Error(`Error HTTP! estado: ${response.status}`);
+      }
+      const data = await response.json();
+      currentMateriaNombre = data.nombre_materia;
+      currentCursoNombre = data.nombre_curso || 'N/A';      // Establecer nuevas variables globales
+      currentPeriodoNombre = data.nombre_periodo || 'N/A';  // Establecer nuevas variables globales
+      currentSeccionNombre = data.nombre_seccion || 'N/A';  // Establecer nuevas variables globales
+
+      document.getElementById('materiaTitulo').textContent = `Notas de la Materia: "${data.nombre_materia || 'Materia Desconocida'}"`;
+      document.getElementById('currentMateriaNameDisplay').textContent = data.nombre_materia || 'Materia Desconocida';
+    } catch (error) {
+      console.error('Error al obtener detalles de la materia:', error);
+      document.getElementById('materiaTitulo').textContent = 'Error al cargar Materia';
+      document.getElementById('currentMateriaNameDisplay').textContent = 'Error';
+      mostrarAlerta('No se pudo cargar el nombre de la materia.', 'danger');
+    }
+  }
+
+  async function loadNotasEstudiante(id_estudiante, id_materia, page) {
+    const notasTableBody = document.getElementById('notasTableBody');
+    const paginationControls = document.getElementById('paginationControlsNotas');
+
+    notasTableBody.innerHTML = `<tr><td colspan="6" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Cargando notas...</td></tr>`;
+    paginationControls.innerHTML = '';
+
+    try {
+      // DEBUG: Registrar el ID de usuario actual y el ID de materia
+      console.log('DEBUG: currentUserId (en loadNotasEstudiante):', id_estudiante);
+      console.log('DEBUG: currentMateriaId:', id_materia);
+
+      // Obtener todas las actividades para esta materia (necesarias para ponderación y nombres de actividad)
+      const actividadesResponse = await fetch(`${API_BASE_URL}/materias/${id_materia}/actividades`);
+      if (!actividadesResponse.ok) {
+        throw new Error(`Error HTTP! estado: ${actividadesResponse.status} al obtener actividades.`);
+      }
+      const actividadesData = await actividadesResponse.json();
+      const actividades = actividadesData.actividades || [];
+      allActivitiesForDownload = actividades; // Almacenar para la función de descarga
+      console.log('DEBUG: Actividades obtenidas:', actividades);
+
+      // Obtener las notas del estudiante para esta materia
+      // RUTA DE API CORREGIDA: Usando /estudiante/ en lugar de /usuario/
+      const notasResponse = await fetch(`${API_BASE_URL}/notas/materia/${id_materia}/estudiante/${id_estudiante}?page=${page}&limit=${itemsPerPageNotas}`);
+      if (!notasResponse.ok) {
+        throw new Error(`Error HTTP! estado: ${notasResponse.status} al obtener notas.`);
+      }
+      const notasData = await notasResponse.json();
+      const notasDelEstudiante = notasData.notas || [];
+      allNotasForDownload = notasDelEstudiante; // Almacenar para la función de descarga
+      console.log('DEBUG: Notas del estudiante obtenidas de la API:', notasDelEstudiante);
+
+
+      notasTableBody.innerHTML = ''; // Limpiar mensaje de carga
+
+      if (actividades.length === 0 && notasDelEstudiante.length === 0) {
+        notasTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No se encontraron actividades ni notas para ti en esta materia.</td></tr>`;
+        mostrarAlerta('No se encontraron actividades ni notas para esta materia o hubo un problema al cargarlas.', 'info');
+        return;
+      }
+
+      // Crear un mapa de notas para un acceso más rápido: { id_actividad: nota_objeto }
+      const notasMap = new Map();
+      notasDelEstudiante.forEach(nota => {
+        // Asegurarse de que `nota.id_actividad` sea un string para la clave del mapa
+        notasMap.set(String(nota.id_actividad), nota);
+      });
+      console.log('DEBUG: notasMap (mapa de notas por ID de actividad):', notasMap);
+
+
+      let sumOfWeightedNotes = 0;
+
+      // Recorrer todas las actividades y mostrar la nota si existe, o N/A
+      actividades.forEach((actividad, index) => {
+        const row = notasTableBody.insertRow();
+        const notaEncontrada = notasMap.get(String(actividad.id_actividad));
+        console.log(`DEBUG: Procesando actividad "${actividad.nombre_actividad}" (ID: ${actividad.id_actividad}). Nota encontrada para mapeo:`, notaEncontrada);
+
+        let notaValor = 'N/A';
+        let comentariosDisplay = 'Sin comentarios';
+        let fechaRegistroNotaDisplay = 'N/A';
+        let notaClass = 'text-muted';
+
+        if (notaEncontrada) {
+          notaValor = parseFloat(notaEncontrada.nota).toFixed(2);
+          comentariosDisplay = notaEncontrada.comentario_actividad || 'Sin comentarios'; // Usar 'comentarios' de la respuesta de la API
+          fechaRegistroNotaDisplay = notaEncontrada.fecha_registro ? new Date(notaEncontrada.fecha_registro).toLocaleDateString() : 'N/A';
+
+          if (parseFloat(notaEncontrada.nota) >= 10) {
+            notaClass = 'text-success';
+          } else {
+            notaClass = 'text-danger';
           }
-        });
 
-        if (response.status === 401) {
-          throw new Error('No autorizado. Por favor, inicie sesión.');
-        }
-
-        if (!response.ok) {
-          throw new Error(`Error del servidor: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Datos recibidos:', data);
-
-        // Actualizar estadísticas
-        if (promedioGeneralElement && materiasAprobadasElement && materiasPendientesElement) {
-          promedioGeneralElement.textContent = data.estadisticas.promedio_general || '0.00';
-          materiasAprobadasElement.textContent = data.estadisticas.materias_aprobadas || '0';
-          materiasPendientesElement.textContent = data.estadisticas.materias_pendientes || '0';
-        }
-
-        // Limpiar tabla
-        if (notasTableBody) {
-          notasTableBody.innerHTML = '';
-
-          // Si no hay notas
-          if (!data.notas || Object.keys(data.notas).length === 0) {
-            notasTableBody.innerHTML = `
-              <tr>
-                <td colspan="6" class="text-center">No hay notas registradas</td>
-              </tr>
-            `;
-            return;
-          }
-
-          // Procesar y mostrar notas
-          let rowNumber = 1;
-          for (const periodo in data.notas) {
-            const materiasEnPeriodo = data.notas[periodo];
-            for (const materia in materiasEnPeriodo) {
-              const notasMateria = materiasEnPeriodo[materia];
-              
-              if (!notasMateria || notasMateria.length === 0) {
-                // Si la materia no tiene notas
-                notasTableBody.innerHTML += `
-                  <tr>
-                    <td>${rowNumber}</td>
-                    <td>${periodo}</td>
-                    <td>${materia}</td>
-                    <td>Sin actividades</td>
-                    <td>Sin notas</td>
-                    <td>-</td>
-                  </tr>
-                `;
-                rowNumber++;
-              } else {
-                // Si hay notas, mostrar cada una (evitando duplicados)
-                const notasProcesadas = new Set(); // Para evitar duplicados
-                notasMateria.forEach(nota => {
-                  // Crear una clave única para cada nota
-                  const notaClave = `${nota.id_nota}-${nota.nota}-${nota.fecha_registro}-${nota.nombre_actividad}`;
-                  
-                  // Solo mostrar si no se ha procesado antes
-                  if (!notasProcesadas.has(notaClave)) {
-                    notasProcesadas.add(notaClave);
-                    notasTableBody.innerHTML += `
-                      <tr>
-                        <td>${rowNumber}</td>
-                        <td>${periodo}</td>
-                        <td>${materia}</td>
-                        <td>${nota.nombre_actividad || 'Sin actividad'}</td>
-                        <td class="font-weight-bold">${nota.nota || 'Sin nota'}</td>
-                        <td>${nota.fecha_registro || '-'}</td>
-                      </tr>
-                    `;
-                    rowNumber++;
-                  }
-                });
-              }
-            }
+          // Sumar a la nota definitiva solo si la nota es válida y la actividad tiene ponderación
+          if (actividad.ponderacion > 0) {
+            sumOfWeightedNotes += (parseFloat(notaEncontrada.nota) * (actividad.ponderacion / 100));
           }
         }
 
-      } catch (error) {
-        if (notasTableBody) {
-          notasTableBody.innerHTML = `
-            <tr>
-              <td colspan="6" class="text-center text-danger">
-                ${error.message || 'Error al cargar las notas. Por favor, intente más tarde.'}
-              </td>
-            </tr>
-          `;
-        }
+        const ponderacionDisplay = actividad.ponderacion !== null ? actividad.ponderacion.toFixed(2) : 'N/A';
+
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${actividad.nombre_actividad || 'Actividad Desconocida'}</td>
+          <td>${ponderacionDisplay}</td>
+          <td class="${notaClass}">
+              ${notaValor}
+          </td>
+          <td>${comentariosDisplay}</td>
+          <td>${fechaRegistroNotaDisplay}</td>
+        `;
+      });
+
+      // Añadir la fila para la nota definitiva al final de la tabla
+      const finalRow = notasTableBody.insertRow();
+      finalRow.innerHTML = `
+          <td colspan="3" class="text-end fw-bold">Nota Definitiva:</td>
+          <td colspan="3" class="text-start fw-bold ${sumOfWeightedNotes >= 10 ? 'text-success' : 'text-danger'}">
+              ${sumOfWeightedNotes.toFixed(2)}
+          </td>
+      `;
+
+      // La paginación para la vista de estudiante ahora se basará en las actividades
+      setupPagination(Math.ceil(actividades.length / itemsPerPageNotas), page, 'notas');
+
+    } catch (error) {
+      notasTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error al cargar notas: ${error.message}.</td></tr>`;
+      console.error('ERROR: Error al cargar notas del estudiante:', error);
+      mostrarAlerta(`Error al cargar la tabla de notas: ${error.message}`, 'danger');
+    }
+  }
+
+
+  function setupPagination(totalPages, currentPage, type) {
+    const paginationContainerId = type === 'actividades' ? 'paginationActividades' : 'paginationControlsNotas';
+    const paginationContainer = document.getElementById(paginationContainerId);
+    paginationContainer.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    const ul = document.createElement('ul');
+    ul.className = 'pagination-list flex justify-center items-center gap-2';
+
+    // Botón Anterior
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    const prevLink = document.createElement('a');
+    prevLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+    prevLink.href = '#';
+    prevLink.textContent = 'Anterior';
+    prevLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentPage > 1) {
+        loadNotasEstudiante(currentUserId, currentMateriaId, currentPage - 1);
+      }
+    });
+    prevLi.appendChild(prevLink);
+    ul.appendChild(prevLi);
+
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+      const li = document.createElement('li');
+      li.className = 'page-item';
+      const link = document.createElement('a');
+      link.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+      link.href = '#';
+      link.textContent = '1';
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadNotasEstudiante(currentUserId, currentMateriaId, 1);
+      });
+      li.appendChild(link);
+      ul.appendChild(li);
+      if (startPage > 2) {
+        const ellipsis = document.createElement('li');
+        ellipsis.className = 'page-item disabled';
+        ellipsis.innerHTML = '<span class="page-link rounded-lg px-3 py-1 bg-gray-700 text-white">...</span>';
+        ul.appendChild(ellipsis);
       }
     }
 
-    // Cargar notas inicialmente
-    await cargarNotas();
+    for (let i = startPage; i <= endPage; i++) {
+      const li = document.createElement('li');
+      li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+      const link = document.createElement('a');
+      link.className = `page-link rounded-lg px-3 py-1 ${i === currentPage ? 'bg-purple-800' : 'bg-gray-700'} text-white hover:bg-purple-600`;
+      link.href = '#';
+      link.textContent = i;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadNotasEstudiante(currentUserId, currentMateriaId, i);
+      });
+      li.appendChild(link);
+      ul.appendChild(li);
+    }
 
-    // Función para descargar notas
-    descargarNotasBtn.addEventListener('click', () => {
-      alert('Función de descarga en desarrollo');
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement('li');
+        ellipsis.className = 'page-item disabled';
+        ellipsis.innerHTML = '<span class="page-link rounded-lg px-3 py-1 bg-gray-700 text-white">...</span>';
+        ul.appendChild(ellipsis);
+      }
+      const li = document.createElement('li');
+      li.className = 'page-item';
+      const link = document.createElement('a');
+      link.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+      link.href = '#';
+      link.textContent = totalPages;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadNotasEstudiante(currentUserId, currentMateriaId, totalPages);
+      });
+      li.appendChild(link);
+      ul.appendChild(li);
+    }
+
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    const nextLink = document.createElement('a');
+    nextLink.className = 'page-link rounded-lg px-3 py-1 bg-gray-700 text-white hover:bg-purple-600';
+    nextLink.href = '#';
+    nextLink.textContent = 'Siguiente';
+    nextLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (currentPage < totalPages) {
+        loadNotasEstudiante(currentUserId, currentMateriaId, currentPage + 1);
+      }
     });
-  });
+    nextLi.appendChild(nextLink);
+    ul.appendChild(nextLi);
+
+    paginationContainer.appendChild(ul);
+  }
+
+  // Función para manejar el clic del botón de descarga
+  async function handleDownloadNotes() {
+    // Asegúrate de que jsPDF y jsPDF-AutoTable estén disponibles
+    if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined' || typeof window.jspdf.AutoTable === 'undefined') {
+      mostrarAlerta('Las librerías necesarias aún no están cargadas. Por favor, espera un momento e inténtalo de nuevo.', 'warning', 5000);
+      return;
+    }
+
+    // ...existing code...
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Cargar el SVG y convertirlo a PNG/Base64
+    const svgUrl = '/SVG/Logo-1.svg'; // Ruta al SVG del logo
+    const img = new Image();
+    img.src = svgUrl;
+
+    await new Promise((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = reject;
+    });
+
+    // Tamaño y posición del logo
+    const logoWidth = 80;
+    const logoHeight = 40;
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Centrar el logo arriba
+    const logoX = (pageWidth - logoWidth) / 1.5; // Ajusta el divisor para centrar mejor
+    const logoY = 10;
+
+
+    // Canvas para convertir SVG a PNG
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, logoWidth, logoHeight);
+    const imgData = canvas.toDataURL('image/png');
+
+    // Insertar logo
+    doc.addImage(imgData, 'PNG', logoX, logoY, logoWidth, logoHeight);
+
+    // Ajustar yOffset para que el texto empiece debajo del logo
+    let yOffset = logoY + logoHeight + 8;
+    const lineHeight = 7; // <--- Agrega esta línea
+    doc.setFontSize(16);
+    doc.text('Reporte de Notas del Estudiante', pageWidth / 2, yOffset, { align: 'center' });
+    yOffset += 12;
+
+// Info del estudiante, alineado a la izquierda
+    doc.setFontSize(12);
+    doc.text(`Estudiante: ${currentStudentNombreCompleto}` + `  Materia: ${currentMateriaNombre}` + `  Curso: ${currentCursoNombre}`, pageWidth / 2, yOffset, { align: 'center' }); // Cambiar el color del texto a blanco
+    yOffset += 7;
+    doc.text(`Período: ${currentPeriodoNombre}` + ` Sección: ${currentSeccionNombre}`,  pageWidth / 2, yOffset, { align: 'center' });
+    yOffset += 7;
+
+// ...continúa con el resto de tu código, usando yOffset para la tabla...
+
+    let totalWeightedGrade = 0;
+    const tableRows = []; // Para almacenar los datos de la tabla
+
+    // Iterar sobre todas las actividades para asegurar que el orden y las ponderaciones sean correctas
+    // y luego buscar la nota correspondiente
+    allActivitiesForDownload.forEach((activity, index) => {
+      const notaEncontrada = allNotasForDownload.find(n => String(n.id_actividad) === String(activity.id_actividad));
+      let notaValor = 'N/A';
+      let comentarios = 'Sin comentarios';
+      let fechaRegistro = 'N/A';
+      let weightedContribution = 0;
+
+      if (notaEncontrada) {
+        notaValor = parseFloat(notaEncontrada.nota).toFixed(2);
+        comentarios = notaEncontrada.comentario_actividad || 'Sin comentarios';
+        fechaRegistro = notaEncontrada.fecha_registro ? new Date(notaEncontrada.fecha_registro).toLocaleDateString() : 'N/A';
+        if (activity.ponderacion > 0 && parseFloat(notaEncontrada.nota) !== null && !isNaN(parseFloat(notaEncontrada.nota))) {
+          weightedContribution = (parseFloat(notaEncontrada.nota) * (activity.ponderacion / 100));
+          totalWeightedGrade += weightedContribution;
+        }
+      }
+
+      tableRows.push([
+        index + 1,
+        activity.nombre_actividad || 'Actividad Desconocida',
+        (activity.ponderacion !== null ? activity.ponderacion.toFixed(2) : 'N/A') + '%',
+        notaValor,
+        comentarios,
+        fechaRegistro
+      ]);
+    });
+
+    // Definir las cabeceras de la tabla
+    const tableHeaders = [
+      'Nº',
+      'Actividad',
+      'Ponderación',
+      'Mi Nota',
+      'Comentarios',
+      'Fecha Registro'
+    ];
+
+    // Generar la tabla usando jspdf-autotable
+    doc.autoTable({
+      startY: yOffset,
+      head: [tableHeaders],
+      body: tableRows,
+      theme: 'striped', // Puedes probar 'striped', 'grid', 'plain'
+      styles: {
+        fontSize: 9,
+        cellPadding: 2,
+        overflow: 'linebreak', // Permite que el texto se ajuste en la celda
+      },
+      headStyles: {
+        fillColor: [164, 33, 189], // Color azul/morado para el encabezado
+        textColor: 255, // Texto blanco
+        fontStyle: 'bold'
+      },
+      columnStyles: {
+        0: { cellWidth: 10 }, // Nº
+        1: { cellWidth: 40 }, // Actividad
+        2: { cellWidth: 25 }, // Ponderación
+        3: { cellWidth: 20 }, // Mi Nota
+        4: { cellWidth: 45 }, // Comentarios
+        5: { cellWidth: 25 }  // Fecha Registro
+      },
+      margin: { left: 10, right: 10 },
+      didDrawPage: function (data) {
+        // Añadir pie de página si es necesario
+        // doc.text("Página " + doc.internal.getNumberOfPages(), data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    // Actualizar el yOffset después de la tabla
+    yOffset = doc.autoTable.previous.finalY + lineHeight * 2;
+
+
+    // Asegurarse de que el resumen general no se corte al final de una página
+    if (yOffset > doc.internal.pageSize.height - 30) {
+      doc.addPage();
+      yOffset = 40;
+    }
+
+    
+    doc.setFontSize(12);
+    doc.text(`Nota Definitiva de la Materia: ${totalWeightedGrade.toFixed(2)}`, pageWidth / 2, yOffset, { align: 'center' });
+
+    // Guardar el PDF
+    const filename = `reporte_notas_${currentStudentNombreCompleto.replace(/ /g, '_')}_${currentMateriaNombre.replace(/ /g, '_')}.pdf`;
+    doc.save(filename);
+
+    mostrarAlerta('Reporte de notas descargado exitosamente.', 'success', 3000);
+  }
+
 </script>
-
-

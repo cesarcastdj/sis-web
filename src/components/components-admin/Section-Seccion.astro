@@ -51,7 +51,6 @@ import "../../style/style-admin/secciones.css";
           <tr>
             <th scope="col">Nº</th>
             <th scope="col">Sección</th>
-            <th scope="col">Descripción</th>
             <th scope="col">Cursos Asociados</th>
             <th scope="col">Total Estudiantes</th>
             <th scope="col">Estado</th>
@@ -88,20 +87,6 @@ import "../../style/style-admin/secciones.css";
               <input type="text" class="form-control" id="nombreSeccion" placeholder="Ej: A, B, C, 1A, 2B" required />
               <div class="invalid-feedback"></div>
             </div>
-            <div class="col-md-6 mb-3">
-              <label for="descripcionSeccion" class="form-label">Descripción</label>
-              <input type="text" class="form-control" id="descripcionSeccion" placeholder="Descripción opcional de la sección" />
-            </div>
-          </div>
-
-          <h6 class="section-title mt-4">Asignaciones de Cursos</h6>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="cursosAsignados" class="form-label">Cursos a Asignar</label>
-              <select class="form-control" id="cursosAsignados" multiple>
-                <option value="" disabled>Cargando cursos...</option>
-              </select>
-            </div>
           </div>
 
           <div class="d-flex justify-content-between mt-4">
@@ -127,9 +112,7 @@ import "../../style/style-admin/secciones.css";
       <div class="modal-body">
         <h6 class="section-title">Información General</h6>
         <p><strong>Nombre de la Sección:</strong> <span id="detalleNombreSeccion"></span></p>
-        <p><strong>Descripción:</strong> <span id="detalleDescripcionSeccion"></span></p>
         <p><strong>Estado:</strong> <span id="detalleEstadoSeccion"></span></p>
-        <p><strong>Fecha de Creación:</strong> <span id="detalleFechaCreacion"></span></p>
 
         <h6 class="section-title mt-4">Cursos Asociados</h6>
         <div id="detalleCursosAsociados">
@@ -210,24 +193,17 @@ import "../../style/style-admin/secciones.css";
 
     // Elementos del formulario de agregar
     const nombreSeccion = document.getElementById('nombreSeccion');
-    const descripcionSeccion = document.getElementById('descripcionSeccion');
-    const cursosAsignados = document.getElementById('cursosAsignados');
-    const estudiantesAsignados = document.getElementById('estudiantesAsignados');
     const btnGuardarSeccion = document.getElementById('btnGuardarSeccion');
 
     // Elementos del formulario de editar
     const editIdSeccion = document.getElementById('editIdSeccion');
     const editNombreSeccion = document.getElementById('editNombreSeccion');
-    const editDescripcionSeccion = document.getElementById('editDescripcionSeccion');
     const btnGuardarEdicionSeccion = document.getElementById('btnGuardarEdicionSeccion');
 
     // Elementos del modal de detalles
     const detalleNombreSeccion = document.getElementById('detalleNombreSeccion');
-    const detalleDescripcionSeccion = document.getElementById('detalleDescripcionSeccion');
     const detalleEstadoSeccion = document.getElementById('detalleEstadoSeccion');
-    const detalleFechaCreacion = document.getElementById('detalleFechaCreacion');
-    const detalleCursosAsociados = document.getElementById('detalleCursosAsociados');
-    const detalleEstudiantesAsignados = document.getElementById('detalleEstudiantesAsignados');
+
 
     // Cargar datos cuando se abra el modal de agregar
     modalAgregarSeccion._element.addEventListener('shown.bs.modal', async function() {
@@ -237,61 +213,16 @@ import "../../style/style-admin/secciones.css";
     });
 
     // Función para cargar cursos
-    async function cargarCursos() {
-      cursosAsignados.disabled = true;
-      cursosAsignados.innerHTML = '<option value="" disabled>Cargando cursos...</option>';
-      try {
-        const response = await fetch('http://localhost:3001/api/cursos');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const cursos = await response.json();
-        
-        cursosAsignados.innerHTML = '';
-        cursos.forEach(curso => {
-          const option = document.createElement('option');
-          option.value = curso.id_curso;
-          option.textContent = curso.nombre_curso || curso.curso;
-          cursosAsignados.appendChild(option);
-        });
-        cursosAsignados.disabled = false;
-      } catch (error) {
-        console.error('❌ Error cargando cursos:', error);
-        cursosAsignados.innerHTML = '<option value="" disabled>Error al cargar cursos</option>';
-        mostrarErrorAlUsuario('Error al cargar cursos. Intente recargar la página.');
-      }
-    }
+    
 
     // Función para cargar estudiantes
-    async function cargarEstudiantes() {
-      estudiantesAsignados.disabled = true;
-      estudiantesAsignados.innerHTML = '<option value="" disabled>Cargando estudiantes...</option>';
-      try {
-        const response = await fetch('http://localhost:3001/api/estudiantes');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const data = await response.json();
-        const estudiantes = data.estudiantes || data;
-        
-        estudiantesAsignados.innerHTML = '';
-        estudiantes.forEach(estudiante => {
-          const option = document.createElement('option');
-          option.value = estudiante.id_usuario;
-          option.textContent = `${estudiante.primer_nombre} ${estudiante.primer_apellido} (${estudiante.cedula})`;
-          estudiantesAsignados.appendChild(option);
-        });
-        estudiantesAsignados.disabled = false;
-      } catch (error) {
-        console.error('❌ Error cargando estudiantes:', error);
-        estudiantesAsignados.innerHTML = '<option value="" disabled>Error al cargar estudiantes</option>';
-        mostrarErrorAlUsuario('Error al cargar estudiantes. Intente recargar la página.');
-      }
-    }
+    
 
     // Manejar envío del formulario de agregar sección
     formAgregarSeccion.addEventListener('submit', async function(e) {
       e.preventDefault();
       console.log("DEBUG: Formulario de agregar sección enviado.");
 
-      const cursosSeleccionados = Array.from(cursosAsignados.selectedOptions).map(option => parseInt(option.value));
-      const estudiantesSeleccionados = Array.from(estudiantesAsignados.selectedOptions).map(option => parseInt(option.value));
 
       btnGuardarSeccion.disabled = true;
       btnGuardarSeccion.innerHTML = `
@@ -302,9 +233,6 @@ import "../../style/style-admin/secciones.css";
       try {
         const formData = {
           nombreSeccion: nombreSeccion.value.trim(),
-          descripcion: descripcionSeccion.value.trim(),
-          cursosAsignados: cursosSeleccionados,
-          estudiantesAsignados: estudiantesSeleccionados
         };
 
         console.log("DEBUG: Datos a enviar:", formData);
@@ -467,7 +395,7 @@ import "../../style/style-admin/secciones.css";
 
         secciones.forEach((seccion, index) => {
           const seccionDataAttribute = JSON.stringify(seccion);
-          const estadoSeccion = seccion.activo === 1 ? 'Activa' : 'Inactiva';
+          const estadoSeccion = seccion.estado === 1 ? 'Activa' : 'Inactiva';
           const cursosAsociados = seccion.cursos_asociados || 'N/A';
           const totalEstudiantes = seccion.total_estudiantes || 0;
 
@@ -478,7 +406,6 @@ import "../../style/style-admin/secciones.css";
           row.innerHTML = `
             <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td>${seccion.seccion || ''}</td>
-            <td>${seccion.descripcion || 'Sin descripción'}</td>
             <td>${cursosAsociados}</td>
             <td>${totalEstudiantes}</td>
             <td>${estadoSeccion}</td>
@@ -548,8 +475,7 @@ import "../../style/style-admin/secciones.css";
       console.log("DEBUG: Datos de la sección para 'Ver más información':", seccion);
 
       detalleNombreSeccion.textContent = seccion.seccion || 'N/A';
-      detalleDescripcionSeccion.textContent = seccion.descripcion || 'Sin descripción';
-      detalleEstadoSeccion.textContent = seccion.activo === 1 ? 'Activa' : 'Inactiva';
+      detalleEstadoSeccion.textContent = seccion.estado === 1 ? 'Activa' : 'Inactiva';
       detalleFechaCreacion.textContent = seccion.fecha_creacion ? new Date(seccion.fecha_creacion).toLocaleDateString() : 'N/A';
 
       // Cargar información detallada
@@ -615,7 +541,7 @@ import "../../style/style-admin/secciones.css";
       if (!confirmResult) return;
 
       try {
-        const response = await fetch(`http://localhost:3001/api/secciones/${seccion.id_seccion}/estado`, {
+        const response = await fetch(`http://localhost:3001/api/secciones-academicas/${seccion.id_seccion}/estado`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ estado: 0 })
