@@ -11,48 +11,6 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
       <img src="/public/SVG/Logo-1.svg" alt="Logo del Sistema Escolar" />
     </div>
 
-    <!-- Barra de búsqueda -->
-    <div class="search" id="search">
-      <input
-        type="text"
-        class="search__input search__input--global"
-        placeholder="Buscar Profesor..."
-        id="search-input"
-      />
-      <ul id="search-results" class="search-results">
-        <li class="search-result-item">
-          <i class="bx bx-search"></i>Gestión de Usuarios
-        </li>
-        <li class="search-result-item">
-          <i class="bx bx-search"></i>Control de Notas
-        </li>
-        <li class="search-result-item">
-          <i class="bx bx-search"></i>Reportes
-        </li>
-        <li class="search-result-item">
-          <i class="bx bx-search"></i>Configuración
-        </li>
-        <li class="search-result-item"><i class="bx bx-search"></i>Ayuda</li>
-      </ul>
-      <button class="search__button">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="icon icon-tabler icons-tabler-outline icon-tabler-search"
-        >
-          <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-          <path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path>
-          <path d="M21 21l-6 -6"></path>
-        </svg>
-      </button>
-    </div>
 
     <!-- Contenedor de iconos de navegación (campana, usuario, ajustes) -->
     <div class="icons-nav">
@@ -116,51 +74,6 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
             <button class="btn-view-all">Ver todas las notificaciones</button>
           </div>
         </div>
-
-        <!-- Botón de escudo de usuario (no se le agregó funcionalidad en los scripts) -->
-        <button class="bar-icons btn-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="icon icon-tabler icons-tabler-outline icon-tabler-user-shield"
-          >
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-            <path d="M6 21v-2a4 4 0 0 1 4 -4h2"></path>
-            <path
-              d="M22 16c0 4 -2.5 6 -3.5 6s-3.5 -2 -3.5 -6c1 0 2.5 -.5 3.5 -1.5c1 1 2.5 1.5 3.5 1.5z"
-            ></path>
-            <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"></path>
-          </svg>
-        </button>
-
-        <!-- Botón de configuración (no se le agregó funcionalidad en los scripts) -->
-        <button class="bar-icons btn-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="icon icon-tabler icons-tabler-outline icon-tabler-settings"
-          >
-            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-            <path
-              d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
-            ></path>
-            <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -8 0"></path>
-          </svg>
-        </button>
       </div>
 
       <!-- Imagen de perfil de usuario con offcanvas -->

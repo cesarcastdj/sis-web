@@ -1337,26 +1337,40 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
   }
 
   async function loadActividadesModal(idMateria, targetSelect) {
+    console.log('Iniciando loadActividadesModal para idMateria:', idMateria);
+    console.log('Target Select:', targetSelect);
+
     if (!idMateria) {
-      targetSelect.innerHTML = '<option value="">Seleccione una actividad</option>';
-      targetSelect.disabled = true;
-      return;
+        console.warn('idMateria es nulo o indefinido. No se cargarán actividades.');
+        targetSelect.innerHTML = '<option value="">Seleccione una actividad</option>';
+        targetSelect.disabled = true;
+        return;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/actividades`);
-      if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
-      const data = await response.json(); // La API de actividades devuelve { actividades: [...] }
-      const actividades = data.actividades || [];
-      targetSelect.innerHTML = '<option value="">Seleccione una actividad</option>' +
-                               activities.map(a => `<option value="${a.id_actividad}">${a.nombre_actividad}</option>`).join('');
-      targetSelect.disabled = false;
+        const apiUrl = `${API_BASE_URL}/materias/${idMateria}/actividades`;
+        console.log('Realizando fetch a:', apiUrl);
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+            const errorText = await response.text(); // Obtener el texto del error para más detalles
+            throw new Error(`Error HTTP! estado: ${response.status}. Mensaje: ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Datos de la API recibidos:', data); // Verifica la estructura aquí
+        const actividades = data.actividades || [];
+        console.log('Actividades extraídas:', actividades); // Verifica si 'actividades' es un array aquí
+
+        targetSelect.innerHTML = '<option value="">Seleccione una actividad</option>' +
+                                 actividades.map(a => `<option value="${a.id_actividad}">${a.nombre_actividad}</option>`).join('');
+        targetSelect.disabled = false;
     } catch (error) {
-      console.error('Error al cargar actividades para el modal:', error);
-      mostrarAlerta('No se pudieron cargar las actividades para la materia seleccionada en el modal.', 'danger');
-      targetSelect.innerHTML = '<option value="">Error al cargar actividades</option>';
-      targetSelect.disabled = true;
+        console.error('Error al cargar actividades para el modal:', error);
+        mostrarAlerta('No se pudieron cargar las actividades para la materia seleccionada en el modal.', 'danger');
+        targetSelect.innerHTML = '<option value="">Error al cargar actividades</option>';
+        targetSelect.disabled = true;
     }
-  }
+}
 
   async function anadirNota(e) {
     e.preventDefault();

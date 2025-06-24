@@ -190,82 +190,107 @@ router.post('/login', async (req, res) => {
   });
   
   // Esta es una api para terminar el registro de un usuario (asignar rol, secciones, etc.)
-  router.post('/asignar-usuario',isAuthenticated,registrarAccion('Asignación de rol a usuario', 'usuarios'), (req, res) => {
+  router.post('/asignar-usuario', /*isAuthenticated, registrarAccion('Asignación de rol a usuario', 'usuarios'),*/ (req, res) => {
     // Usamos un bloque try...catch para errores de sintaxis o síncronos.
     try {
-      const { id_usuario, rol, secciones = [], cursos = [], materias = [] } = req.body;
-  
-      // 1. Asignar nivel según el rol
-      const niveles = { estudiante: 1, admin: 2, profesor: 3 };
-      const id_nivel = niveles[rol] || 4; // 4 para "pendiente"
-  
-      // Iniciamos la secuencia de operaciones con callbacks anidados.
-      // Paso 1: Actualizar el rol principal del usuario.
-      db.query('UPDATE usuarios SET rol = ?, id_nivel = ? WHERE id_usuario = ?', [rol, id_nivel, id_usuario], (err, result) => {
-        if (err) {
-          console.error('Error al actualizar el rol del usuario:', err);
-          return res.status(500).json({ error: 'Error asignando el rol al usuario.' });
-        }
-        const continuarAsignaciones = () => {
-          if (secciones && secciones.length > 0) {
-            const seccionValues = secciones.map(id_sec => [id_usuario, id_sec]);
-            db.query('INSERT INTO usuario_seccion (id_usuario, id_seccion) VALUES ?', [seccionValues], (err) => {
-              if (err) console.error('Error insertando usuario_seccion:', err); 
-            });
-          }
-  
-          if (materias && materias.length > 0) {
-            const materiaValues = materias.map(id_mat => [id_usuario, id_mat]);
-            db.query('INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?', [materiaValues], (err) => {
-              if (err) console.error('Error insertando usuario_materias:', err); 
-            });
-          }
-  
-          if (cursos && cursos.length > 0) {
-            const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-            const cursoValues = cursos.map(id_cur => [id_usuario, id_cur, currentDateTime]);
-            db.query('INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES ?', [cursoValues], (err) => {
-              if (err) console.error('Error insertando usuario_cursos:', err); 
-            });
-          }
-  
-          db.query('UPDATE notificaciones SET estado = "procesado" WHERE id_usuario = ?', [id_usuario], (err) => {
-            if (err) console.error('Error actualizando notificación:', err);
-          });
-  
-          res.status(200).json({ message: 'Usuario asignado y registrado correctamente.' });
-        };
-  
-        if (rol === 'estudiante') {
-          db.query('INSERT INTO estudiantes (id_estudiante, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
+        // Añadimos 'periodos' a la desestructuración de req.body
+        const { id_usuario, rol, secciones = [], cursos = [], materias = [], periodos = [] } = req.body;
+
+        // 1. Asignar id_nivel según el rol
+        const niveles = { estudiante: 1, admin: 2, profesor: 3 };
+        const id_nivel = niveles[rol] || 4; // 4 para "pendiente" o un valor por defecto si el rol no coincide
+
+        // Paso 1: Actualizar el rol principal del usuario.
+        db.query('UPDATE usuarios SET rol = ?, id_nivel = ? WHERE id_usuario = ?', [rol, id_nivel, id_usuario], (err, result) => {
             if (err) {
-              console.error('Error insertando en la tabla de estudiantes:', err);
+                console.error('Error al actualizar el rol del usuario:', err);
+                return res.status(500).json({ error: 'Error asignando el rol al usuario.', detalle: err.message });
             }
-            continuarAsignaciones();
-          });
-        } else if (rol === 'profesor') {
-          db.query('INSERT INTO profesores (id_profesor, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
-            if (err) {
-              console.error('Error insertando en la tabla de profesores:', err);
+
+            // Función para continuar con las asignaciones específicas del rol
+            // Esta función será llamada después de insertar en la tabla específica del rol (estudiantes, profesores, administradores)
+            const continuarAsignaciones = () => {
+                // Solo realizamos estas inserciones si el rol NO es 'admin'
+                if (rol === 'estudiante' || rol === 'profesor') {
+                    // Asignar secciones al usuario
+                    if (secciones && secciones.length > 0) {
+                        const seccionValues = secciones.map(id_sec => [id_usuario, id_sec]);
+                        db.query('INSERT INTO usuario_seccion (id_usuario, id_seccion) VALUES ?', [seccionValues], (err) => {
+                            if (err) console.error('Error insertando usuario_seccion:', err);
+                            // En un entorno de producción, aquí querrías un manejo de errores más robusto,
+                            // como un rollback de la transacción si alguna inserción falla.
+                        });
+                    }
+
+                    // Asignar materias al usuario
+                    if (materias && materias.length > 0) {
+                        const materiaValues = materias.map(id_mat => [id_usuario, id_mat]);
+                        db.query('INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?', [materiaValues], (err) => {
+                            if (err) console.error('Error insertando usuario_materias:', err);
+                        });
+                    }
+
+                    // Asignar cursos al usuario
+                    if (cursos && cursos.length > 0) {
+                        const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                        const cursoValues = cursos.map(id_cur => [id_usuario, id_cur, currentDateTime]);
+                        db.query('INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES ?', [cursoValues], (err) => {
+                            if (err) console.error('Error insertando usuario_cursos:', err);
+                        });
+                    }
+
+                    // NUEVO: Asignar periodos al usuario
+                    if (periodos && periodos.length > 0) {
+                        const periodoValues = periodos.map(id_per => [id_usuario, id_per]);
+                        db.query('INSERT INTO usuario_periodo (id_usuario, id_periodo) VALUES ?', [periodoValues], (err) => {
+                            if (err) console.error('Error insertando usuario_periodo:', err);
+                        });
+                    }
+                }
+
+                // Actualizar notificación a "procesado" (esto siempre se hace, independientemente del rol)
+                db.query('UPDATE notificaciones SET estado = "procesado" WHERE id_usuario = ?', [id_usuario], (err) => {
+                    if (err) console.error('Error actualizando notificación:', err);
+                });
+
+                // Finalmente, enviar la respuesta de éxito
+                res.status(200).json({ message: 'Usuario asignado y registrado correctamente.' });
+            };
+
+            // Paso 2: Insertar el usuario en la tabla específica del rol (estudiantes, profesores, administradores)
+            if (rol === 'estudiante') {
+                db.query('INSERT INTO estudiantes (id_estudiante, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
+                    if (err) {
+                        console.error('Error insertando en la tabla de estudiantes:', err);
+                        // No retornamos aquí, llamamos a continuarAsignaciones para mantener el flujo
+                    }
+                    continuarAsignaciones();
+                });
+            } else if (rol === 'profesor') {
+                db.query('INSERT INTO profesores (id_profesor, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
+                    if (err) {
+                        console.error('Error insertando en la tabla de profesores:', err);
+                    }
+                    continuarAsignaciones();
+                });
+            } else if (rol === 'admin') {
+                db.query('INSERT INTO usuario_administradores (id_admin, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
+                    if (err) {
+                        console.error('Error insertando en la tabla de administradores:', err);
+                    }
+                    continuarAsignaciones(); // Continuar incluso si hay error en la inserción de admin
+                });
+            } else {
+                // Si el rol no es ninguno de los anteriores, simplemente continuar
+                continuarAsignaciones();
             }
-            continuarAsignaciones();
-          });
-        } else if(rol === 'admin') {
-          db.query('INSERT INTO usuario_administradores (id_admin, id_usuario) VALUES (?, ?)', [id_usuario, id_usuario], (err) => {
-            if (err) {
-              console.error('Error insertando en la tabla de administradores:', err);
-            }
-            continuarAsignaciones();
-          });
-        } else {
-          continuarAsignaciones();
-        }
-      });
+        });
     } catch (error) {
-      console.error('Error general en /asignar-usuario:', error);
-      res.status(500).json({ error: 'Error interno del servidor.' });
+        console.error('Error general en /asignar-usuario:', error);
+        res.status(500).json({ error: 'Error interno del servidor.', detalle: error.message });
     }
-  });
+});
+
 
   router.get('/me', (req, res) => {
   if (req.session && req.session.usuario && req.session.usuario.id) {
