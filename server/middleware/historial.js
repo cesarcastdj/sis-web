@@ -12,16 +12,14 @@ export const registrarAccion = (accion, tabla = null) => {
           const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
           const fechaHora = new Date().toISOString().slice(0, 19).replace('T', ' ');
           
-          let idRegistroAfectado = req.params?.id || null;
+          // Determinar el ID del registro afectado
+          const idRegistroAfectado = req.params?.id || null;
           
-          if (req.method === 'POST' && body?.usuario?.id_usuario) {
-            idRegistroAfectado = body.usuario.id_usuario;
-          }
-          
-          let datosNuevos = null;
+          // Datos para el historial
           let datosAnteriores = null;
-
-          // Determinar qué datos guardar según el método HTTP
+          let datosNuevos = null;
+          
+          // Para PUT/PATCH, capturamos cambios
           if (['PUT', 'PATCH'].includes(req.method)) {
             datosAnteriores = JSON.stringify(req.datosAnteriores || {});
             datosNuevos = JSON.stringify(body);

@@ -108,8 +108,7 @@ router.post('/login', async (req, res) => {
         // Enviar la respuesta de éxito al cliente
         res.json({ message: 'Sesión cerrada' });
     });
-}); 
-  
+});
   // Obtener usuario logueado
   router.get('/usuario', isAuthenticated, (req, res) => {
     res.json(req.session.usuario);
