@@ -3,6 +3,7 @@ import db from '../db/db.js'; // Ajusta esta ruta si es necesario
 import { isAuthenticated } from '../middleware/protegerRutas.js'; // Ajusta esta ruta si es necesario
 import { hashPassword, comparePassword } from '../f(x)/contrasenias.js'; // Ajusta esta ruta si es necesario
 import { syncRelationships, syncSingleRelationship } from '../f(x)/relaciones.js'; // Ajusta esta ruta si es necesario
+import { registrarAccion } from '../middleware/historial.js';
 
 const router = express.Router();
 
@@ -212,7 +213,7 @@ router.get('/estudiantes/papelera', async (req, res) => {
   }
 });
 
-router.put('/estudiantes/:id/estado', async (req, res) => { // Eliminado el '/api'
+router.put('/estudiantes/:id/estado', registrarAccion('Actualizacion estado estudiante', 'usuarios'), async (req, res) => { // Eliminado el '/api'
     const { id } = req.params;
     const { estado } = req.body; 
 
@@ -230,7 +231,7 @@ router.put('/estudiantes/:id/estado', async (req, res) => { // Eliminado el '/ap
     }
 });
 
-router.put('/estudiantes/:id', async (req, res) => { // Eliminado el '/api'
+router.put('/estudiantes/:id', registrarAccion('Actualizacion datos estudiante', 'usuarios'), async (req, res) => { // Eliminado el '/api'
     const { id } = req.params;
     const {
       cedula, correo, primerNombre, segundoNombre, primerApellido, segundoApellido,
