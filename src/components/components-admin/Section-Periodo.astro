@@ -118,7 +118,6 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
         <p><strong>Nombre:</strong> <span id="detallePeriodoNombre"></span></p>
         <p><strong>Fecha de Inicio:</strong> <span id="detalleFechaInicio"></span></p>
         <p><strong>Fecha de Fin:</strong> <span id="detalleFechaFin"></span></p>
-        <p><strong>Estado:</strong> <span id="detallePeriodoEstado">N/A</span></p> <!-- Asumiendo que `estado` no está en tu DB de periodos, pero lo dejo por si lo implementas -->
 
         <h6 class="section-title mt-4">Asignaciones y Contenido Académico</h6>
         <p><strong>Cursos Asociados:</strong> <span id="detalleCursosAsociados"></span></p>
@@ -673,7 +672,6 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
             detallePeriodoNombre.textContent = detallesCompletos.nombre_periodo || 'N/A';
             detalleFechaInicio.textContent = detallesCompletos.fechaInicio ? new Date(detallesCompletos.fechaInicio).toLocaleDateString() : 'N/A';
             detalleFechaFin.textContent = detallesCompletos.fechaFinal ? new Date(detallesCompletos.fechaFinal).toLocaleDateString() : 'N/A';
-            detallePeriodoEstado.textContent = detallesCompletos.estado !== undefined ? (detallesCompletos.estado === 1 ? 'Activo' : 'Inactivo') : 'N/A';
 
             detalleCursosAsociados.textContent = detallesCompletos.cursos_info && detallesCompletos.cursos_info.length > 0
                 ? detallesCompletos.cursos_info.map(c => c.nombre_curso).join(', ')

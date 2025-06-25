@@ -118,6 +118,31 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
     <div id="paginationControlsMaterias" class="pagination text-center mt-3"></div>
   </div>
 
+  <br><br> <!-- Separador entre tablas -->
+
+  <!-- Tabla de Secciones Inactivas (NUEVA) -->
+  <div class="display-table" id="table5">
+    <h1>Secciones</h1> <!-- Título para la tabla de secciones -->
+    <div class="tabla-info-person">
+      <table class="table table-dark table-hover table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Sección</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="seccionesTableBody">
+          <tr>
+            <td colspan="4" class="text-center">Cargando secciones...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="paginationControlsSecciones" class="pagination text-center mt-3"></div>
+  </div>
+
 </section>
 
 <!-- Script de Bootstrap y funciones JavaScript -->
@@ -128,21 +153,22 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
   document.addEventListener('DOMContentLoaded', function() {
     let currentPageStudents = 1;
     let currentPageProfesores = 1;
-    let currentPageCursos = 1; // Nueva variable para paginación de cursos
-    let currentPageMaterias = 1; // Nueva variable para paginación de materias
+    let currentPageCursos = 1; 
+    let currentPageMaterias = 1; 
+    let currentPageSecciones = 1; // Nueva variable para paginación de secciones
     const itemsPerPage = 5; 
 
     const studentsTableBody = document.getElementById('studentsTableBody');
     const profesoresTableBody = document.getElementById('profesoresTableBody');
-    const cursosTableBody = document.getElementById('cursosTableBody'); // Nueva referencia al tbody de cursos
-    const materiasTableBody = document.getElementById('materiasTableBody'); // Nueva referencia al tbody de materias
+    const cursosTableBody = document.getElementById('cursosTableBody'); 
+    const materiasTableBody = document.getElementById('materiasTableBody'); 
+    const seccionesTableBody = document.getElementById('seccionesTableBody'); // Nueva referencia al tbody de secciones
 
     const paginationControlsStudents = document.getElementById('paginationControlsStudents');
     const paginationControlsProfesores = document.getElementById('paginationControlsProfesores');
-    const paginationControlsCursos = document.getElementById('paginationControlsCursos'); // Nueva referencia a la paginación de cursos
-    const paginationControlsMaterias = document.getElementById('paginationControlsMaterias'); // Nueva referencia a la paginación de materias
-
-    // No hay contadores específicos para la "Papelera" en el HTML actual, por lo que se omiten las referencias a ellos.
+    const paginationControlsCursos = document.getElementById('paginationControlsCursos'); 
+    const paginationControlsMaterias = document.getElementById('paginationControlsMaterias'); 
+    const paginationControlsSecciones = document.getElementById('paginationControlsSecciones'); // Nueva referencia a la paginación de secciones
 
     // Función para inicializar los dropdowns de Bootstrap para la tabla de estudiantes
     function initializeStudentDropdowns() {
@@ -301,6 +327,46 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         }
       } else {
         console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible para materias. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
+      }
+    }
+
+    // Función para inicializar los dropdowns de Bootstrap para la tabla de secciones (NUEVA)
+    function initializeSectionDropdowns() {
+      console.log('DEBUG: initializeSectionDropdowns called.');
+      if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
+        const dropdownToggles = seccionesTableBody.querySelectorAll('.dropdown-toggle');
+        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Section Dropdowns...');
+        dropdownToggles.forEach(button => {
+          const existingDropdown = bootstrap.Dropdown.getInstance(button);
+          if (existingDropdown) {
+            existingDropdown.dispose();
+            console.log(`DEBUG: Disposed existing section dropdown for #${button.id}`);
+          }
+          new bootstrap.Dropdown(button, {
+            popperConfig: function (defaultBsPopperConfig) {
+              return {
+                ...defaultBsPopperConfig,
+                placement: 'bottom-end', 
+                strategy: 'fixed', 
+                modifiers: [
+                  ...(defaultBsPopperConfig.modifiers || []),
+                  {
+                    name: 'offset',
+                    options: { offset: [0, 8] }
+                  },
+                ],
+              };
+            }
+          });
+          console.log(`DEBUG: Initialized new section dropdown for #${button.id}`);
+        });
+        if (dropdownToggles.length === 0) {
+            console.log('DEBUG: No section dropdown toggles found to initialize.');
+        } else {
+            console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Section Dropdowns.`);
+        }
+      } else {
+        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible para secciones. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
       }
     }
 
@@ -631,6 +697,76 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       }
     }
 
+    // Función principal para cargar secciones inactivos en la tabla (NUEVA)
+    async function loadInactiveSecciones(page) {
+      console.log(`DEBUG: loadInactiveSecciones called for page ${page}.`);
+      seccionesTableBody.innerHTML = `<tr><td colspan="4" class="text-center">Cargando secciones...</td></tr>`; 
+      paginationControlsSecciones.innerHTML = ''; 
+
+      try {
+        let response = await fetch(`${API_BASE_URL}/secciones-academicas/papelera?page=${page}&limit=${itemsPerPage}`);
+        if (!response.ok && response.status === 404) {
+          console.log("DEBUG: Endpoint /secciones-academicas/papelera no encontrado, intentando con /secciones-academicas?estado=0.");
+          response = await fetch(`${API_BASE_URL}/secciones-academicas?estado=0&page=${page}&limit=${itemsPerPage}`);
+        }
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            seccionesTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No se encontraron secciones inactivas.</td></tr>`;
+            console.log("DEBUG: 404 - No se encontraron secciones inactivas.");
+            return;
+          }
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const secciones = data.secciones; 
+        const totalPages = data.totalPages;
+        currentPageSecciones = data.currentPage;
+
+        console.log("DEBUG: Datos de secciones inactivos recibidos del backend:", data);
+
+        seccionesTableBody.innerHTML = ''; 
+
+        if (!secciones || secciones.length === 0) {
+          seccionesTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No se encontraron secciones inactivas.</td></tr>`;
+          console.log("DEBUG: Array de secciones inactivos vacío después de fetch.");
+          return;
+        }
+
+        secciones.forEach((seccion, index) => {
+          const seccionStatus = seccion.estado === 1 ? 'Activo' : (seccion.estado === 0 ? 'Inactivo' : 'Desconocido'); 
+          const row = document.createElement('tr');
+          row.dataset.id = seccion.id_seccion;
+
+          row.innerHTML = `
+            <td>${(currentPageSecciones - 1) * itemsPerPage + index + 1}</td>
+            <td>${seccion.seccion || 'N/A'}</td>
+            <td>${seccionStatus}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonSection${seccion.id_seccion}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButtonSection${seccion.id_seccion}">
+                  <li><a class="dropdown-item" href="#" data-action="activar-seccion" data-id="${seccion.id_seccion}"><i class='bx bx-undo me-2'></i>Activar Sección</a></li>
+                </ul>
+              </div>
+            </td>
+          `;
+          seccionesTableBody.appendChild(row);
+        });
+
+        initializeSectionDropdowns();
+        setupSectionActionListeners(secciones);
+        setupPagination(totalPages, currentPageSecciones, paginationControlsSecciones, 'seccion');
+        console.log("DEBUG: Renderizado de secciones inactivos completado.");
+      } catch (error) {
+        console.error('❌ Error al cargar secciones inactivas:', error);
+        seccionesTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error al cargar secciones inactivas. Intente nuevamente.</td></tr>`;
+      }
+    }
+
 
     // Configurar listeners para los botones de acción en la tabla de estudiantes
     function setupStudentActionListeners(estudiantesData) {
@@ -739,6 +875,34 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
                         break;
                     default:
                         console.warn('Acción desconocida para materia:', action);
+                }
+            }
+        });
+    }
+
+    // Configurar listeners para los botones de acción en la tabla de secciones (NUEVA)
+    function setupSectionActionListeners(seccionesData) {
+        seccionesTableBody.querySelectorAll('.dropdown-item').forEach(item => {
+            item.removeEventListener('click', handleSectionActionClick); 
+            item.addEventListener('click', handleSectionActionClick);
+
+            function handleSectionActionClick(e) {
+                e.preventDefault();
+                const action = e.currentTarget.dataset.action;
+                const sectionId = e.currentTarget.dataset.id;
+                const section = seccionesData.find(s => s.id_seccion.toString() === sectionId);
+
+                if (!section) {
+                    console.error('Sección no encontrada para ID:', sectionId);
+                    return;
+                }
+
+                switch (action) {
+                    case 'activar-seccion': 
+                        activarSeccion(section);
+                        break;
+                    default:
+                        console.warn('Acción desconocida para sección:', action);
                 }
             }
         });
@@ -863,8 +1027,37 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         }
     }
 
+    // Función para Activar Sección (NUEVA)
+    async function activarSeccion(seccion) {
+        const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de que quieres activar la sección ${seccion.seccion}? Esto cambiará su estado a "Activo".`
+        );
 
-    // Función de paginación (generalizada para estudiantes y profesores)
+        if (!confirmResult) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/secciones-academicas/${seccion.id_seccion}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: 1 }) 
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al activar la sección');
+            }
+
+            mostrarMensajeExito(`Sección ${seccion.seccion} ha sido activada exitosamente.`);
+            loadInactiveSecciones(currentPageSecciones); // Recargar la tabla de secciones
+        } catch (error) {
+            console.error('Error al activar sección:', error);
+            mostrarErrorAlUsuario(`Error al activar la sección: ${error.message}`);
+        }
+    }
+
+
+    // Función de paginación (generalizada para estudiantes, profesores, cursos, materias y secciones)
     function setupPagination(totalPages, currentPage, paginationContainer, type) {
       paginationContainer.innerHTML = '';
       if (totalPages <= 1) return;
@@ -883,8 +1076,9 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         if (currentPage > 1) {
           if (type === 'student') loadInactiveStudents(currentPage - 1);
           else if (type === 'profesor') loadInactiveProfesores(currentPage - 1);
-          else if (type === 'curso') loadInactiveCursos(currentPage - 1); // Paginación de cursos
-          else if (type === 'materia') loadInactiveMaterias(currentPage - 1); // Paginación de materias
+          else if (type === 'curso') loadInactiveCursos(currentPage - 1); 
+          else if (type === 'materia') loadInactiveMaterias(currentPage - 1); 
+          else if (type === 'seccion') loadInactiveSecciones(currentPage - 1); // Paginación de secciones
         }
       });
       prevLi.appendChild(prevLink);
@@ -904,8 +1098,9 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           e.preventDefault();
           if (type === 'student') loadInactiveStudents(1);
           else if (type === 'profesor') loadInactiveProfesores(1);
-          else if (type === 'curso') loadInactiveCursos(1); // Paginación de cursos
-          else if (type === 'materia') loadInactiveMaterias(1); // Paginación de materias
+          else if (type === 'curso') loadInactiveCursos(1); 
+          else if (type === 'materia') loadInactiveMaterias(1); 
+          else if (type === 'seccion') loadInactiveSecciones(1); // Paginación de secciones
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -928,8 +1123,9 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           e.preventDefault();
           if (type === 'student') loadInactiveStudents(i);
           else if (type === 'profesor') loadInactiveProfesores(i);
-          else if (type === 'curso') loadInactiveCursos(i); // Paginación de cursos
-          else if (type === 'materia') loadInactiveMaterias(i); // Paginación de materias
+          else if (type === 'curso') loadInactiveCursos(i); 
+          else if (type === 'materia') loadInactiveMaterias(i); 
+          else if (type === 'seccion') loadInactiveSecciones(i); // Paginación de secciones
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -952,8 +1148,9 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           e.preventDefault();
           if (type === 'student') loadInactiveStudents(totalPages);
           else if (type === 'profesor') loadInactiveProfesores(totalPages);
-          else if (type === 'curso') loadInactiveCursos(totalPages); // Paginación de cursos
-          else if (type === 'materia') loadInactiveMaterias(totalPages); // Paginación de materias
+          else if (type === 'curso') loadInactiveCursos(totalPages); 
+          else if (type === 'materia') loadInactiveMaterias(totalPages); 
+          else if (type === 'seccion') loadInactiveSecciones(totalPages); // Paginación de secciones
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -970,8 +1167,9 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         if (currentPage < totalPages) {
           if (type === 'student') loadInactiveStudents(currentPage + 1);
           else if (type === 'profesor') loadInactiveProfesores(currentPage + 1);
-          else if (type === 'curso') loadInactiveCursos(currentPage + 1); // Paginación de cursos
-          else if (type === 'materia') loadInactiveMaterias(currentPage + 1); // Paginación de materias
+          else if (type === 'curso') loadInactiveCursos(currentPage + 1); 
+          else if (type === 'materia') loadInactiveMaterias(currentPage + 1); 
+          else if (type === 'seccion') loadInactiveSecciones(currentPage + 1); // Paginación de secciones
         }
       });
       nextLi.appendChild(nextLink);
@@ -983,8 +1181,9 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
     // Cargar todas las tablas al inicio
     loadInactiveStudents(1); 
     loadInactiveProfesores(1);
-    loadInactiveCursos(1); // Cargar cursos inactivos
-    loadInactiveMaterias(1); // Cargar materias inactivas
+    loadInactiveCursos(1); 
+    loadInactiveMaterias(1); 
+    loadInactiveSecciones(1); // Cargar secciones inactivas (NUEVA)
 
     // Funciones auxiliares (manteniendo las tuyas si las usas en otras partes de tu app)
     function mostrarError(elemento, mensaje) {

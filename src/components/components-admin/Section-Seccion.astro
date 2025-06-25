@@ -476,7 +476,6 @@ import "../../style/style-admin/secciones.css";
 
       detalleNombreSeccion.textContent = seccion.seccion || 'N/A';
       detalleEstadoSeccion.textContent = seccion.estado === 1 ? 'Activa' : 'Inactiva';
-      detalleFechaCreacion.textContent = seccion.fecha_creacion ? new Date(seccion.fecha_creacion).toLocaleDateString() : 'N/A';
 
       // Cargar información detallada
       detalleCursosAsociados.innerHTML = '<div class="text-center text-muted">Cargando información de cursos...</div>';
