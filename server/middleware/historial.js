@@ -1,6 +1,6 @@
 import db from '../db/db.js';
 
-// Versión corregida del middleware
+
 export const registrarAccion = (accion, tabla = null) => {
   return async (req, res, next) => {
     try {
@@ -46,9 +46,26 @@ export const registrarAccion = (accion, tabla = null) => {
       // Obtener datos anteriores para PUT/PATCH/DELETE
       if (['PUT', 'PATCH', 'DELETE'].includes(req.method)) {
         if (tabla && req.params?.id) {
-          const [rows] = await db.promise().query(`SELECT * FROM ${tabla} WHERE id_${tabla} = ?`, [req.params.id]);
-          if (rows.length > 0) {
-            req.datosAnteriores = rows[0];
+          let query = null;
+          let idField = null;
+          if (tabla === 'actividades') {
+            query = 'SELECT * FROM actividades WHERE id_actividad = ?';
+            idField = req.params.id;
+          } else if (tabla === 'seccion') {
+            query = 'SELECT * FROM seccion WHERE id_seccion = ?';
+            idField = req.params.id;
+          } else if (tabla === 'periodo') {
+            query = 'SELECT * FROM periodo WHERE id_periodo = ?';
+            idField = req.params.id;
+          } else {
+            query = `SELECT * FROM ${tabla} WHERE id_${tabla} = ?`;
+            idField = req.params.id;
+          }
+          if (query && idField) {
+            const [rows] = await db.promise().query(query, [idField]);
+            if (rows.length > 0) {
+              req.datosAnteriores = rows[0];
+            }
           }
         }
       }

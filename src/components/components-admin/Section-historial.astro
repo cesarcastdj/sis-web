@@ -17,16 +17,13 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
             <th>Usuario</th>
             <th>Acción</th>
             <th>Tabla afectada</th>
-            <th>ID registro</th>
-            <th>Datos anteriores</th>
-            <th>Datos nuevos</th>
+            <th>Descripción</th>
             <th>Fecha y hora</th>
-            <th>IP</th>
           </tr>
         </thead>
         <tbody id="historialTableBody">
           <tr>
-            <td colspan="9" class="text-center">Cargando Historial...</td>
+            <td colspan="6" class="text-center">Cargando Historial...</td>
           </tr>
         </tbody>
       </table>
@@ -47,78 +44,93 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       if (!texto) return 'N/A';
       try {
         const datos = JSON.parse(texto);
-        return Object.entries(datos)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join('<br>');
+
+        function renderValor(valor) {
+          if (typeof valor === 'object' && valor !== null) {
+            return (
+              '<ul style="margin-left:1em;">' +
+              Object.entries(valor)
+                .map(([k, v]) => `<li><b>${k}:</b> ${renderValor(v)}</li>`)
+                .join('') +
+              '</ul>'
+            );
+          }
+          return valor;
+        }
+
+        return (
+          '<div>' +
+          Object.entries(datos)
+            .map(([k, v]) => `<b>${k}:</b> ${renderValor(v)}`)
+            .join('<br>') +
+          '</div>'
+        );
       } catch {
         return texto;
       }
     }
 
     async function loadHistorial(page) {
-  historialTableBody.innerHTML = `<tr><td colspan="9" class="text-center">Cargando historial...</td></tr>`;
-  paginationControls.innerHTML = '';
+      historialTableBody.innerHTML = `<tr><td colspan="6" class="text-center">Cargando historial...</td></tr>`;
+      paginationControls.innerHTML = '';
 
-  try {
-    const response = await fetch(`http://localhost:3001/api/historial?pagina=${page}&porPagina=${itemsPerPage}`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      try {
+        const response = await fetch(`http://localhost:3001/api/historial?pagina=${page}&porPagina=${itemsPerPage}`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Respuesta completa del backend:", data);
+
+        // Manejo más robusto de la respuesta
+        const historial = data.datos || data.historial || data; // Intenta con varios posibles nombres
+        const pagination = data.paginacion || {
+          totalPaginas: Math.ceil((data.totalRegistros || historial.length) / itemsPerPage),
+          pagina: page
+        };
+        
+        const totalPages = pagination.totalPaginas || 1;
+        currentPage = pagination.pagina || page;
+
+        historialTableBody.innerHTML = '';
+
+        if (!historial || historial.length === 0) {
+          historialTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No se encontraron registros de historial.</td></tr>`;
+          return;
+        }
+
+        historial.forEach((registro) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${registro.id_historial}</td>
+            <td>${registro.primer_nombre || 'Usuario'} ${registro.primer_apellido || ''}</td>
+            <td>${registro.accion}</td>
+            <td>${registro.tabla_afectada || 'N/A'}</td>
+            <td>${formatearJson(registro.datos_nuevos)}</td>
+            <td>${new Date(registro.fecha_hora).toLocaleString()}</td>
+          `;
+          historialTableBody.appendChild(row);
+        });
+
+        setupPagination(totalPages, currentPage);
+      } catch (error) {
+        console.error('Error al cargar historial:', error);
+        historialTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error al cargar historial. ${error.message}</td></tr>`;
       }
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        window.location.href = '/login';
-        return;
-      }
-      throw new Error(`Error HTTP: ${response.status}`);
     }
-
-    const data = await response.json();
-    console.log("Respuesta completa del backend:", data);
-
-    // Manejo más robusto de la respuesta
-    const historial = data.datos || data.historial || data; // Intenta con varios posibles nombres
-    const pagination = data.paginacion || {
-      totalPaginas: Math.ceil((data.totalRegistros || historial.length) / itemsPerPage),
-      pagina: page
-    };
-    
-    const totalPages = pagination.totalPaginas || 1;
-    currentPage = pagination.pagina || page;
-
-    historialTableBody.innerHTML = '';
-
-    if (!historial || historial.length === 0) {
-      historialTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No se encontraron registros de historial.</td></tr>`;
-      return;
-    }
-
-    historial.forEach((registro) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${registro.id_historial}</td>
-        <td>${registro.primer_nombre || 'Usuario'} ${registro.primer_apellido || ''}</td>
-        <td>${registro.accion}</td>
-        <td>${registro.tabla_afectada || 'N/A'}</td>
-        <td>${registro.id_registro_afectado || 'N/A'}</td>
-        <td>${formatearJson(registro.datos_anteriores)}</td>
-        <td>${formatearJson(registro.datos_nuevos)}</td>
-        <td>${new Date(registro.fecha_hora).toLocaleString()}</td>
-        <td>${registro.ip || 'N/A'}</td>
-      `;
-      historialTableBody.appendChild(row);
-    });
-
-    setupPagination(totalPages, currentPage);
-  } catch (error) {
-    console.error('Error al cargar historial:', error);
-    historialTableBody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error al cargar historial. ${error.message}</td></tr>`;
-  }
-}
 
     function setupPagination(totalPages, currentPage) {
       paginationControls.innerHTML = '';

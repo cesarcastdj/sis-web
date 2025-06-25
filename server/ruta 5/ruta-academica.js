@@ -3,6 +3,7 @@ import db from '../db/db.js';
 import { isAuthenticated } from '../middleware/protegerRutas.js';
 import { hashPassword, comparePassword } from '../f(x)/contrasenias.js';
 import { syncRelationships, syncSingleRelationship } from '../f(x)/relaciones.js';
+import { registrarAccion } from '../middleware/historial.js';
 
 const router = express.Router();
 
@@ -180,7 +181,7 @@ router.get('/secciones-academicas/:id/detalles', /*isAuthenticated,*/ async (req
 });
 
 // Crear una nueva sección
-router.post('/secciones-academicas', /*isAuthenticated,*/ (req, res) => { // La función ahora no es 'async'
+router.post('/secciones-academicas', registrarAccion('Creación de sección', 'seccion'), /*isAuthenticated,*/ (req, res) => { // La función ahora no es 'async'
     const { nombreSeccion} = req.body;
 
     // Validación básica: el nombre de la sección es obligatorio
@@ -229,6 +230,7 @@ router.post('/secciones-academicas', /*isAuthenticated,*/ (req, res) => { // La 
                         }
 
                         const id_seccion = seccionResult.insertId; // id_seccion será el ID generado para la nueva sección.
+                        req.params.id = id_seccion;
 
                         // Lógica para asignar cursos y/o estudiantes (descomenta y adapta según sea necesario):
                         // Nota: Si estas operaciones también son asíncronas y con callbacks,
@@ -268,7 +270,7 @@ router.post('/secciones-academicas', /*isAuthenticated,*/ (req, res) => { // La 
 
 
 // Actualizar una sección existente
-router.put('/secciones-academicas/:id', /*isAuthenticated,*/ async (req, res) => {
+router.put('/secciones-academicas/:id', registrarAccion('Actualizacion datos seccion', 'seccion'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     const { nombreSeccion, descripcion } = req.body;
 
@@ -308,7 +310,7 @@ router.put('/secciones-academicas/:id', /*isAuthenticated,*/ async (req, res) =>
 });
 
 // Cambiar el estado de una sección (activo/inactivo)
-router.put('/secciones-academicas/:id/estado', /*isAuthenticated,*/ async (req, res) => {
+router.put('/secciones-academicas/:id/estado', registrarAccion('Cambio de estado de sección', 'seccion'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     const { estado } = req.body; // 1 o 0
 
@@ -335,7 +337,7 @@ router.put('/secciones-academicas/:id/estado', /*isAuthenticated,*/ async (req, 
 });
 
 // Eliminar una sección (eliminación lógica)
-router.delete('/secciones-academicas/:id', /*isAuthenticated,*/ async (req, res) => {
+router.delete('/secciones-academicas/:id', registrarAccion('Eliminación de sección', 'seccion'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     let connection;
     
@@ -460,7 +462,7 @@ router.get('/cursos/papelera', (req, res) => {
     });
   });
 });
-router.put('/cursos/:id/estado', async (req, res) => { // Eliminado el '/api'
+router.put('/cursos/:id/estado', registrarAccion('Cambio de estado de curso', 'cursos'), async (req, res) => { // Eliminado el '/api'
   const { id } = req.params;
   const { estado } = req.body; 
 
@@ -478,7 +480,7 @@ router.put('/cursos/:id/estado', async (req, res) => { // Eliminado el '/api'
   }
 });
 
-router.put('/materias/:id/estado', async (req, res) => { // Eliminado el '/api'
+router.put('/materias/:id/estado', registrarAccion('Cambio de estado de materia', 'materias'), async (req, res) => { // Eliminado el '/api'
   const { id } = req.params;
   const { estado } = req.body; 
 
@@ -609,7 +611,7 @@ router.get('/perioodos', (req, res) => {
     });
 });
 
-router.post('/register-materia', (req, res) => {
+router.post('/register-materia', registrarAccion('Creación de materia', 'materias'), (req, res) => {
   const { id_curso, nombreMateria, id_periodo, id_seccion } = req.body;
 
   if (!id_curso || !nombreMateria || !id_periodo || !id_seccion) {
@@ -645,7 +647,7 @@ router.post('/register-materia', (req, res) => {
 
 
 // 🔹 Ruta para registrar un nuevo curso 🔹
-router.post('/register-curso', async (req, res) => {
+router.post('/register-curso', registrarAccion('Creación de curso', 'cursos'), async (req, res) => {
     try {
       const { nombreCurso, id_periodo, id_seccion, agregarMateria, nombreMateria = null, estudiantesAsignados = [] } = req.body;
 
@@ -664,6 +666,7 @@ router.post('/register-curso', async (req, res) => {
             return res.status(500).json({ error: 'Error al registrar el curso.', detalle: err.message });
           }
           const id_curso = cursoResult.insertId;
+          req.params.id = id_curso;
 
           // Insertar la relación en cursos_periodo
            db.query('INSERT INTO cursos_seccion (id_curso, id_seccion) VALUES (?, ?)',
@@ -735,7 +738,7 @@ router.post('/register-curso', async (req, res) => {
 
 
 // 🔹 Ruta para registrar un nuevo periodo 🔹
-router.post('/register-periodo', async (req, res) => {
+router.post('/register-periodo', registrarAccion('Creación de periodo', 'periodo'), async (req, res) => {
     try {
       const { nombrePeriodo, fechaInicio, fechaFinal } = req.body;
 
@@ -752,6 +755,7 @@ router.post('/register-periodo', async (req, res) => {
             console.error('Error insertando periodo:', err);
             return res.status(500).json({ error: 'Error al registrar el periodo.', detalle: err.message });
           }
+          req.params.id = periodoResult.insertId;
           res.json({ message: 'Periodo registrado exitosamente.', id_periodo: periodoResult.insertId });
         });
     } catch (error) {
@@ -904,7 +908,7 @@ router.get('/periodos-academicos/:id', /*isAuthenticated,*/ async (req, res) => 
     }
 });
 
-router.post('/periodos-academicos', /*isAuthenticated,*/ async (req, res) => {
+router.post('/periodos-academicos', registrarAccion('Creación de periodo académico', 'periodo'), /*isAuthenticated,*/ async (req, res) => {
     const { nombrePeriodo, fechaInicio, fechaFinal } = req.body;
 
     try {
@@ -930,7 +934,7 @@ router.post('/periodos-academicos', /*isAuthenticated,*/ async (req, res) => {
     }
 });
 
-router.put('/periodos-academicos/:id', /*isAuthenticated,*/ async (req, res) => {
+router.put('/periodos-academicos/:id', registrarAccion('Actualización de periodo académico', 'periodo'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     const { nombrePeriodo, fechaInicio, fechaFinal } = req.body;
 
@@ -1204,7 +1208,7 @@ router.get('/cursos-academicos/:id', (req, res) => {
  * @param {Array<number>} [req.body.estudiantesAsignados=[]] - IDs de estudiantes a asignar al curso/materia.
  * @returns {json} Mensaje de éxito e ID del nuevo curso.
  */
-router.post('/cursos-academicos', /*isAuthenticated,*/ async (req, res) => {
+router.post('/cursos-academicos', registrarAccion('Creación de curso académico', 'cursos'), /*isAuthenticated,*/ async (req, res) => {
     const { nombreCurso, id_periodo, agregarMateria = false, nombreMateria = null, estudiantesAsignados = [] } = req.body;
 
     if (!nombreCurso || !id_periodo) {
@@ -1225,6 +1229,7 @@ router.post('/cursos-academicos', /*isAuthenticated,*/ async (req, res) => {
             [nombreCurso]
         );
         const id_curso = cursoResult.insertId;
+        req.params.id = id_curso;
 
         // Insertar la relación en cursos_periodo
         await connection.query('INSERT INTO cursos_periodo (id_curso, id_periodo) VALUES (?, ?)', [id_curso, id_periodo]);
@@ -1271,7 +1276,7 @@ router.post('/cursos-academicos', /*isAuthenticated,*/ async (req, res) => {
  * @param {number} req.body.id_periodo - Nuevo ID del periodo.
  * @returns {json} Mensaje de éxito.
  */
-router.put('/cursos-academicos/:id', /*isAuthenticated,*/ async (req, res) => {
+router.put('/cursos-academicos/:id', registrarAccion('Actualización de curso académico', 'cursos'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     const { nombre_curso, id_periodo } = req.body;
 
@@ -1302,7 +1307,7 @@ router.put('/cursos-academicos/:id', /*isAuthenticated,*/ async (req, res) => {
  * @param {number} req.body.estado - Nuevo estado (1 para activo, 0 para inactivo).
  * @returns {json} Mensaje de éxito.
  */
-router.put('/cursos-academicos/:id/estado', /*isAuthenticated,*/ async (req, res) => {
+router.put('/cursos-academicos/:id/estado', registrarAccion('Cambio de estado de curso académico', 'cursos'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     const { estado } = req.body; // 1 o 0
 
@@ -1328,7 +1333,7 @@ router.put('/cursos-academicos/:id/estado', /*isAuthenticated,*/ async (req, res
  * @param {number} req.params.id - ID del curso a eliminar.
  * @returns {json} Mensaje de éxito.
  */
-router.delete('/cursos-academicos/:id', /*isAuthenticated,*/ async (req, res) => {
+router.delete('/cursos-academicos/:id', registrarAccion('Eliminación de curso académico', 'cursos'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     let connection;
     try {
@@ -1580,7 +1585,7 @@ router.get('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) => 
 });
 
 // Crear una nueva materia
-router.post('/materias-academicas', /*isAuthenticated,*/ async (req, res) => {
+router.post('/materias-academicas', registrarAccion('Creación de materia académica', 'materias'), /*isAuthenticated,*/ async (req, res) => {
     const { nombreMateria, id_curso, estudiantes = [], profesores = [] } = req.body;
 
     if (!nombreMateria || !id_curso) {
@@ -1598,6 +1603,7 @@ router.post('/materias-academicas', /*isAuthenticated,*/ async (req, res) => {
             [id_curso, nombreMateria]
         );
         const id_materia = materiaResult.insertId;
+        req.params.id = id_materia;
 
         // Sincronizar estudiantes asignados
         if (estudiantes.length > 0) {
@@ -1622,7 +1628,7 @@ router.post('/materias-academicas', /*isAuthenticated,*/ async (req, res) => {
 });
 
 // Actualizar una materia existente
-router.put('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) => {
+router.put('/materias-academicas/:id', registrarAccion('Actualización de materia académica', 'materias'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     const { materia, id_curso, estudiantes = [], profesores = [] } = req.body;
 
@@ -1675,7 +1681,7 @@ router.put('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) => 
 });
 
 // Cambiar el estado de una materia (activo/inactivo)
-router.put('/materias-academicas/:id/estado', /*isAuthenticated,*/ async (req, res) => {
+router.put('/materias-academicas/:id/estado', registrarAccion('Cambio de estado de materia académica', 'materias'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     const { estado } = req.body; // 'activo' o 'inactivo'
 
@@ -1698,7 +1704,7 @@ router.put('/materias-academicas/:id/estado', /*isAuthenticated,*/ async (req, r
 });
 
 // Eliminar una materia
-router.delete('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) => {
+router.delete('/materias-academicas/:id', registrarAccion('Eliminación de materia académica', 'materias'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
     let connection;
     try {
@@ -1726,7 +1732,7 @@ router.delete('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) 
 });
 
 // Agregar estudiantes y profesor a una materia (sin eliminar los existentes) - versión conexión única
-router.post('/materias-academicas/:id/asignar', (req, res) => {
+router.post('/materias-academicas/:id/asignar', registrarAccion('Asignación de usuarios a materia', 'usuario_materias'), (req, res) => {
   const { id: idMateria } = req.params;
   const { estudiantes = [], profesores = [] } = req.body;
   console.log('[API] POST /materias-academicas/:id/asignar - Recibido:', { idMateria, estudiantes, profesores });

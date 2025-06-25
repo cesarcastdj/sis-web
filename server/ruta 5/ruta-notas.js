@@ -438,7 +438,7 @@ router.post('/notas', isAuthenticated, registrarAccion('Registro de Nota Individ
  * @param {object} req.body - Objeto con los campos a actualizar (nota, comentarios, id_actividad, etc.).
  * @returns {json} Mensaje de éxito.
  */
-router.put('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
+router.put('/notas/:id_nota', registrarAccion('Actualizacion nota', 'notas'), /*isAuthenticated,*/ async (req, res) => {
   const { id_nota } = req.params;
   const { nota, id_actividad, comentarios, fecha_registro } = req.body; 
 
@@ -475,7 +475,7 @@ router.put('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
  * @param {number} req.params.id_nota - ID de la nota a eliminar.
  * @returns {json} Mensaje de éxito.
  */
-router.delete('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
+router.delete('/notas/:id_nota', registrarAccion('Eliminacion nota', 'notas'), /*isAuthenticated,*/ async (req, res) => {
   const { id_nota } = req.params;
 
   try {
@@ -574,7 +574,7 @@ router.get('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) =
  * @param {number} req.body.id_materia - ID de la materia a la que pertenece la actividad.
  * @returns {json} Mensaje de éxito e ID de la nueva actividad.
  */
-router.post('/actividades', /*isAuthenticated,*/ async (req, res) => {
+router.post('/actividades', registrarAccion('Creacion actividad', 'actividades'), /*isAuthenticated,*/ async (req, res) => {
     const { nombre_actividad, descripcion = null, fecha_creacion, id_materia, ponderacion } = req.body;
 
     try {
@@ -593,6 +593,7 @@ router.post('/actividades', /*isAuthenticated,*/ async (req, res) => {
             [nombre_actividad, descripcion, formattedFechaCreacion, id_materia, ponderacion]
         );
         const nuevaActividadId = result.insertId;
+        req.params.id = nuevaActividadId;
 
         res.status(201).json({ message: 'Actividad creada exitosamente.', id: nuevaActividadId });
 
@@ -609,7 +610,7 @@ router.post('/actividades', /*isAuthenticated,*/ async (req, res) => {
  * @param {object} req.body - Objeto con los campos a actualizar (nombre_actividad, descripcion, fecha_creacion, id_materia).
  * @returns {json} Mensaje de éxito.
  */
-router.put('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) => {
+router.put('/actividades/:id_actividad', registrarAccion('Actualizacion actividad', 'actividades'), /*isAuthenticated,*/ async (req, res) => {
     const { id_actividad } = req.params;
     const { nombre_actividad, descripcion = null, fecha_creacion, id_materia, ponderacion } = req.body;
 
@@ -641,7 +642,7 @@ router.put('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) =
  * @param {number} req.params.id_actividad - ID de la actividad a eliminar.
  * @returns {json} Mensaje de éxito.
  */
-router.delete('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) => {
+router.delete('/actividades/:id_actividad', registrarAccion('Eliminacion actividad', 'actividades'), /*isAuthenticated,*/ async (req, res) => {
     const { id_actividad } = req.params;
 
     try {
@@ -884,7 +885,7 @@ router.get('/notas/actividad/:id_actividad', async (req, res) => {
 });
 
 // Guardar o actualizar notas y comentarios de varios estudiantes para una actividad
-router.post('/notas/actividad/:id_actividad', (req, res) => { 
+router.post('/notas/actividad/:id_actividad', registrarAccion('Registro de notas por lote', 'notas'), (req, res) => { 
   try {
     console.log('********* LLEGÓ PETICIÓN A /notas/actividad/:id_actividad *********');
     console.log('BODY RECIBIDO:', JSON.stringify(req.body));

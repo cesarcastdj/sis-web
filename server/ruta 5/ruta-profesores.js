@@ -3,6 +3,7 @@ import db from '../db/db.js'; // Ajusta esta ruta si es necesario
 import { isAuthenticated } from '../middleware/protegerRutas.js'; // Ajusta esta ruta si es necesario
 import { hashPassword, comparePassword } from '../f(x)/contrasenias.js'; // Ajusta esta ruta si es necesario
 import { syncRelationships, syncSingleRelationship } from '../f(x)/relaciones.js'; // Ajusta esta ruta si es necesario
+import { registrarAccion } from '../middleware/historial.js';
 
 const router = express.Router();
 
@@ -200,7 +201,7 @@ router.get('/profesores/papelera', async (req, res) => {
     res.status(500).json({ error: "Error al cargar profesores", detalle: error.message });
   }
 });
-router.put('/profesores/:id/estado', async (req, res) => { // Eliminado el '/api'
+router.put('/profesores/:id/estado', registrarAccion('Cambio de estado de profesor', 'usuarios'), async (req, res) => { // Eliminado el '/api'
     const { id } = req.params;
     const { estado } = req.body; 
 
@@ -219,7 +220,7 @@ router.put('/profesores/:id/estado', async (req, res) => { // Eliminado el '/api
 });
 
 // Endpoint para actualizar datos de un profesor (similar a estudiantes)
-router.put('/profesores/:id', async (req, res) => {
+router.put('/profesores/:id', registrarAccion('Actualización de datos de profesor', 'usuarios'), async (req, res) => {
     const { id } = req.params;
     const {
       cedula, correo, primerNombre, segundoNombre, primerApellido, segundoApellido,
