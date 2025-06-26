@@ -99,7 +99,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
 </div>
 
 <!-- Modal para Editar Estudiantes -->
-<div class="modal fade" id="modalEditarEstudiante" tabindex="-1" aria-labelledby="modalEditarEstudianteLabel" aria-hidden="true">
+<div class="modal fade" id="modalEditarEstudiante" tabindex="-1" aria-labelledby="modalEditarEstudianteLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-dialog-custom-width">
     <div class="modal-content">
       <div class="modal-header">
@@ -166,6 +166,13 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
                   >
               </div>
             </div>
+            <div class="col-md-6 mb-3">
+              <label for="editPeriodoAcademico" class="form-label">Periodo Académico</label>
+              <select class="form-select" id="editPeriodoAcademico">
+                <option value="">Seleccione un periodo</option>
+                <!-- Opciones se cargarán dinámicamente -->
+              </select>
+            </div>
           </div>
 
           <h6 class="section-title mt-4">Ubicación</h6>
@@ -176,8 +183,8 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
             </div>
           </div>
           
-          <div class="d-flex justify-content-between mt-4">
-            <button type="reset" class="btn btn-secondary">Limpiar</button>
+          <div class="d-flex justify-content-end mt-4 gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             <button type="submit" class="btn btn-primary" id="btnGuardarEdicion">Guardar Cambios</button>
           </div>
         </form>
@@ -232,20 +239,17 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
     const editNumeroTelefonoInput = document.querySelector('#modalEditarEstudiante .numero-telefono-edit');
     const editDireccion = document.getElementById('editDireccion');
     const editPeriodoAcademico = document.getElementById('editPeriodoAcademico'); 
-    const editCurso = document.getElementById('editCurso');
-    const editMaterias = document.getElementById('editMaterias');
-    const editSeccion = document.getElementById('editSeccion');
+
     const btnGuardarEdicion = document.getElementById('btnGuardarEdicion');
 
     // Cargar datos al abrir el modal de Editar Estudiantes
     modalEditarEstudiante._element.addEventListener('shown.bs.modal', async function() {
       await cargarPeriodos('edit'); 
-      await cargarCursos('edit'); 
-      await cargarSecciones('edit'); 
+
     });
 
     // Función para cargar periodos académicos
-    async function cargarPeriodos(prefix = '') {
+  /*  async function cargarPeriodos(prefix = '') {
       const targetPeriodoSelect = prefix === 'edit' ? editPeriodoAcademico : null; 
       if (!targetPeriodoSelect) return; 
 
@@ -268,66 +272,46 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Error al cargar periodos</option>';
         mostrarErrorAlUsuario('Error al cargar periodos académicos. Intente recargar la página.');
       }
-    }
+    }*/
 
+    async function cargarPeriodos(prefix = '') {
+    const targetSelect = prefix === 'edit' ? editPeriodoAcademico : null;
+    if (!targetSelect) return;
 
-    // Función para cargar cursos
-    async function cargarCursos(prefix = '') {
-      const targetCursoSelect = prefix === 'edit' ? editCurso : null; 
-      if (!targetCursoSelect) return; 
+    try {
+        const response = await fetch('http://localhost:3001/api/periodos');
+        if (!response.ok) throw new Error('Error al cargar períodos');
+        const periodos = await response.json();
 
-      targetCursoSelect.disabled = true; 
-      targetCursoSelect.innerHTML = '<option value="" selected disabled>Cargando cursos...</option>';
-      try {
-        const response = await fetch('http://localhost:3001/api/cursos');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const cursos = await response.json();
-        targetCursoSelect.innerHTML = '<option value="" selected disabled>Seleccione un curso</option>';
-        cursos.forEach(curso => {
-          const option = document.createElement('option');
-          option.value = curso.id_curso;
-          option.textContent = curso.curso;
-          targetCursoSelect.appendChild(option);
-        });
-        targetCursoSelect.disabled = false; 
-      }
-      catch (error) {
-        console.error('Error cargando cursos:', error);
-        targetCursoSelect.innerHTML = '<option value="" selected disabled>Error al cargar cursos</option>';
-        mostrarErrorAlUsuario('Error al cargar cursos. Intente recargar la página.');
-      }
-    }
+        // Guardar el valor actual antes de limpiar
+        const currentValue = targetSelect.value;
 
-    // Función para cargar secciones
-    async function cargarSecciones(prefix = '') {
-      const targetSeccionSelect = prefix === 'edit' ? editSeccion : null; 
-      if (!targetSeccionSelect) return; 
+        // Limpiar y reconstruir opciones
+        targetSelect.innerHTML = '';
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Seleccione un periodo';
+        targetSelect.appendChild(defaultOption);
 
-      targetSeccionSelect.innerHTML = '<option value="" selected disabled>Cargando secciones...</option>';
-      targetSeccionSelect.disabled = true;
-      try {
-        const response = await fetch('http://localhost:3001/api/secciones');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const secciones = await response.json();
-        targetSeccionSelect.innerHTML = '<option value="" selected disabled>Seleccione una sección</option>';
-        if (secciones.length === 0) {
-          targetSeccionSelect.innerHTML = '<option value="" disabled>No hay secciones disponibles</option>';
-        } else {
-          secciones.forEach(seccion => {
+        periodos.forEach(periodo => {
             const option = document.createElement('option');
-            option.value = seccion.id_seccion;
-            option.textContent = seccion.seccion;
-            targetSeccionSelect.appendChild(option);
-          });
-          targetSeccionSelect.disabled = false;
+            option.value = periodo.id_periodo;
+            option.textContent = periodo.periodo;
+            targetSelect.appendChild(option);
+        });
+
+        // Restaurar el valor si existe
+        if (currentValue && periodos.some(p => p.id_periodo.toString() === currentValue)) {
+            targetSelect.value = currentValue;
         }
-      }
-      catch (error) {
-        console.error('Error cargando secciones:', error);
-        targetSeccionSelect.innerHTML = '<option value="" selected disabled>Error al cargar secciones</option>';
-        mostrarErrorAlUsuario('Error al cargar secciones. Intente nuevamente.');
-      }
+    } catch (error) {
+        console.error('Error:', error);
+        targetSelect.innerHTML = '<option value="">Error cargando períodos</option>';
+        throw error;
     }
+}
+    
+  
 
     // Validar número de teléfono para edición
     editNumeroTelefonoInput.addEventListener('input', function() {
@@ -339,9 +323,38 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       }
     });
 
+    // Validación de nombres y apellidos: no aceptar números y no permitir campos vacíos
+    function soloLetras(input) {
+      input.value = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '');
+    }
+
+    [editPrimerNombre, editSegundoNombre, editPrimerApellido, editSegundoApellido].forEach(input => {
+      if (input) {
+        input.addEventListener('input', function() {
+          soloLetras(this);
+        });
+      }
+    });
+
     // Manejar envío del formulario de Edición de Estudiante
     formEditarEstudiante.addEventListener('submit', async function(e) {
       e.preventDefault();
+
+      // Validar que los campos no estén vacíos y no contengan números
+      const campos = [editPrimerNombre, editSegundoNombre, editPrimerApellido, editSegundoApellido];
+      let hayError = false;
+      campos.forEach(input => {
+        if (!input.value.trim() || /\d/.test(input.value)) {
+          input.classList.add('is-invalid');
+          hayError = true;
+        } else {
+          input.classList.remove('is-invalid');
+        }
+      });
+      if (hayError) {
+        mostrarErrorAlUsuario('Los nombres y apellidos no pueden estar vacíos ni contener números.');
+        return;
+      }
 
       const confirmResult = await mostrarConfirmacion(
             `¿Estás seguro de guardar los cambios para este estudiante?`
@@ -372,9 +385,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           telefono: telefonoCompleto,
           direccion: editDireccion.value.trim(), 
           periodoAcademico: editPeriodoAcademico.value && editPeriodoAcademico.value !== '' ? editPeriodoAcademico.value : undefined,
-          materias: editMaterias.value && editMaterias.value !== '' ? editMaterias.value : undefined, 
-          cursos: editCurso.value && editCurso.value !== '' ? editCurso.value : undefined, 
-          secciones: editSeccion.value && editSeccion.value !== '' ? editSeccion.value : undefined, 
+
         };
 
 
@@ -674,7 +685,39 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
             editNumeroTelefonoInput.value = '';
         }
         }
-        // No referencias a campos académicos eliminados
+        // Asignar el periodo académico seleccionado si existe
+        if (editPeriodoAcademico) {
+        // Bloquear el select mientras cargamos
+        editPeriodoAcademico.disabled = true;
+        editPeriodoAcademico.innerHTML = '<option value="">Cargando períodos...</option>';
+
+        try {
+            // Cargar períodos ANTES de mostrar el modal
+            await cargarPeriodos('edit');
+            
+            // Extraer el ID del período como string
+            const periodoId = estudiante.periodoAcademicoIds?.[0]?.toString() || '';
+            
+            // Esperar un ciclo de evento para asegurar que el DOM está actualizado
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            
+            // Establecer el valor SI existe
+            if (periodoId && Array.from(editPeriodoAcademico.options).some(o => o.value === periodoId)) {
+                editPeriodoAcademico.value = periodoId;
+            } else {
+                editPeriodoAcademico.value = '';
+            }
+            
+            // Disparar evento change para cualquier listener
+            editPeriodoAcademico.dispatchEvent(new Event('change'));
+        } catch (error) {
+            console.error('Error cargando períodos:', error);
+            editPeriodoAcademico.innerHTML = '<option value="">Error cargando períodos</option>';
+        } finally {
+            editPeriodoAcademico.disabled = false;
+        }
+    }
+
         modalEditarEstudiante.show();
     }
 
