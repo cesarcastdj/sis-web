@@ -6,6 +6,21 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
     <div class="welcome-search-data">
       <h2 class="welcome-search-data__title">Historial</h2>
     </div>
+    <!-- Barra de búsqueda -->
+    <form id="searchForm" class="row g-2 align-items-center mb-3" autocomplete="off">
+      <div class="col-md-4">
+        <input type="text" class="form-control" id="searchUsuario" placeholder="Buscar por usuario (nombre o apellido)">
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control" id="searchAccion" placeholder="Buscar por acción">
+      </div>
+      <div class="col-md-3">
+        <input type="date" class="form-control" id="searchFecha" placeholder="Buscar por fecha">
+      </div>
+      <div class="col-md-1 d-flex align-items-center">
+        <button type="button" class="btn btn-secondary w-100" id="btnLimpiarFiltros">Limpiar</button>
+      </div>
+    </form>
   </section>
 
   <div class="display-table" id="table1">
@@ -39,6 +54,13 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
     const itemsPerPage = 10;
     const historialTableBody = document.getElementById('historialTableBody');
     const paginationControls = document.getElementById('paginationControls');
+    // Nuevas referencias a los campos de búsqueda
+    const searchUsuario = document.getElementById('searchUsuario');
+    const searchAccion = document.getElementById('searchAccion');
+    const searchFecha = document.getElementById('searchFecha');
+    const btnLimpiarFiltros = document.getElementById('btnLimpiarFiltros');
+    let historialCompleto = [];
+    let historialFiltrado = [];
 
     function formatearJson(texto) {
       if (!texto) return 'N/A';
@@ -70,12 +92,12 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       }
     }
 
-    async function loadHistorial(page) {
+    async function loadHistorialCompleto() {
       historialTableBody.innerHTML = `<tr><td colspan="6" class="text-center">Cargando historial...</td></tr>`;
       paginationControls.innerHTML = '';
-
       try {
-        const response = await fetch(`http://localhost:3001/api/historial?pagina=${page}&porPagina=${itemsPerPage}`, {
+        // Obtener todos los registros (sin paginación)
+        const response = await fetch(`http://localhost:3001/api/historial?pagina=1&porPagina=10000`, {
           method: 'GET',
           credentials: 'include',
           headers: {
@@ -83,7 +105,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
             'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
           }
         });
-
         if (!response.ok) {
           if (response.status === 401) {
             window.location.href = '/login';
@@ -91,54 +112,85 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
           }
           throw new Error(`Error HTTP: ${response.status}`);
         }
-
         const data = await response.json();
-        console.log("Respuesta completa del backend:", data);
-
-        // Manejo más robusto de la respuesta
-        const historial = data.datos || data.historial || data; // Intenta con varios posibles nombres
-        const pagination = data.paginacion || {
-          totalPaginas: Math.ceil((data.totalRegistros || historial.length) / itemsPerPage),
-          pagina: page
-        };
-        
-        const totalPages = pagination.totalPaginas || 1;
-        currentPage = pagination.pagina || page;
-
-        historialTableBody.innerHTML = '';
-
-        if (!historial || historial.length === 0) {
-          historialTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No se encontraron registros de historial.</td></tr>`;
-          return;
-        }
-
-        historial.forEach((registro) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${registro.id_historial}</td>
-            <td>${registro.primer_nombre || 'Usuario'} ${registro.primer_apellido || ''}</td>
-            <td>${registro.accion}</td>
-            <td>${registro.tabla_afectada || 'N/A'}</td>
-            <td>${formatearJson(registro.datos_nuevos)}</td>
-            <td>${new Date(registro.fecha_hora).toLocaleString()}</td>
-          `;
-          historialTableBody.appendChild(row);
-        });
-
-        setupPagination(totalPages, currentPage);
+        const historial = data.datos || data.historial || data;
+        historialCompleto = historial;
+        filtrarYRenderizar();
       } catch (error) {
         console.error('Error al cargar historial:', error);
         historialTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error al cargar historial. ${error.message}</td></tr>`;
       }
     }
 
+    function filtrarYRenderizar() {
+      const usuarioFiltro = (searchUsuario.value || '').toLowerCase();
+      const accionFiltro = (searchAccion.value || '').toLowerCase();
+      const fechaFiltro = searchFecha.value;
+      historialFiltrado = historialCompleto.filter(registro => {
+        // Filtrar por usuario (nombre o apellido)
+        const nombreCompleto = `${registro.primer_nombre || ''} ${registro.primer_apellido || ''}`.toLowerCase();
+        const coincideUsuario = usuarioFiltro === '' || nombreCompleto.includes(usuarioFiltro);
+        // Filtrar por acción
+        const coincideAccion = accionFiltro === '' || (registro.accion || '').toLowerCase().includes(accionFiltro);
+        // Filtrar por fecha (solo fecha, no hora)
+        let coincideFecha = true;
+        if (fechaFiltro) {
+          const fechaRegistro = new Date(registro.fecha_hora).toISOString().slice(0, 10);
+          coincideFecha = fechaRegistro === fechaFiltro;
+        }
+        return coincideUsuario && coincideAccion && coincideFecha;
+      });
+      renderTablaPaginada();
+    }
+
+    function renderTablaPaginada() {
+      historialTableBody.innerHTML = '';
+      if (historialFiltrado.length === 0) {
+        historialTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No se encontraron registros de historial.</td></tr>`;
+        paginationControls.innerHTML = '';
+        return;
+      }
+      const totalPages = Math.ceil(historialFiltrado.length / itemsPerPage) || 1;
+      if (currentPage > totalPages) currentPage = 1;
+      const startIdx = (currentPage - 1) * itemsPerPage;
+      const endIdx = startIdx + itemsPerPage;
+      const pageData = historialFiltrado.slice(startIdx, endIdx);
+      pageData.forEach((registro) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${registro.id_historial}</td>
+          <td>${registro.primer_nombre || 'Usuario'} ${registro.primer_apellido || ''}</td>
+          <td>${registro.accion}</td>
+          <td>${registro.tabla_afectada || 'N/A'}</td>
+          <td>${formatearJson(registro.datos_nuevos)}</td>
+          <td>${new Date(registro.fecha_hora).toLocaleString()}</td>
+        `;
+        historialTableBody.appendChild(row);
+      });
+      setupPagination(totalPages, currentPage);
+    }
+
+    // Listeners para los campos de búsqueda
+    [searchUsuario, searchAccion, searchFecha].forEach(input => {
+      input.addEventListener('input', () => {
+        currentPage = 1;
+        filtrarYRenderizar();
+      });
+    });
+    // Listener para el botón limpiar
+    btnLimpiarFiltros.addEventListener('click', () => {
+      searchUsuario.value = '';
+      searchAccion.value = '';
+      searchFecha.value = '';
+      currentPage = 1;
+      filtrarYRenderizar();
+    });
+
     function setupPagination(totalPages, currentPage) {
       paginationControls.innerHTML = '';
       if (totalPages <= 1) return;
-
       const ul = document.createElement('ul');
       ul.className = 'pagination-list flex justify-center items-center gap-2';
-
       const crearLink = (text, page, disabled = false, active = false) => {
         const li = document.createElement('li');
         li.className = `page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}`;
@@ -149,24 +201,23 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         if (!disabled) {
           a.addEventListener('click', (e) => {
             e.preventDefault();
-            loadHistorial(page);
+            if (page >= 1 && page <= totalPages) {
+              currentPage = page;
+              renderTablaPaginada();
+            }
           });
         }
         li.appendChild(a);
         return li;
       };
-
       ul.appendChild(crearLink('Anterior', currentPage - 1, currentPage === 1));
-
       for (let i = 1; i <= totalPages; i++) {
         ul.appendChild(crearLink(i, i, false, i === currentPage));
       }
-
       ul.appendChild(crearLink('Siguiente', currentPage + 1, currentPage === totalPages));
-
       paginationControls.appendChild(ul);
     }
 
-    loadHistorial(1);
+    loadHistorialCompleto();
   });
 </script>

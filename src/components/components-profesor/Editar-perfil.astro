@@ -322,20 +322,76 @@ import "../../style/style-admin/perfil.css";
         }
     });
 
+    // Validación en tiempo real para evitar números en nombres y apellidos
+    function soloLetrasInputHandler(e) {
+      const valor = e.target.value;
+      // Permite solo letras, espacios y tildes
+      const soloLetras = valor.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
+      if (valor !== soloLetras) {
+        e.target.value = soloLetras;
+      }
+    }
+    document.getElementById('primerNombre').addEventListener('input', soloLetrasInputHandler);
+    document.getElementById('segundoNombre').addEventListener('input', soloLetrasInputHandler);
+    document.getElementById('primerApellido').addEventListener('input', soloLetrasInputHandler);
+    document.getElementById('segundoApellido').addEventListener('input', soloLetrasInputHandler);
 
     profileEditForm.addEventListener('submit', async (event) => {
       event.preventDefault();
 
-      const primerNombre = document.getElementById('primerNombre').value.trim();
-      const segundoNombre = document.getElementById('segundoNombre').value.trim();
-      const primerApellido = document.getElementById('primerApellido').value.trim();
-      const segundoApellido = document.getElementById('segundoApellido').value.trim();
-      const correoElectronico = document.getElementById('correoElectronico').value.trim();
-      const direccion = document.getElementById('direccion').value.trim();
-      
+      const primerNombreInput = document.getElementById('primerNombre');
+      const segundoNombreInput = document.getElementById('segundoNombre');
+      const primerApellidoInput = document.getElementById('primerApellido');
+      const segundoApellidoInput = document.getElementById('segundoApellido');
+      const correoElectronicoInput = document.getElementById('correoElectronico');
+      const direccionInput = document.getElementById('direccion');
+
+      const primerNombre = primerNombreInput.value.trim();
+      const segundoNombre = segundoNombreInput.value.trim();
+      const primerApellido = primerApellidoInput.value.trim();
+      const segundoApellido = segundoApellidoInput.value.trim();
+      const correoElectronico = correoElectronicoInput.value.trim();
+      const direccion = direccionInput.value.trim();
       const oldContrasena = oldContrasenaInput.value;
       const contrasena = contrasenaInput.value;
       const repetirContrasena = repetirContrasenaInput.value;
+
+      let valid = true;
+      // Validar que los campos de nombre y apellido no contengan números y no estén vacíos
+      const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+      function validarCampoTexto(input, nombreCampo) {
+        if (!input.value.trim()) {
+          mostrarError(input, `El campo ${nombreCampo} es obligatorio.`);
+          valid = false;
+        } else if (!soloLetrasRegex.test(input.value.trim())) {
+          mostrarError(input, `El campo ${nombreCampo} solo debe contener letras.`);
+          valid = false;
+        } else {
+          limpiarError(input);
+        }
+      }
+      validarCampoTexto(primerNombreInput, 'Primer Nombre');
+      validarCampoTexto(segundoNombreInput, 'Segundo Nombre');
+      validarCampoTexto(primerApellidoInput, 'Primer Apellido');
+      validarCampoTexto(segundoApellidoInput, 'Segundo Apellido');
+      // Validar que correo y dirección no estén vacíos
+      if (!correoElectronico) {
+        mostrarError(correoElectronicoInput, 'El campo Correo Electrónico es obligatorio.');
+        valid = false;
+      } else {
+        limpiarError(correoElectronicoInput);
+      }
+      if (!direccion) {
+        mostrarError(direccionInput, 'El campo Dirección es obligatorio.');
+        valid = false;
+      } else {
+        limpiarError(direccionInput);
+      }
+      // Validar contraseñas (ya está la lógica existente)
+      if (!valid) {
+        showAlert('Ningun campo puede estar vacio, por favor llena todos los campos.', 'danger');
+        return;
+      }
 
       const updatedData = {
         primer_nombre: primerNombre,
