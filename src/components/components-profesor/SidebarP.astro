@@ -255,7 +255,7 @@ const sidebarMenu: MenuItem[] = [
       
       materias.forEach((materia) => { // Removed type annotation for client-side JS
         const sublistItem = document.createElement('li');
-        const materiaHref = `/Profesor-Control/actividades-notas?materiaId=${materia.id_materia}`;
+        const materiaHref = `/Profesor-Control/actividades-notas?materiaId=${materia.id_materia}&periodoId=${materia.id_periodo}`;
         const isActiveSub = isActive(materiaHref);
         
         sublistItem.className = `sublist-item ${isActiveSub ? "active" : ""}`;

@@ -249,31 +249,6 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
     });
 
     // Función para cargar periodos académicos
-  /*  async function cargarPeriodos(prefix = '') {
-      const targetPeriodoSelect = prefix === 'edit' ? editPeriodoAcademico : null; 
-      if (!targetPeriodoSelect) return; 
-
-      targetPeriodoSelect.disabled = true;
-      targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Cargando periodos...</option>';
-      try {
-        const response = await fetch('http://localhost:3001/api/periodos');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const periodos = await response.json();
-        targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Seleccione un periodo</option>';
-        periodos.forEach(periodo => {
-          const option = document.createElement('option');
-          option.value = periodo.id_periodo;
-          option.textContent = periodo.periodo; 
-          targetPeriodoSelect.appendChild(option);
-        });
-        targetPeriodoSelect.disabled = false;
-      } catch (error) {
-        console.error('Error cargando periodos:', error);
-        targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Error al cargar periodos</option>';
-        mostrarErrorAlUsuario('Error al cargar periodos académicos. Intente recargar la página.');
-      }
-    }*/
-
     async function cargarPeriodos(prefix = '') {
     const targetSelect = prefix === 'edit' ? editPeriodoAcademico : null;
     if (!targetSelect) return;
@@ -648,9 +623,10 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
             if (!resp.ok) throw new Error('Error al obtener información académica cruzada');
             const data = await resp.json();
             if (Array.isArray(data.academico) && data.academico.length > 0) {
-              let tabla = `<div class=\"mt-3\"><strong>Detalle Académico:</strong><div class=\"table-responsive\"><table class=\"table table-bordered table-sm table-dark\"><thead><tr><th>Período</th><th>Curso</th><th>Materia</th><th>Sección</th><th>Estado</th></tr></thead><tbody>`;
+              // Ajuste aquí para el encabezado y las celdas
+              let tabla = `<div class=\"mt-3\"><strong>Detalle Académico:</strong><div class=\"table-responsive\"><table class=\"table table-bordered table-sm table-dark\"><thead><tr><th>Curso</th><th>Período-Materia</th><th>Materia</th><th>Sección</th><th>Estado</th></tr></thead><tbody>`;
               data.academico.forEach(row => {
-                tabla += `<tr><td>${row.nombre_periodo || 'N/A'}</td><td>${row.nombre_curso || 'N/A'}</td><td>${row.nombre_materia || 'N/A'}</td><td>${row.nombre_seccion || 'N/A'}</td><td class="${row.estado_materia === 'Aprobado' ? 'text-success' : 'text-danger'}"> ${row.estado_materia || 'N/A'}</td></tr>`;
+                tabla += `<tr><td>${row.nombre_curso || 'N/A'}</td><td>${row.nombre_periodo || 'N/A'}</td><td>${row.nombre_materia || 'N/A'}</td><td>${row.nombre_seccion || 'N/A'}</td><td class="${row.estado_materia === 'Aprobado' ? 'text-success' : 'text-danger'}"> ${row.estado_materia || 'N/A'}</td></tr>`;
               });
               tabla += '</tbody></table></div></div>';
               tablaAcademica.innerHTML = tabla;

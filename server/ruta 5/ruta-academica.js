@@ -962,123 +962,103 @@ router.put('/periodos-academicos/:id', registrarAccion('Actualización de period
 
 
 router.get('/cursos-academicos', (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 5;
-  const offset = (page - 1) * limit;
-  const rawSearchTerm = req.query.search;
-  const searchTerm = rawSearchTerm ? `%${rawSearchTerm}%` : null;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const offset = (page - 1) * limit;
+    const rawSearchTerm = req.query.search;
+    const searchTerm = rawSearchTerm ? `%${rawSearchTerm}%` : null;
 
-  let countSql = `
-    SELECT COUNT(DISTINCT c.id_curso) AS total
-    FROM cursos c
-    LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
-    LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
-    LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
-    LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
-    WHERE c.activo = 1
-  `;
+    let countSql = `
+        SELECT COUNT(DISTINCT c.id_curso) AS total
+        FROM cursos c
+        LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+        LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
+        LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
+        LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
+        WHERE c.activo = 1
+    `;
 
-  let cursosSql = `
-    SELECT
-        c.id_curso,
-        c.curso AS nombre_curso,
-        c.activo AS estado,
-        p.periodo AS nombre_periodo,
-        IFNULL(s.seccion, 'N/A') AS nombre_seccion,
-        (
-            SELECT COUNT(DISTINCT m.id_materia)
-            FROM materias m
-            WHERE m.id_curso = c.id_curso
-        ) AS total_materias_curso
-    FROM cursos c
-    LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
-    LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
-    LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
-    LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
-    WHERE c.activo = 1
-  `;
+    // Modificamos la consulta principal para obtener los conteos de estudiantes y profesores
+    // EXCLUSIVAMENTE de usuario_materias, para ser consistentes con la vista de detalle.
+    let cursosSql = `
+        SELECT
+            c.id_curso,
+            c.curso AS nombre_curso,
+            c.activo AS estado,
+            p.periodo AS nombre_periodo,
+            s.seccion AS nombre_seccion,
+            (
+                SELECT COUNT(DISTINCT m.id_materia)
+                FROM materias m
+                WHERE m.id_curso = c.id_curso
+            ) AS total_materias_curso,
+            (
+                SELECT COUNT(DISTINCT um.id_usuario)
+                FROM usuario_materias um
+                JOIN materias m ON um.id_materia = m.id_materia
+                JOIN usuarios u ON um.id_usuario = u.id_usuario
+                WHERE m.id_curso = c.id_curso AND u.rol = 'estudiante'
+            ) AS total_estudiantes_curso,
+            (
+                SELECT COUNT(DISTINCT um.id_usuario)
+                FROM usuario_materias um
+                JOIN materias m ON um.id_materia = m.id_materia
+                JOIN usuarios u ON um.id_usuario = u.id_usuario
+                WHERE m.id_curso = c.id_curso AND u.rol = 'profesor'
+            ) AS total_profesores_curso
+        FROM cursos c
+        LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+        LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
+        LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
+        LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
+        WHERE c.activo = 1
+    `;
 
-  let queryParams = []; // Parámetros para la consulta principal (cursosSql)
-  let countParams = []; // Parámetros para la consulta de conteo (countSql)
+    let queryParams = []; // Parámetros para la consulta principal (cursosSql)
+    let countParams = []; // Parámetros para la consulta de conteo (countSql)
 
-  if (searchTerm) {
-    countSql += ` AND c.curso LIKE ?`;
-    cursosSql += ` AND c.curso LIKE ?`;
-    queryParams.push(searchTerm);
-    countParams.push(searchTerm);
-  }
-
-  cursosSql += `
-    ORDER BY c.id_curso, p.fechaInicio DESC
-    LIMIT ?, ?;
-  `;
-  queryParams.push(offset, parseInt(limit)); // Agrega el límite y el offset a los parámetros de la consulta principal
-
-  db.query(countSql, countParams, (errCount, totalCursosResult) => {
-    if (errCount) {
-      console.error('Error al contar cursos:', errCount);
-      return res.status(500).json({ error: 'Error al contar cursos', detalle: errCount.message });
+    if (searchTerm) {
+        countSql += ` AND c.curso LIKE ?`;
+        cursosSql += ` AND c.curso LIKE ?`;
+        queryParams.push(searchTerm);
+        countParams.push(searchTerm);
     }
-    const totalCount = totalCursosResult[0].total;
-    const totalPages = Math.ceil(totalCount / limit);
 
-    db.query(cursosSql, queryParams, (errCursos, cursos) => {
-      if (errCursos) {
-        console.error('Error al obtener cursos:', errCursos);
-        return res.status(500).json({ error: 'Error al obtener cursos', detalle: errCursos.message });
-      }
+    cursosSql += `
+        ORDER BY c.id_curso, p.fechaInicio DESC
+        LIMIT ?, ?;
+    `;
+    queryParams.push(offset, parseInt(limit)); // Agrega el límite y el offset a los parámetros de la consulta principal
 
-      if (!cursos.length) {
-        return res.json({ cursos: [], totalCount, totalPages, currentPage: parseInt(page) });
-      }
+    db.query(countSql, countParams, (errCount, totalCursosResult) => {
+        if (errCount) {
+            console.error('Error al contar cursos:', errCount);
+            return res.status(500).json({ error: 'Error al contar cursos', detalle: errCount.message });
+        }
+        const totalCount = totalCursosResult[0].total;
+        const totalPages = Math.ceil(totalCount / limit);
 
-      let pendientes = cursos.length;
-      cursos.forEach((curso) => {
-        // 1. Usuarios asignados directamente al curso
-        db.query(`
-          SELECT u.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula, u.rol
-          FROM usuario_cursos uc
-          JOIN usuarios u ON uc.id_usuario = u.id_usuario
-          WHERE uc.id_curso = ?
-        `, [curso.id_curso], (err1, directUsers) => {
-          if (err1) directUsers = [];
-          // 2. Usuarios asignados a materias de este curso
-          db.query(`
-            SELECT u.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula, u.rol
-            FROM usuario_materias um
-            JOIN usuarios u ON um.id_usuario = u.id_usuario
-            JOIN materias m ON um.id_materia = m.id_materia
-            WHERE m.id_curso = ?
-          `, [curso.id_curso], (err2, materiaUsers) => {
-            if (err2) materiaUsers = [];
-            // Unificar y eliminar duplicados por id_usuario
-            const allUsers = [...(directUsers || []), ...(materiaUsers || [])];
-            const uniqueUsers = {};
-            allUsers.forEach(u => {
-              uniqueUsers[u.id_usuario] = u;
-            });
-            const estudiantes_info = Object.values(uniqueUsers).filter(u => u.rol === 'estudiante')
-              .map(u => ({
-                id_usuario: u.id_usuario,
-                nombre_completo: `${u.primer_nombre} ${u.primer_apellido} (${u.cedula})`
-              }));
-            const profesores_info = Object.values(uniqueUsers).filter(u => u.rol === 'profesor')
-              .map(u => ({
-                id_usuario: u.id_usuario,
-                nombre_completo: `${u.primer_nombre} ${u.primer_apellido} (${u.cedula})`
-              }));
-            curso.estudiantes_info = estudiantes_info;
-            curso.profesores_info = profesores_info;
-            pendientes--;
-            if (pendientes === 0) {
-              res.json({ cursos, totalCount, totalPages, currentPage: parseInt(page) });
+        db.query(cursosSql, queryParams, (errCursos, cursos) => {
+            if (errCursos) {
+                console.error('Error al obtener cursos:', errCursos);
+                return res.status(500).json({ error: 'Error al obtener cursos', detalle: errCursos.message });
             }
-          });
+
+            if (!cursos.length) {
+                return res.json({ cursos: [], totalCount, totalPages, currentPage: parseInt(page) });
+            }
+
+            // Ya no es necesario un bucle forEach y consultas anidadas para obtener estudiantes_info y profesores_info
+            // porque los conteos ya se hacen en la consulta SQL principal.
+            // Los campos estudiantes_info y profesores_info del objeto curso
+            // serán arrays vacíos en esta API de listado, lo cual es correcto
+            // porque no se necesitan para la tabla principal, solo para el modal de detalle.
+
+            res.json({ cursos, totalCount, totalPages, currentPage: parseInt(page) });
         });
-      });
     });
-  });
 });
+
 
 
 /**
@@ -1124,79 +1104,149 @@ router.get('/cursos-academicos/resumen', /*isAuthenticated,*/ async (req, res) =
 
 
 router.get('/cursos-academicos/:id', (req, res) => {
-  const { id } = req.params;
-  const cursoQuery = `
-    SELECT
-      c.id_curso,
-      c.curso AS nombre_curso,
-      c.activo AS estado,
-      c.id_periodo,
-      p.periodo AS nombre_periodo,
-      c.id_seccion,
-      s.seccion AS nombre_seccion
-    FROM cursos c
-    LEFT JOIN periodo p ON p.id_periodo = c.id_periodo
-    LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
-    LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
-    WHERE c.id_curso = ?;
-  `;
-  db.query(cursoQuery, [id], (err, cursoRows) => {
-    if (err || !cursoRows.length) {
-      return res.status(500).json({ error: 'Error al obtener curso o no encontrado.' });
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ error: 'ID de curso no proporcionado.' });
     }
-    const curso = cursoRows[0];
-    // 1. Estudiantes y profesores asignados directamente al curso
-    db.query(`
-      SELECT u.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula, u.rol
-      FROM usuario_cursos uc
-      JOIN usuarios u ON uc.id_usuario = u.id_usuario
-      WHERE uc.id_curso = ?
-    `, [id], (err1, directUsers) => {
-      if (err1) return res.status(500).json({ error: 'Error al obtener usuarios del curso.' });
-      // 2. Estudiantes y profesores asignados a materias de este curso
-      db.query(`
-        SELECT u.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula, u.rol
-        FROM usuario_materias um
-        JOIN usuarios u ON um.id_usuario = u.id_usuario
-        JOIN materias m ON um.id_materia = m.id_materia
-        WHERE m.id_curso = ?
-      `, [id], (err2, materiaUsers) => {
-        if (err2) return res.status(500).json({ error: 'Error al obtener usuarios de materias del curso.' });
-        // Unificar y eliminar duplicados por id_usuario
-        const allUsers = [...directUsers, ...materiaUsers];
-        const uniqueUsers = {};
-        allUsers.forEach(u => {
-          uniqueUsers[u.id_usuario] = u;
-        });
-        const estudiantes_info = Object.values(uniqueUsers).filter(u => u.rol === 'estudiante')
-          .map(u => ({
-            id_usuario: u.id_usuario,
-            nombre_completo: `${u.primer_nombre} ${u.primer_apellido} (${u.cedula})`
-          }));
-        const profesores_info = Object.values(uniqueUsers).filter(u => u.rol === 'profesor')
-          .map(u => ({
-            id_usuario: u.id_usuario,
-            nombre_completo: `${u.primer_nombre} ${u.primer_apellido} (${u.cedula})`
-          }));
-        // Materias del curso
+
+    // 1. Obtener los datos principales del curso
+    // Se ajusta la unión para usar 'cursos_periodo' para la relación con 'periodo'.
+    // Se ajusta la unión para usar 'cursos_seccion' para la relación con 'seccion'.
+    const cursoQuery = `
+        SELECT
+            c.id_curso,
+            c.curso AS nombre_curso,
+            c.activo AS estado,
+            p.id_periodo,
+            p.periodo AS nombre_periodo,
+            p.fechaInicio,
+            p.fechaFinal,
+            s.id_seccion,
+            s.seccion AS nombre_seccion
+        FROM cursos c
+        LEFT JOIN cursos_periodo cp ON c.id_curso = cp.id_curso
+        LEFT JOIN periodo p ON cp.id_periodo = p.id_periodo
+        LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
+        LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
+        WHERE c.id_curso = ? AND c.activo = 1;
+    `;
+
+    db.query(cursoQuery, [id], (err, cursoRows) => {
+        if (err) {
+            console.error('Error al obtener el curso principal:', err);
+            return res.status(500).json({ error: 'Error interno del servidor al obtener el curso.', detalle: err.message });
+        }
+
+        if (cursoRows.length === 0) {
+            return res.status(404).json({ error: 'Curso no encontrado o inactivo.' });
+        }
+
+        const curso = cursoRows[0];
+        // Ahora hay 2 subconsultas: materiaUsers y materias. (Se eliminó usuario_cursos)
+        let queriesCompletadas = 0;
+        const allUsersRaw = []; // Almacenará usuarios de usuario_materias
+        let materiasResult = [];
+
+        // Función para verificar si todas las subconsultas han terminado
+        const checkAndSendResponse = () => {
+            queriesCompletadas++;
+            if (queriesCompletadas === 2) { // Ahora hay 2 subconsultas
+                // Unificar y eliminar duplicados de usuarios
+                const uniqueUsersMap = new Map(); // Usamos Map para mantener el orden y la unicidad
+                
+                allUsersRaw.forEach(u => {
+                    // La clave de unicidad ahora es por usuario-materia-periodo, para reflejar la granularidad de la asignación a materia
+                    const key = `${u.id_usuario}-${u.id_materia}-${u.id_periodo}`; 
+                    if (!uniqueUsersMap.has(key)) {
+                        uniqueUsersMap.set(key, u);
+                    }
+                });
+
+                const estudiantes_info = Array.from(uniqueUsersMap.values())
+                    .filter(u => u.rol === 'estudiante')
+                    .map(u => ({
+                        id_usuario: u.id_usuario,
+                        nombre_usuario: `${u.primer_nombre} ${u.primer_apellido} (${u.cedula})`,
+                        rol: u.rol,
+                        nombre_materia: u.nombre_materia || 'N/A', 
+                        nombre_periodo: u.nombre_periodo || 'N/A'  
+                    }));
+
+                const profesores_info = Array.from(uniqueUsersMap.values())
+                    .filter(u => u.rol === 'profesor')
+                    .map(u => ({
+                        id_usuario: u.id_usuario,
+                        nombre_usuario: `${u.primer_nombre} ${u.primer_apellido} (${u.cedula})`,
+                        rol: u.rol,
+                        nombre_materia: u.nombre_materia || 'N/A', 
+                        nombre_periodo: u.nombre_periodo || 'N/A'  
+                    }));
+
+                // Asignar los datos al objeto curso y enviar la respuesta
+                curso.estudiantes_info = estudiantes_info;
+                curso.profesores_info = profesores_info;
+                curso.materias_info = materiasResult.map(m => ({
+                    id_materia: m.id_materia,
+                    nombre_materia: m.nombre_materia
+                }));
+
+                res.json(curso);
+            }
+        };
+
+        // La consulta a 'usuario_cursos' ha sido eliminada para que los datos provengan
+        // exclusivamente de 'usuario_materias' para el detalle de la asignación.
+        // El conteo de 'queriesCompletadas' ahora es de 2 (usuario_materias y materias).
+
+        // 2. Obtener usuarios asignados a materias de este curso
+        // Se unen las tablas para obtener el nombre de la materia y el periodo.
         db.query(`
-          SELECT id_materia, materia AS nombre_materia
-          FROM materias
-          WHERE id_curso = ?
-        `, [id], (err3, materiasResult) => {
-          if (err3) return res.status(500).json({ error: 'Error al obtener materias del curso.' });
-          curso.estudiantes_info = estudiantes_info;
-          curso.profesores_info = profesores_info;
-          curso.materias_info = materiasResult.map(m => ({
-            id_materia: m.id_materia,
-            nombre_materia: m.nombre_materia
-          }));
-          res.json(curso);
+            SELECT
+                u.id_usuario,
+                u.primer_nombre,
+                u.primer_apellido,
+                u.cedula,
+                u.rol,
+                m.id_materia,
+                m.materia AS nombre_materia,
+                p.id_periodo,
+                p.periodo AS nombre_periodo
+            FROM usuario_materias um
+            JOIN usuarios u ON um.id_usuario = u.id_usuario
+            JOIN materias m ON um.id_materia = m.id_materia
+            LEFT JOIN periodo p ON um.id_periodo = p.id_periodo 
+            WHERE m.id_curso = ?
+        `, [id], (errMateriaUsers, materiaUsers) => {
+            if (errMateriaUsers) {
+                console.error('Error al obtener usuarios de materias del curso:', errMateriaUsers);
+            } else {
+                // Solo añadimos los usuarios que vienen de usuario_materias
+                materiaUsers.forEach(u => allUsersRaw.push(u));
+            }
+            checkAndSendResponse(); // Llama al verificador al completar esta consulta
         });
-      });
+
+        // 3. Obtener materias del curso
+        db.query(`
+            SELECT id_materia, materia AS nombre_materia
+            FROM materias
+            WHERE id_curso = ?
+        `, [id], (errMaterias, materias) => {
+            if (errMaterias) {
+                console.error('Error al obtener materias del curso:', errMaterias);
+            } else {
+                materiasResult = materias;
+            }
+            checkAndSendResponse(); // Llama al verificador al completar esta consulta
+        });
     });
-  });
 });
+
+
+
+
+
 
 /**
  * @route POST /api/cursos-academicos
@@ -1276,29 +1326,119 @@ router.post('/cursos-academicos', registrarAccion('Creación de curso académico
  * @param {number} req.body.id_periodo - Nuevo ID del periodo.
  * @returns {json} Mensaje de éxito.
  */
-router.put('/cursos-academicos/:id', registrarAccion('Actualización de curso académico', 'cursos'), /*isAuthenticated,*/ async (req, res) => {
+router.put('/cursos-academicos/:id', registrarAccion('Actualización de curso académico', 'cursos'), (req, res) => {
     const { id } = req.params;
-    const { nombre_curso, id_periodo } = req.body;
+    const { nombre_curso, id_periodo, id_seccion } = req.body;
 
-    try {
-        if (!nombre_curso || !id_periodo) {
-            return res.status(400).json({ error: 'Nombre del curso y periodo son obligatorios para la actualización.' });
+    // Validar datos de entrada
+    if (!nombre_curso || !id_periodo || !id_seccion) {
+        return res.status(400).json({ error: 'Nombre del curso, período y sección son obligatorios para la actualización.' });
+    }
+
+    // Usaremos un contador para saber cuándo todas las actualizaciones han terminado.
+    // Aunque no es una transacción atómica, asegura que todas las consultas se intenten.
+    let updatesCompleted = 0;
+    const totalUpdates = 3; // Curso, Curso_Periodo, Curso_Seccion
+
+    const sendResponse = (message, status = 200) => {
+        if (status === 200) {
+            res.json({ message: message });
+        } else {
+            res.status(status).json({ error: message });
+        }
+    };
+
+    const handleError = (errorMsg, detailError) => {
+        console.error("❌ Error en la actualización de curso:", errorMsg, detailError);
+        // Solo enviar respuesta de error si no se ha enviado ya
+        if (!res.headersSent) {
+            res.status(500).json({ error: errorMsg, detalle: detailError.message || detailError });
+        }
+    };
+
+    // 1. Actualizar el nombre del curso en la tabla 'cursos'
+    const updateCursoQuery = `
+        UPDATE cursos
+        SET curso = ?
+        WHERE id_curso = ?;
+    `;
+    db.query(updateCursoQuery, [nombre_curso, id], (errUpdateCurso, resultUpdateCurso) => {
+        if (errUpdateCurso) {
+            return handleError("Error al actualizar el nombre del curso.", errUpdateCurso);
+        }
+        updatesCompleted++;
+        checkCompletion();
+    });
+
+    // 2. Actualizar la relación con el Período en 'cursos_periodo'
+    const updateCursoPeriodoQuery = `
+        UPDATE cursos_periodo
+        SET id_periodo = ?
+        WHERE id_curso = ?;
+    `;
+    db.query(updateCursoPeriodoQuery, [id_periodo, id], (errUpdatePeriodo, resultUpdatePeriodo) => {
+        if (errUpdatePeriodo) {
+            return handleError("Error al actualizar la relación de período del curso.", errUpdatePeriodo);
         }
 
-        const updateQuery = `
-            UPDATE cursos
-            SET curso = ?, id_periodo = ?
-            WHERE id_curso = ?;
-        `;
-        await db.promise().query(updateQuery, [nombre_curso, id_periodo, id]);
+        if (resultUpdatePeriodo.affectedRows === 0) {
+            // Si no se actualizó ninguna fila, significa que no existía la relación, entonces la insertamos
+            const insertCursoPeriodoQuery = `
+                INSERT INTO cursos_periodo (id_curso, id_periodo)
+                VALUES (?, ?);
+            `;
+            db.query(insertCursoPeriodoQuery, [id, id_periodo], (errInsertPeriodo, resultInsertPeriodo) => {
+                if (errInsertPeriodo) {
+                    return handleError("Error al insertar la relación de período del curso.", errInsertPeriodo);
+                }
+                updatesCompleted++;
+                checkCompletion();
+            });
+        } else {
+            updatesCompleted++;
+            checkCompletion();
+        }
+    });
 
-        res.json({ message: 'Curso actualizado exitosamente.' });
+    // 3. Actualizar la relación con la Sección en 'cursos_seccion'
+    const updateCursoSeccionQuery = `
+        UPDATE cursos_seccion
+        SET id_seccion = ?
+        WHERE id_curso = ?;
+    `;
+    db.query(updateCursoSeccionQuery, [id_seccion, id], (errUpdateSeccion, resultUpdateSeccion) => {
+        if (errUpdateSeccion) {
+            return handleError("Error al actualizar la relación de sección del curso.", errUpdateSeccion);
+        }
 
-    } catch (error) {
-        console.error("❌ Error al actualizar curso:", error);
-        res.status(500).json({ error: "Error al actualizar curso", detalle: error.message });
+        if (resultUpdateSeccion.affectedRows === 0) {
+            // Si no se actualizó ninguna fila, la relación no existía, entonces la insertamos
+            const insertCursoSeccionQuery = `
+                INSERT INTO cursos_seccion (id_curso, id_seccion)
+                VALUES (?, ?);
+            `;
+            db.query(insertCursoSeccionQuery, [id, id_seccion], (errInsertSeccion, resultInsertSeccion) => {
+                if (errInsertSeccion) {
+                    return handleError("Error al insertar la relación de sección del curso.", errInsertSeccion);
+                }
+                updatesCompleted++;
+                checkCompletion();
+            });
+        } else {
+            updatesCompleted++;
+            checkCompletion();
+        }
+    });
+
+    // Función para verificar si todas las actualizaciones han sido procesadas
+    function checkCompletion() {
+        if (updatesCompleted === totalUpdates && !res.headersSent) {
+            sendResponse('Curso actualizado exitosamente.');
+        }
     }
 });
+
+
 
 /**
  * @route PUT /api/cursos-academicos/:id/estado
@@ -1416,6 +1556,7 @@ router.get('/materias-academicas', (req, res) => {
   const searchTerm = req.query.search ? `%${req.query.search}%` : null;
 
   // Consulta para obtener las materias paginadas, agrupando por materia y periodo
+  // Se ha mejorado la unión con materias_periodo para obtener el id_periodo y el nombre
   let baseSql = `
     SELECT
       m.id_materia,
@@ -1428,9 +1569,9 @@ router.get('/materias-academicas', (req, res) => {
       GROUP_CONCAT(DISTINCT s.seccion ORDER BY s.seccion SEPARATOR ', ') AS nombre_seccion
     FROM materias m
     LEFT JOIN cursos c ON m.id_curso = c.id_curso
-    LEFT JOIN materias_periodo mp ON m.id_materia = mp.id_materia
+    JOIN materias_periodo mp ON m.id_materia = mp.id_materia -- Usar JOIN para asegurar que solo se muestren las materias que tienen un periodo asignado
     LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
-    LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia
+    LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia -- CORREGIDO: Eliminada la condición 'AND ms.id_periodo = mp.id_periodo'
     LEFT JOIN seccion s ON ms.id_seccion = s.id_seccion
     WHERE m.activo = 1
   `;
@@ -1439,7 +1580,7 @@ router.get('/materias-academicas', (req, res) => {
   let countSql = `
     SELECT COUNT(DISTINCT CONCAT(m.id_materia, '-', mp.id_periodo)) AS total
     FROM materias m
-    LEFT JOIN materias_periodo mp ON m.id_materia = mp.id_materia
+    JOIN materias_periodo mp ON m.id_materia = mp.id_materia
     WHERE m.activo = 1
   `;
 
@@ -1454,7 +1595,7 @@ router.get('/materias-academicas', (req, res) => {
   }
 
   baseSql += `
-    GROUP BY m.id_materia, mp.id_periodo
+    GROUP BY m.id_materia, mp.id_periodo, m.id_curso, c.curso, p.periodo, m.activo
     ORDER BY m.id_materia DESC, mp.id_periodo DESC
     LIMIT ? OFFSET ?;
   `;
@@ -1485,32 +1626,37 @@ router.get('/materias-academicas', (req, res) => {
       }
 
       results.forEach((materia) => {
-        // Estudiantes asignados a la materia (por id_materia)
+        // Estudiantes asignados a la materia Y AL PERIODO ESPECÍFICO
         db.query(
           `SELECT um.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula
            FROM usuario_materias um
            JOIN usuarios u ON um.id_usuario = u.id_usuario
-           WHERE um.id_materia = ? AND u.rol = 'estudiante'`,
-          [materia.id_materia],
+           WHERE um.id_materia = ? AND um.id_periodo = ? AND u.rol = 'estudiante'`,
+          [materia.id_materia, materia.id_periodo], // AHORA SE FILTRA TAMBIÉN POR id_periodo
           (errEst, estudiantesResult) => {
             materia.estudiantes_info = (errEst || !estudiantesResult) ? [] :
               estudiantesResult.map(e => ({
-                id_usuario: e.id_usuario,
-                nombre_completo: `${e.primer_nombre} ${e.primer_apellido} (${e.cedula})`
+                  id_usuario: e.id_usuario,
+                  nombre_completo: `${e.primer_nombre} ${e.primer_apellido} (${e.cedula})`,
+                  id_periodo: materia.id_periodo // Añadir el periodo para claridad en el frontend
               }));
-            // Profesores asignados a la materia (por id_materia)
+
+            // Profesores asignados a la materia Y AL PERIODO ESPECÍFICO
             db.query(
               `SELECT um.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula
                FROM usuario_materias um
                JOIN usuarios u ON um.id_usuario = u.id_usuario
-               WHERE um.id_materia = ? AND u.rol = 'profesor'`,
-              [materia.id_materia],
+               WHERE um.id_materia = ? AND um.id_periodo = ? AND u.rol = 'profesor'`,
+              [materia.id_materia, materia.id_periodo], // AHORA SE FILTRA TAMBIÉN POR id_periodo
               (errProf, profesoresResult) => {
                 materia.profesores_info = (errProf || !profesoresResult) ? [] :
                   profesoresResult.map(p => ({
-                    id_usuario: p.id_usuario,
-                    nombre_completo: `${p.primer_nombre} ${p.primer_apellido} (${p.cedula})`
+                      id_usuario: p.id_usuario,
+                      nombre_completo: `${p.primer_nombre} ${p.primer_apellido} (${p.cedula})`,
+                      id_periodo: materia.id_periodo // Añadir el periodo para claridad en el frontend
                   }));
+                
+                // Una vez que ambas consultas anidadas han terminado para esta materia
                 pendientes--;
                 if (pendientes === 0) {
                   res.json({ materias: results, total: totalCount, totalPages: totalPages, currentPage: page });
@@ -1524,58 +1670,84 @@ router.get('/materias-academicas', (req, res) => {
   });
 });
 
+
+
 // Obtener detalles de una materia por ID
 router.get('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
+    const { id_periodo } = req.query; // Get id_periodo from query parameters
+
+    console.log(`[API] GET /materias-academicas/:id - Materia ID: ${id}, Periodo ID: ${id_periodo}`);
+
+    if (!id_periodo) {
+        return res.status(400).json({ error: 'El ID del período es obligatorio para obtener los detalles de la materia.' });
+    }
+
     try {
+        // Query para obtener detalles de la materia, curso, periodo y sección para una materia y un periodo específicos
         const materiaQuery = `
             SELECT
                 m.id_materia,
                 m.materia AS nombre_materia,
                 m.activo AS estado,
                 m.id_curso,
-                c.curso AS curso,
-                p.id_periodo,
+                c.curso AS nombre_curso,
+                mp.id_periodo,
                 p.periodo AS nombre_periodo,
-                s.id_seccion,
-                s.seccion AS nombre_seccion
+                GROUP_CONCAT(DISTINCT s.seccion ORDER BY s.seccion SEPARATOR ', ') AS nombre_seccion
             FROM materias m
             JOIN cursos c ON m.id_curso = c.id_curso
-            LEFT JOIN periodo p ON p.id_periodo = p.id_periodo
-            LEFT JOIN seccion s ON s.id_seccion = s.id_seccion
-            WHERE m.id_materia = ?;
+            JOIN materias_periodo mp ON m.id_materia = mp.id_materia AND mp.id_periodo = ?
+            LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
+            LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia 
+            LEFT JOIN seccion s ON ms.id_seccion = s.id_seccion
+            WHERE m.id_materia = ?
+            GROUP BY m.id_materia, m.materia, m.activo, m.id_curso, c.curso, mp.id_periodo, p.periodo
+            LIMIT 1;
         `;
-        const [materiaRows] = await db.promise().query(materiaQuery, [id]);
+        const materiaRows = await queryPromise(materiaQuery, [id_periodo, id]);
 
         if (materiaRows.length === 0) {
-            return res.status(404).json({ error: 'Materia no encontrada.' });
+            console.warn(`[API] No se encontró materia con ID ${id} para el período ${id_periodo}.`);
+            return res.status(404).json({ error: 'Materia no encontrada para el período especificado.' });
         }
 
         const materia = materiaRows[0];
+        console.log('[API] Detalles de la materia encontrados:', materia);
 
-        // Obtener estudiantes asignados a esta materia
-        const [estudiantesResult] = await db.promise().query(`
+        // Obtener estudiantes asignados a esta materia Y PERIODO
+        const estudiantesResult = await queryPromise(`
             SELECT um.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula
             FROM usuario_materias um
             JOIN usuarios u ON um.id_usuario = u.id_usuario
-            WHERE um.id_materia = ? AND u.rol = 'estudiante';
-        `, [id]);
+            WHERE um.id_materia = ? AND um.id_periodo = ? AND u.rol = 'estudiante';
+        `, [id, id_periodo]);
+        
         materia.estudiantes_info = estudiantesResult.map(e => ({
             id_usuario: e.id_usuario,
-            nombre_completo: `${e.primer_nombre} ${e.primer_apellido} (${e.cedula})`
+            nombre_completo: `${e.primer_nombre} ${e.primer_apellido} (${e.cedula})`,
+            id_periodo: id_periodo // Añadir el periodo para claridad
         }));
+        console.log('[API] Estudiantes asignados (profesores_info antes de map):', estudiantesResult);
+        console.log('[API] Estudiantes asignados (estudiantes_info después de map):', materia.estudiantes_info);
 
-        // Obtener profesores asignados a esta materia
-        const [profesoresResult] = await db.promise().query(`
+
+        // Obtener profesores asignados a esta materia Y PERIODO
+        const profesoresResult = await queryPromise(`
             SELECT um.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula
             FROM usuario_materias um
             JOIN usuarios u ON um.id_usuario = u.id_usuario
-            WHERE um.id_materia = ? AND u.rol = 'profesor';
-        `, [id]);
+            WHERE um.id_materia = ? AND um.id_periodo = ? AND u.rol = 'profesor';
+        `, [id, id_periodo]);
+        
         materia.profesores_info = profesoresResult.map(p => ({
             id_usuario: p.id_usuario,
-            nombre_completo: `${p.primer_nombre} ${p.primer_apellido} (${p.cedula})`
+            nombre_completo: `${p.primer_nombre} ${p.primer_apellido} (${p.cedula})`,
+            id_periodo: id_periodo // Añadir el periodo para claridad
         }));
+        console.log('[API] Profesores asignados (profesores_info antes de map):', profesoresResult);
+        console.log('[API] Profesores asignados (profesores_info después de map):', materia.profesores_info);
+
 
         res.json(materia);
     } catch (error) {
@@ -1583,6 +1755,7 @@ router.get('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) => 
         res.status(500).json({ error: "Error al obtener detalles de la materia", detalle: error.message });
     }
 });
+
 
 // Crear una nueva materia
 router.post('/materias-academicas', registrarAccion('Creación de materia académica', 'materias'), /*isAuthenticated,*/ async (req, res) => {
@@ -1731,90 +1904,240 @@ router.delete('/materias-academicas/:id', registrarAccion('Eliminación de mater
     }
 });
 
-// Agregar estudiantes y profesor a una materia (sin eliminar los existentes) - versión conexión única
-router.post('/materias-academicas/:id/asignar', registrarAccion('Asignación de usuarios a materia', 'usuario_materias'), (req, res) => {
-  const { id: idMateria } = req.params;
-  const { estudiantes = [], profesores = [] } = req.body;
-  console.log('[API] POST /materias-academicas/:id/asignar - Recibido:', { idMateria, estudiantes, profesores });
+// Helper function to promisify MySQL queries
+const queryPromise = (sql, params) => {
+    return new Promise((resolve, reject) => {
+        db.query(sql, params, (err, rows) => {
+            if (err) return reject(err);
+            resolve(rows);
+        });
+    });
+};
 
-  if (!Array.isArray(estudiantes) || !Array.isArray(profesores)) {
-      return res.status(400).json({ error: 'Formato de datos incorrecto. Se esperan arrays para estudiantes y profesores.' });
-  }
+const beginTransactionPromise = () => {
+    return new Promise((resolve, reject) => {
+        db.beginTransaction(err => {
+            if (err) return reject(err);
+            resolve();
+        });
+    });
+};
 
-  db.beginTransaction((txErr) => {
-      if (txErr) {
-          console.error('[API] Error al iniciar transacción:', txErr);
-          return res.status(500).json({ error: 'Error al iniciar transacción.', detalle: txErr.message });
-      }
+const commitPromise = () => {
+    return new Promise((resolve, reject) => {
+        db.commit(err => {
+            if (err) return reject(err);
+            resolve();
+        });
+    });
+};
 
-      // Paso 1: Eliminar asignaciones existentes para esta materia
-      // Esto es crucial para que la asignación sea "establecer" y no "añadir"
-      const deleteSql = 'DELETE FROM usuario_materias WHERE id_materia = ?';
-      db.query(deleteSql, [idMateria], (deleteErr, deleteResult) => {
-          if (deleteErr) {
-              return db.rollback(() => {
-                  console.error('[API] Error al eliminar asignaciones existentes:', deleteErr);
-                  res.status(500).json({ error: 'Error al eliminar asignaciones existentes.', detalle: deleteErr.message });
-              });
-          }
-          console.log(`[API] Eliminadas asignaciones existentes para materia ${idMateria}. Filas afectadas: ${deleteResult.affectedRows}`);
+const rollbackPromise = () => {
+    return new Promise((resolve) => { // Rollback usually doesn't reject, just logs
+        db.rollback(() => {
+            // No action needed here, just resolve
+            resolve();
+        });
+    });
+};
 
-          // Paso 2: Insertar nuevos estudiantes
-          if (estudiantes.length > 0) {
-              const estudianteValues = estudiantes.map(id_usuario => [id_usuario, idMateria]);
-              const insertEstudiantesSql = 'INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?';
-              db.query(insertEstudiantesSql, [estudianteValues], (insertEstErr, insertEstResult) => {
-                  if (insertEstErr) {
-                      return db.rollback(() => {
-                          console.error('[API] Error al insertar estudiantes:', insertEstErr);
-                          res.status(500).json({ error: 'Error al insertar estudiantes.', detalle: insertEstErr.message });
-                      });
-                  }
-                  console.log(`[API] Asignados ${insertEstResult.affectedRows} estudiantes a materia ${idMateria}`);
-                  
-                  // Paso 3: Insertar nuevo profesor (si hay uno)
-                  // Asumimos que solo un profesor puede ser asignado por materia.
-                  handleProfessorAssignment(idMateria, profesores, res, txErr);
-              });
-          } else {
-              console.log(`[API] No hay estudiantes para asignar a materia ${idMateria}`);
-              // Si no hay estudiantes, proceder directamente a manejar el profesor
-              handleProfessorAssignment(idMateria, profesores, res, txErr);
-          }
-      });
-  });
+/**
+ * @route POST /api/materias-academicas/:id/asignar-estudiantes
+ * @description Asigna o reasigna estudiantes a una materia para un periodo específico.
+ * Ahora requiere el id_periodo en el cuerpo de la solicitud.
+ * Esta versión está adaptada para usar la biblioteca 'mysql2' con una conexión directa.
+ * @param {number} req.params.id - ID de la materia.
+ * @param {object} req.body - Objeto que contiene el array de id_estudiantes y el id_periodo.
+ * @param {Array<number>} req.body.estudiantes - Array de IDs de estudiantes a asignar.
+ * @param {number} req.body.id_periodo - ID del periodo al que se asocian las asignaciones (OBLIGATORIO).
+ * @returns {json} Mensaje de éxito.
+ */
+router.post('/materias-academicas/:id/asignar-estudiantes', registrarAccion('Asignación de estudiantes a materia por periodo', 'usuario_materias'), async (req, res) => {
+    const { id: idMateria } = req.params;
+    const { estudiantes = [], id_periodo } = req.body; // id_periodo ahora se espera en el body
 
-  function handleProfessorAssignment(idMateria, profesores, res, txErr) {
-      if (profesores.length > 0) {
-          const id_profesor = profesores[0]; // Solo tomamos el primer profesor si hay varios
-          const insertProfesorSql = 'INSERT INTO usuario_materias (id_usuario, id_materia) VALUES (?, ?)';
-          db.query(insertProfesorSql, [id_profesor, idMateria], (insertProfErr, insertProfResult) => {
-              if (insertProfErr) {
-                  return db.rollback(() => {
-                      console.error('[API] Error al insertar profesor:', insertProfErr);
-                      res.status(500).json({ error: 'Error al insertar profesor.', detalle: insertProfErr.message });
-                  });
-              }
-              console.log(`[API] Asignado profesor ${id_profesor} a materia ${idMateria}`);
-              finalizeTransaction(res, txErr);
-          });
-      } else {
-          console.log(`[API] No hay profesor para asignar a materia ${idMateria} (o se ha desasignado)`);
-          finalizeTransaction(res, txErr);
-      }
-  }
+    console.log('[API] POST /materias-academicas/:id/asignar-estudiantes - Raw Body recibido:', JSON.stringify(req.body));
+    console.log('[API] idMateria:', idMateria);
+    console.log('[API] id_periodo recibido:', id_periodo);
 
-  function finalizeTransaction(res, txErr) {
-      db.commit((commitErr) => {
-          if (commitErr) {
-              return db.rollback(() => {
-                  console.error('[API] Error al hacer commit:', commitErr);
-                  res.status(500).json({ error: 'Error al guardar asignaciones', detalle: commitErr.message });
-              });
-          }
-          res.json({ message: 'Asignaciones actualizadas exitosamente.' });
-      });
-  }
+
+    if (!id_periodo) {
+        console.error('[API] Error: id_periodo no proporcionado en el cuerpo de la solicitud.');
+        return res.status(400).json({ error: 'El ID del periodo es obligatorio para la asignación de estudiantes.' });
+    }
+
+    if (!Array.isArray(estudiantes)) {
+        console.error('[API] Error: "estudiantes" no es un array válido.', { estudiantes });
+        return res.status(400).json({ error: 'Formato de datos incorrecto. "estudiantes" debe ser un array.' });
+    }
+    
+    try {
+        await beginTransactionPromise(); // Start transaction
+
+        // Eliminar Paso 1: Ya no necesitamos consultar id_periodo de la base de datos, lo recibimos del frontend.
+        // const periodoResult = await queryPromise('SELECT id_periodo FROM materias_periodo WHERE id_materia = ? LIMIT 1', [idMateria]);
+        // if (periodoResult.length === 0) {
+        //     console.error('[API] Error: No se encontró un periodo asociado a la materia con ID:', idMateria);
+        //     throw new Error('No se encontró un periodo asociado a esta materia para la asignación de estudiantes.');
+        // }
+        // const id_periodo = periodoResult[0].id_periodo; // Esta línea se elimina
+        // console.log(`[API] id_periodo obtenido para materia ${idMateria}: ${id_periodo}`);
+
+        // Paso 2: Obtener los IDs de los usuarios que son estudiantes y están actualmente asignados a esta materia-periodo.
+        const currentStudentsResult = await queryPromise(
+            `SELECT um.id_usuario 
+             FROM usuario_materias um
+             JOIN usuarios u ON um.id_usuario = u.id_usuario
+             WHERE um.id_materia = ? AND um.id_periodo = ? AND u.rol = 'estudiante'`,
+            [idMateria, id_periodo]
+        );
+        const currentStudentIds = currentStudentsResult.map(row => row.id_usuario);
+
+        // Identificar estudiantes a eliminar (los que están pero no en la nueva lista)
+        const studentsToDelete = currentStudentIds.filter(id => !estudiantes.includes(id));
+        if (studentsToDelete.length > 0) {
+            await queryPromise(
+                `DELETE FROM usuario_materias 
+                 WHERE id_materia = ? AND id_periodo = ? AND id_usuario IN (?)`,
+                [idMateria, id_periodo, studentsToDelete]
+            );
+            console.log(`[API] Eliminados estudiantes de materia ${idMateria} y periodo ${id_periodo}: ${studentsToDelete.join(', ')}`);
+        }
+
+        // Identificar estudiantes a añadir (los que están en la nueva lista pero no en la actual)
+        const studentsToAdd = estudiantes.filter(id => !currentStudentIds.includes(id));
+        const assignmentsToInsert = [];
+        for (const id_usuario of studentsToAdd) {
+            if (typeof id_usuario !== 'number' && typeof id_usuario !== 'string' || isNaN(Number(id_usuario))) {
+                console.warn(`[API] Advertencia: ID de estudiante inválido encontrado y omitido: ${id_usuario}`);
+                continue;
+            }
+            assignmentsToInsert.push([Number(id_usuario), idMateria, id_periodo]);
+            console.log(`[API] Agregando estudiante ID: ${id_usuario}`);
+        }
+
+        if (assignmentsToInsert.length > 0) {
+            const insertSql = 'INSERT INTO usuario_materias (id_usuario, id_materia, id_periodo) VALUES ?';
+            await queryPromise(insertSql, [assignmentsToInsert]);
+            console.log(`[API] Insertados ${assignmentsToInsert.length} nuevos estudiantes para materia ${idMateria} y periodo ${id_periodo}.`);
+        } else {
+            console.log('[API] No hay nuevos estudiantes para asignar.');
+        }
+        
+        await commitPromise(); // Commit transaction
+        res.json({ message: 'Asignaciones de estudiantes actualizadas exitosamente.' });
+
+    } catch (error) {
+        console.error('❌ ERROR en /materias-academicas/:id/asignar-estudiantes (catch principal):', error);
+        await rollbackPromise(); // Rollback on error
+
+        if (error.code === 'ER_NO_REFERENCED_ROW_2' || error.code === 'ER_NO_REFERENCED_PARENT_2') {
+            res.status(409).json({ error: 'Error de integridad: Uno o más IDs de usuario o materia/periodo no existen.', detalle: error.message });
+        } else if (error.code === 'ER_DUP_ENTRY') {
+            res.status(409).json({ error: 'Error de duplicado: Alguna asignación ya existe.', detalle: error.message });
+        } else { // No se necesita el error de "No se encontró periodo asociado" aquí, ya que el frontend lo envía
+            res.status(500).json({ error: 'Error interno del servidor al asignar estudiantes a la materia', detalle: error.message });
+        }
+    }
 });
+
+/**
+ * @route POST /api/materias-academicas/:id/asignar-profesor
+ * @description Asigna o desasigna un profesor a una materia para un periodo específico.
+ * Ahora requiere el id_periodo en el cuerpo de la solicitud.
+ * Esta versión está adaptada para usar la biblioteca 'mysql2' con una conexión directa.
+ * @param {number} req.params.id - ID de la materia.
+ * @param {object} req.body - Objeto que contiene el array de id_profesores y el id_periodo.
+ * @param {Array<number>} req.body.profesores - Array de IDs de profesores a asignar (se espera solo uno).
+ * @param {number} req.body.id_periodo - ID del periodo al que se asocian las asignaciones (OBLIGATORIO).
+ * @returns {json} Mensaje de éxito.
+ */
+router.post('/materias-academicas/:id/asignar-profesor', registrarAccion('Asignación de profesor a materia por periodo', 'usuario_materias'), async (req, res) => {
+    const { id: idMateria } = req.params;
+    const { profesores = [], id_periodo } = req.body; // id_periodo ahora se espera en el body
+
+    console.log('[API] POST /materias-academicas/:id/asignar-profesor - Raw Body recibido:', JSON.stringify(req.body));
+    console.log('[API] idMateria:', idMateria);
+    console.log('[API] id_periodo recibido:', id_periodo);
+
+
+    if (!id_periodo) {
+        console.error('[API] Error: id_periodo no proporcionado en el cuerpo de la solicitud.');
+        return res.status(400).json({ error: 'El ID del periodo es obligatorio para la asignación de profesor.' });
+    }
+
+    if (!Array.isArray(profesores)) {
+        console.error('[API] Error: "profesores" no es un array válido.', { profesores });
+        return res.status(400).json({ error: 'Formato de datos incorrecto. "profesores" debe ser un array.' });
+    }
+
+    if (profesores.length > 1) {
+        console.warn('[API] Advertencia: Se recibieron múltiples profesores, solo se procesará el primero.');
+    }
+    
+    try {
+        await beginTransactionPromise(); // Start transaction
+
+        // Eliminar Paso 1: Ya no necesitamos consultar id_periodo de la base de datos, lo recibimos del frontend.
+        // const periodoResult = await queryPromise('SELECT id_periodo FROM materias_periodo WHERE id_materia = ? LIMIT 1', [idMateria]);
+        // if (periodoResult.length === 0) {
+        //     console.error('[API] Error: No se encontró un periodo asociado a la materia con ID:', idMateria);
+        //     throw new Error('No se encontró un periodo asociado a esta materia para la asignación de profesor.');
+        // }
+        // const id_periodo = periodoResult[0].id_periodo; // Esta línea se elimina
+        // console.log(`[API] id_periodo obtenido para materia ${idMateria}: ${id_periodo}`);
+
+        // Paso 2: Obtener el profesor actual para ese par materia-periodo.
+        const currentProfesorResult = await queryPromise(
+            `SELECT um.id_usuario 
+             FROM usuario_materias um
+             JOIN usuarios u ON um.id_usuario = u.id_usuario
+             WHERE um.id_materia = ? AND um.id_periodo = ? AND u.rol = 'profesor' LIMIT 1`,
+            [idMateria, id_periodo]
+        );
+        const currentProfesorId = currentProfesorResult.length > 0 ? currentProfesorResult[0].id_usuario : null;
+        const newProfesorId = profesores.length > 0 ? Number(profesores[0]) : null;
+
+        // Si hay un profesor actual y es diferente al nuevo, o si el nuevo es nulo (desasignar)
+        if (currentProfesorId !== null && (newProfesorId === null || currentProfesorId !== newProfesorId)) {
+            await queryPromise(
+                `DELETE FROM usuario_materias 
+                 WHERE id_materia = ? AND id_periodo = ? AND id_usuario = ?`,
+                [idMateria, id_periodo, currentProfesorId]
+            );
+            console.log(`[API] Eliminado profesor antiguo de materia ${idMateria} y periodo ${id_periodo}: ${currentProfesorId}.`);
+        }
+
+        // Si hay un nuevo profesor y es diferente al actual, o si no había actual
+        if (newProfesorId !== null && currentProfesorId !== newProfesorId) {
+            if (typeof newProfesorId !== 'number' && typeof newProfesorId !== 'string' || isNaN(Number(newProfesorId))) {
+                throw new Error(`ID de profesor inválido: ${newProfesorId}`);
+            }
+            await queryPromise(
+                'INSERT INTO usuario_materias (id_usuario, id_materia, id_periodo) VALUES (?, ?, ?)',
+                [Number(newProfesorId), idMateria, id_periodo]
+            );
+            console.log(`[API] Insertado nuevo profesor para materia ${idMateria} y periodo ${id_periodo}: ${newProfesorId}.`);
+        } else if (newProfesorId === currentProfesorId && newProfesorId !== null) {
+            console.log(`[API] El profesor ${newProfesorId} ya está asignado a la materia ${idMateria} para el periodo ${id_periodo}. No se realizaron cambios.`);
+        }
+
+        await commitPromise(); // Commit transaction
+        res.json({ message: 'Asignación de profesor actualizada exitosamente.' });
+
+    } catch (error) {
+        console.error('❌ ERROR en /materias-academicas/:id/asignar-profesor (catch principal):', error);
+        await rollbackPromise(); // Rollback on error
+
+        if (error.code === 'ER_NO_REFERENCED_ROW_2' || error.code === 'ER_NO_REFERENCED_PARENT_2') {
+            res.status(409).json({ error: 'Error de integridad: El ID de usuario o materia/periodo no existe.', detalle: error.message });
+        } else if (error.code === 'ER_DUP_ENTRY') {
+            res.status(409).json({ error: 'Error de duplicado: El profesor ya está asignado a esta materia en este periodo.', detalle: error.message });
+        } else { // No se necesita el error de "No se encontró periodo asociado" aquí, ya que el frontend lo envía
+            res.status(500).json({ error: 'Error interno del servidor al asignar profesor a la materia', detalle: error.message });
+        }
+    }
+});
+
 
 export default router;

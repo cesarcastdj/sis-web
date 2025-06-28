@@ -381,6 +381,7 @@ import "../../style/style-admin/materias.css";
   });
 
   let materiaIdAsignar = null;
+  let idPeriodoAsignar = null; // NUEVO: Para almacenar el id_periodo para la asignación
   let estudiantesAsignadosPrevios = [];
   let profesorAsignadoPrevio = null;
   let nombreProfesorPrevio = '';
@@ -388,15 +389,27 @@ import "../../style/style-admin/materias.css";
   async function handleAsignarUsuarios(event) {
     event.preventDefault();
     materiaIdAsignar = event.currentTarget.dataset.id;
+    idPeriodoAsignar = event.currentTarget.dataset.periodoId; // OBTENER EL ID_PERIODO DEL BOTÓN
+
+    if (!idPeriodoAsignar) {
+        mostrarAlerta('No se pudo obtener el ID del período para la asignación.', 'danger');
+        return;
+    }
+
     // Obtener los datos actuales de la materia (estudiantes y profesor asignados)
     try {
-      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaIdAsignar}`);
+      // Modificar la llamada para incluir id_periodo y obtener solo las asignaciones de ese periodo
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaIdAsignar}?id_periodo=${idPeriodoAsignar}`);
       if (!response.ok) throw new Error('No se pudo obtener la información de la materia.');
       const materia = await response.json();
+
+      // Filtrar estudiantes y profesores por el id_periodo si la API devuelve todas las asignaciones
+      // (asumo que la API ahora ya filtra por periodo en la ruta GET /materias-academicas/:id)
       estudiantesAsignadosPrevios = materia.estudiantes_info.map(e => String(e.id_usuario));
       // Solo permitimos un profesor (el primero si hay varios)
       profesorAsignadoPrevio = materia.profesores_info.length > 0 ? String(materia.profesores_info[0].id_usuario) : null;
       nombreProfesorPrevio = materia.profesores_info.length > 0 ? materia.profesores_info[0].nombre_completo : '';
+      
       // Cargar estudiantes y profesores activos
       const estudiantes = await fetchEstudiantesActivos();
       const profesores = await fetchProfesoresActivos();
@@ -448,8 +461,8 @@ import "../../style/style-admin/materias.css";
     try {
       event.preventDefault();
       console.log('[DEBUG] Se ejecuta guardarAsignacionUsuarios');
-      if (!materiaIdAsignar) {
-        mostrarAlerta('No se pudo identificar la materia.', 'danger');
+      if (!materiaIdAsignar || !idPeriodoAsignar) { // Verificar también idPeriodoAsignar
+        mostrarAlerta('No se pudo identificar la materia o el período.', 'danger');
         return;
       }
 
@@ -465,8 +478,9 @@ import "../../style/style-admin/materias.css";
         return;
       }
 
-      // Obtener nombre_materia e id_curso de la fila de la tabla
-      const fila = document.querySelector(`tr[data-id="${materiaIdAsignar}"]`);
+      // Obtener nombre_materia e id_curso de la fila de la tabla (no es estrictamente necesario para la API de asignación,
+      // pero se mantiene si se usa para registro de acciones u otra lógica frontend)
+      const fila = document.querySelector(`tr[data-id="${materiaIdAsignar}"][data-periodo-id="${idPeriodoAsignar}"]`); // Buscar la fila con id_periodo
       let nombre_materia = '';
       let id_curso = '';
       if (fila) {
@@ -475,8 +489,10 @@ import "../../style/style-admin/materias.css";
       }
 
       if (!nombre_materia || !id_curso) {
-        mostrarAlerta('No se pudo obtener la información de la materia. Intenta recargar la página.', 'danger');
-        return;
+        // Esto puede ocurrir si la fila no se encuentra porque la tabla se ha recargado.
+        // Podríamos hacer una llamada extra a la API para obtener los detalles de la materia
+        // si es crucial para esta función, pero para la asignación real no lo es.
+        console.warn('No se pudo obtener la información completa de la materia desde la tabla. Continuando con asignación.');
       }
 
       // Confirmar si se va a cambiar el profesor asignado
@@ -496,8 +512,7 @@ import "../../style/style-admin/materias.css";
       console.log('[DEBUG] Datos a enviar:', {
         estudiantes: estudiantesSeleccionados,
         profesores: profesoresSeleccionados,
-        nombre_materia,
-        id_curso
+        id_periodo: idPeriodoAsignar // ENVIAR id_periodo a la API
       });
 
       // Usar POST para agregar asignaciones
@@ -506,7 +521,8 @@ import "../../style/style-admin/materias.css";
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           estudiantes: estudiantesSeleccionados.map(Number),
-          profesores: profesoresSeleccionados.map(Number)
+          profesores: profesoresSeleccionados.map(Number),
+          id_periodo: Number(idPeriodoAsignar) // Asegurar que sea número
         })
       });
 
@@ -587,19 +603,27 @@ import "../../style/style-admin/materias.css";
         // Inicializar arrays si no existen
         if (!Array.isArray(materia.estudiantes_info)) materia.estudiantes_info = [];
         if (!Array.isArray(materia.profesores_info)) materia.profesores_info = [];
-        const nombreProfesor = Array.isArray(materia.profesores_info) && materia.profesores_info.length > 0
-          ? (materia.profesores_info.length === 1
-              ? materia.profesores_info[0].nombre_completo
-              : `${materia.profesores_info[0].nombre_completo} y ${materia.profesores_info.length - 1} más...`)
+        
+        // **MODIFICADO**: Filtrar profesores por el id_periodo específico de esta fila
+        const profesoresParaEstaFila = materia.profesores_info.filter(p => p.id_periodo === materia.id_periodo);
+        const nombreProfesor = profesoresParaEstaFila.length > 0
+          ? (profesoresParaEstaFila.length === 1
+              ? profesoresParaEstaFila[0].nombre_completo
+              : `${profesoresParaEstaFila[0].nombre_completo} y ${profesoresParaEstaFila.length - 1} más...`)
           : 'Sin asignar';
-        const estudiantesInscritos = Array.isArray(materia.estudiantes_info) && materia.estudiantes_info.length > 0
-          ? materia.estudiantes_info.length
+
+        // **MODIFICADO**: Filtrar estudiantes por el id_periodo específico de esta fila
+        const estudiantesParaEstaFila = materia.estudiantes_info.filter(e => e.id_periodo === materia.id_periodo);
+        const estudiantesInscritos = estudiantesParaEstaFila.length > 0
+          ? estudiantesParaEstaFila.length
           : (typeof materia.total_estudiantes_materia === 'number' && materia.total_estudiantes_materia > 0
               ? materia.total_estudiantes_materia
               : 'Sin estudiantes');
+              
         const row = tableBody.insertRow();
         row.dataset.id = materia.id_materia;
         row.dataset.cursoId = materia.id_curso;
+        row.dataset.periodoId = materia.id_periodo; // AGREGAR id_periodo al dataset de la fila
         row.innerHTML = `
           <td>${((page - 1) * itemsPerPage) + index + 1}</td>
           <td>${materia.nombre_materia}</td>
@@ -612,7 +636,7 @@ import "../../style/style-admin/materias.css";
             <span>${materia.estado === 1 ? 'Activo' : (materia.estado === 0 ? 'Inactivo' : 'Desconocido')}</span>
           </td>
           <td>
-            <a href="/Admin-Control/actividades-notas?materiaId=${materia.id_materia}" class="btn btn-primary btn-sm">
+            <a href="/Admin-Control/actividades-notas?materiaId=${materia.id_materia}&periodoId=${materia.id_periodo}" class="btn btn-primary btn-sm">
               <i class='bx bx-list-check me-1'></i> Ver Actividades/Notas
             </a>
             ${materia.estado === 1 ? `
@@ -623,7 +647,6 @@ import "../../style/style-admin/materias.css";
           </td>
         `;
       });
-
       // Actualizar paginación con el total de resultados de la búsqueda
       updatePagination(data.total, page);
       
@@ -769,6 +792,7 @@ import "../../style/style-admin/materias.css";
     });
 
     // Event listeners para el nuevo botón de asignar usuarios
+    // Asegurarse de que el dataset.periodoId se pasa a handleAsignarUsuarios
     document.querySelectorAll('.asignar-usuarios-btn, .editar-usuarios-btn').forEach(button => {
       button.removeEventListener('click', handleAsignarUsuarios); // Evitar duplicados
       button.addEventListener('click', handleAsignarUsuarios);

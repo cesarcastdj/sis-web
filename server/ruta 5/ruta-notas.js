@@ -34,7 +34,7 @@ router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) =
       const totalCount = totalNotasResult[0].total;
       const totalPages = Math.ceil(totalCount / limit);
 
-      // FIX: Consulta principal mejorada para obtener los detalles de manera más precisa
+      // Consulta principal mejorada para obtener los detalles de manera más precisa
       const notasQuery = `
           SELECT
               n.id_nota,
@@ -46,7 +46,8 @@ router.get('/notas/usuario/:id_usuario', /*isAuthenticated,*/ async (req, res) =
               c.curso AS nombre_curso,
               p.periodo AS nombre_periodo,
               a.nombre_actividad,
-              a.descripcion AS descripcion_actividad
+              a.descripcion AS descripcion_actividad,
+              a.id_periodo AS id_periodo_actividad
           FROM notas n
           JOIN usuarios u ON n.id_estudiante = u.id_usuario
           JOIN actividades a ON n.id_actividad = a.id_actividad
@@ -111,7 +112,8 @@ router.get('/notas/materia/:id_materia/usuario/:id_usuario', /*isAuthenticated,*
               c.curso AS nombre_curso,
               p.periodo AS nombre_periodo,
               a.nombre_actividad,
-              a.descripcion AS descripcion_actividad
+              a.descripcion AS descripcion_actividad,
+              a.id_periodo AS id_periodo_actividad
           FROM notas n
           JOIN usuarios u ON n.id_estudiante = u.id_usuario
           JOIN actividades a ON n.id_actividad = a.id_actividad
@@ -167,6 +169,7 @@ router.get('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
               a.id_actividad,
               a.nombre_actividad,
               a.descripcion AS descripcion_actividad,
+              a.id_periodo AS id_periodo_actividad, -- Incluir id_periodo de actividades
               m.id_materia,
               m.materia AS nombre_materia,
               c.id_curso,
@@ -180,7 +183,7 @@ router.get('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
           JOIN actividades AS a ON n.id_actividad = a.id_actividad
           JOIN materias AS m ON a.id_materia = m.id_materia
           LEFT JOIN cursos AS c ON m.id_curso = c.id_curso
-          LEFT JOIN cursos_materias AS cm ON n.id_nota = cm.id_nota
+          LEFT JOIN cursos_materias AS cm ON n.id_estudiante = cm.id_estudiante AND m.id_materia = cm.id_materia -- Unir con cursos_materias para obtener el periodo
           LEFT JOIN periodo AS p ON cm.id_periodo = p.id_periodo
           LEFT JOIN matricula AS mat ON u.id_usuario = mat.id_estudiante AND cm.id_periodo = mat.id_periodo
           LEFT JOIN seccion AS sec ON mat.id_seccion = sec.id_seccion
@@ -213,6 +216,7 @@ router.get('/notas/:id_nota', /*isAuthenticated,*/ async (req, res) => {
  * @param {number} req.body.nota - Valor de la nota.
  * @param {string} req.body.fecha_registro - Fecha de registro (YYYY-MM-DD).
  * @param {string} [req.body.comentarios] - Comentarios (opcional).
+ * @param {number} req.body.id_periodo - ID del periodo asociado a la actividad (NUEVO).
  * @returns {json} Mensaje de éxito e ID de la nueva nota.
  */
 router.post('/notas', isAuthenticated, registrarAccion('Registro de Nota Individual', 'notas'),(req, res) => {
@@ -220,7 +224,7 @@ router.post('/notas', isAuthenticated, registrarAccion('Registro de Nota Individ
         console.log('********* LLEGÓ PETICIÓN A /notas (individual) *********');
         console.log('BODY RECIBIDO:', JSON.stringify(req.body));
         
-        const { id_estudiante, id_actividad, nota, fecha_registro, comentarios = null } = req.body;
+        const { id_estudiante, id_actividad, nota, fecha_registro, comentarios = null, id_periodo } = req.body; // id_periodo añadido
 
         // Obtener el ID del usuario remitente de la sesión (profesor/admin que registra la nota)
         const id_usuario_remitente = req.session.usuario?.id;
@@ -234,6 +238,11 @@ router.post('/notas', isAuthenticated, registrarAccion('Registro de Nota Individ
         if (!id_estudiante || !id_actividad || nota === null || nota === undefined || nota === '') {
             console.log('❌ Campos obligatorios de nota faltantes.');
             return res.status(400).json({ error: 'ID de estudiante, actividad y nota son obligatorios.' });
+        }
+        
+        if (!id_periodo) { // Validación para el nuevo campo
+            console.log('❌ id_periodo es obligatorio.');
+            return res.status(400).json({ error: 'El ID del periodo es obligatorio para registrar la nota.' });
         }
 
         const notaValor = parseFloat(nota);
@@ -300,6 +309,7 @@ router.post('/notas', isAuthenticated, registrarAccion('Registro de Nota Individ
                                 });
                         } else {
                             // Insertar nueva nota
+                            // Se asume que id_periodo se almacena en la tabla actividades y se relaciona a través de id_actividad
                             executeQuery(conn, 'INSERT INTO notas (id_actividad, id_estudiante, nota, fecha_registro) VALUES (?, ?, ?, ?)',
                                 [id_actividad, id_estudiante, notaValor, fechaFinal],
                                 (err) => {
@@ -511,14 +521,15 @@ router.get('/actividades/materia/:id_materia', /*isAuthenticated,*/ async (req, 
     try {
         const actividadesQuery = `
             SELECT
-                id_actividad,
-                nombre_actividad,
-                descripcion,
-                fecha_creacion,
-                id_materia
-            FROM actividades
-            WHERE id_materia = ?
-            ORDER BY fecha_creacion DESC;
+                a.id_actividad,
+                a.nombre_actividad,
+                a.descripcion,
+                a.fecha_creacion,
+                a.id_materia,
+                a.id_periodo -- Incluido id_periodo
+            FROM actividades a
+            WHERE a.id_materia = ?
+            ORDER BY a.fecha_creacion DESC;
         `;
         const [actividades] = await db.promise().query(actividadesQuery, [id_materia]);
 
@@ -547,7 +558,8 @@ router.get('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) =
                 nombre_actividad,
                 descripcion,
                 fecha_creacion,
-                id_materia
+                id_materia,
+                id_periodo -- Incluido id_periodo
             FROM actividades
             WHERE id_actividad = ?;
         `;
@@ -572,28 +584,32 @@ router.get('/actividades/:id_actividad', /*isAuthenticated,*/ async (req, res) =
  * @param {string} [req.body.descripcion] - Descripción de la actividad (opcional).
  * @param {string} req.body.fecha_creacion - Fecha de creación (YYYY-MM-DD).
  * @param {number} req.body.id_materia - ID de la materia a la que pertenece la actividad.
+ * @param {number} req.body.ponderacion - Ponderación de la actividad.
+ * @param {number} req.body.id_periodo - ID del periodo asociado a la actividad (NUEVO).
  * @returns {json} Mensaje de éxito e ID de la nueva actividad.
  */
 router.post('/actividades', registrarAccion('Creacion actividad', 'actividades'), /*isAuthenticated,*/ async (req, res) => {
-    const { nombre_actividad, descripcion = null, fecha_creacion, id_materia, ponderacion } = req.body;
+    const { nombre_actividad, descripcion = null, fecha_creacion, id_materia, ponderacion, id_periodo } = req.body;
 
     try {
-        if (!nombre_actividad || !fecha_creacion || !id_materia) {
-            return res.status(400).json({ error: 'Nombre de actividad, fecha de creación y ID de materia son obligatorios.' });
+        // Validar que id_periodo esté presente
+        if (!nombre_actividad || !fecha_creacion || !id_materia || id_periodo === undefined || id_periodo === null) {
+            console.error('Validation Error: Missing required fields for activity creation (nombre_actividad, fecha_creacion, id_materia, id_periodo).', req.body);
+            return res.status(400).json({ error: 'Nombre de actividad, fecha de creación, ID de materia y ID de periodo son obligatorios.' });
         }
 
         const formattedFechaCreacion = new Date(fecha_creacion).toISOString().slice(0, 10);
 
         const insertActividadQuery = `
-            INSERT INTO actividades (nombre_actividad, descripcion, fecha_creacion, id_materia, ponderacion)
-            VALUES (?, ?, ?, ?, ?);
+            INSERT INTO actividades (nombre_actividad, descripcion, fecha_creacion, id_materia, ponderacion, id_periodo)
+            VALUES (?, ?, ?, ?, ?, ?);
         `;
         const [result] = await db.promise().query(
             insertActividadQuery,
-            [nombre_actividad, descripcion, formattedFechaCreacion, id_materia, ponderacion]
+            [nombre_actividad, descripcion, formattedFechaCreacion, id_materia, ponderacion, id_periodo]
         );
         const nuevaActividadId = result.insertId;
-        req.params.id = nuevaActividadId;
+        req.params.id = nuevaActividadId; // Para el middleware de historial
 
         res.status(201).json({ message: 'Actividad creada exitosamente.', id: nuevaActividadId });
 
@@ -606,27 +622,51 @@ router.post('/actividades', registrarAccion('Creacion actividad', 'actividades')
 /**
  * @route PUT /api/actividades/:id_actividad
  * @description Actualiza una actividad existente.
+ * Ahora permite actualizar el id_periodo si es necesario, y lo espera en el cuerpo de la solicitud.
  * @param {number} req.params.id_actividad - ID de la actividad a actualizar.
- * @param {object} req.body - Objeto con los campos a actualizar (nombre_actividad, descripcion, fecha_creacion, id_materia).
+ * @param {object} req.body - Objeto con los campos a actualizar (nombre_actividad, descripcion, fecha_creacion, id_materia, ponderacion, id_periodo).
  * @returns {json} Mensaje de éxito.
  */
 router.put('/actividades/:id_actividad', registrarAccion('Actualizacion actividad', 'actividades'), /*isAuthenticated,*/ async (req, res) => {
     const { id_actividad } = req.params;
-    const { nombre_actividad, descripcion = null, fecha_creacion, id_materia, ponderacion } = req.body;
+    const { nombre_actividad, descripcion, fecha_creacion, id_materia, ponderacion, id_periodo } = req.body; // id_periodo añadido
 
     try {
         let updateFields = {};
-        if (nombre_actividad !== undefined) updateFields.nombre_actividad = nombre_actividad;
-        if (descripcion !== undefined) updateFields.descripcion = descripcion;
-        if (fecha_creacion !== undefined) updateFields.fecha_creacion = new Date(fecha_creacion).toISOString().slice(0, 10);
-        if (id_materia !== undefined) updateFields.id_materia = id_materia;
-        if (ponderacion !== undefined) updateFields.ponderacion = ponderacion;
+        let queryParams = [];
+
+        if (nombre_actividad !== undefined) {
+            updateFields.nombre_actividad = nombre_actividad;
+        }
+        if (descripcion !== undefined) {
+            updateFields.descripcion = descripcion;
+        }
+        if (fecha_creacion !== undefined) {
+            updateFields.fecha_creacion = new Date(fecha_creacion).toISOString().slice(0, 10);
+        }
+        if (id_materia !== undefined) {
+            updateFields.id_materia = id_materia;
+        }
+        if (ponderacion !== undefined) {
+            updateFields.ponderacion = ponderacion;
+        }
+        // Incluir id_periodo en los campos a actualizar si viene en el body
+        if (id_periodo !== undefined) {
+            updateFields.id_periodo = id_periodo;
+        }
+
         if (Object.keys(updateFields).length === 0) {
             return res.status(400).json({ error: "No hay campos para actualizar." });
         }
 
-        const updateQuery = 'UPDATE actividades SET ? WHERE id_actividad = ?';
-        await db.promise().query(updateQuery, [updateFields, id_actividad]);
+        // Construir la parte SET dinámicamente
+        const setClauses = Object.keys(updateFields).map(key => `${key} = ?`).join(', ');
+        queryParams = Object.values(updateFields);
+
+        queryParams.push(id_actividad); // El último parámetro es el ID para el WHERE
+
+        const updateQuery = `UPDATE actividades SET ${setClauses} WHERE id_actividad = ?`;
+        await db.promise().query(updateQuery, queryParams);
 
         res.json({ message: 'Actividad actualizada exitosamente.' });
 
@@ -756,7 +796,7 @@ router.get('/estudiante/notas', /*isAuthenticated,*/ async (req, res) => { // FI
             JOIN cursos_materias cm ON m.id_materia = cm.id_materia
             JOIN periodo p ON cm.id_periodo = p.id_periodo
             LEFT JOIN notas n ON (cm.id_estudiante = n.id_estudiante AND cm.id_materia = m.id_materia)
-            LEFT JOIN actividades a ON n.id_actividad = a.id_actividad
+            LEFT JOIN actividades a ON n.id_actividad = a.id_actividad AND a.id_periodo = p.id_periodo -- Asegurar que la actividad sea del mismo periodo
             WHERE cm.id_estudiante = ?
             ORDER BY p.periodo DESC, m.materia ASC, n.fecha_registro DESC;
         `;
@@ -852,15 +892,21 @@ router.get('/materias', async (req, res) => {
 // Obtener estudiantes de una materia
 router.get('/materias/:id_materia/estudiantes', async (req, res) => {
   const { id_materia } = req.params;
+  const { id_periodo } = req.query; // Esperar id_periodo como query param
+
+  if (!id_periodo) {
+      return res.status(400).json({ error: 'Debes especificar el ID del periodo.' });
+  }
+
   try {
     const query = `
       SELECT u.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula
       FROM usuarios u
       JOIN usuario_materias um ON u.id_usuario = um.id_usuario
-      WHERE um.id_materia = ? AND u.rol = 'estudiante'
+      WHERE um.id_materia = ? AND um.id_periodo = ? AND u.rol = 'estudiante' -- Filtrar por id_periodo
       ORDER BY u.primer_apellido, u.primer_nombre;
     `;
-    const [estudiantes] = await db.promise().query(query, [id_materia]);
+    const [estudiantes] = await db.promise().query(query, [id_materia, id_periodo]);
     res.json(estudiantes);
   } catch (error) {
     console.error('Error al obtener estudiantes de la materia:', error);
@@ -890,12 +936,11 @@ router.post('/notas/actividad/:id_actividad', registrarAccion('Registro de notas
     console.log('********* LLEGÓ PETICIÓN A /notas/actividad/:id_actividad *********');
     console.log('BODY RECIBIDO:', JSON.stringify(req.body));
     const { id_actividad } = req.params;
-    let { notas } = req.body;
+    let { notas, id_periodo } = req.body; // id_periodo añadido aquí
 
     // Get the sender's user ID from the session (Ahora obtenemos directamente de req.session.usuario)
     const id_usuario_remitente = req.session.usuario?.id;
     console.log('DEBUG: ID del usuario remitente desde la sesión:', id_usuario_remitente);
-
 
     if (!id_usuario_remitente) {
       console.error("Error: ID del usuario remitente no encontrado en la sesión o inválido. No se pueden guardar comentarios.");
@@ -906,6 +951,12 @@ router.post('/notas/actividad/:id_actividad', registrarAccion('Registro de notas
       console.log('❌ Array de notas vacío o no enviado');
       return res.status(400).json({ error: 'Debes enviar un array de notas.' });
     }
+    
+    if (!id_periodo) { // Validación para el nuevo campo
+        console.log('❌ id_periodo es obligatorio para el registro de notas por actividad.');
+        return res.status(400).json({ error: 'El ID del periodo es obligatorio para registrar las notas por actividad.' });
+    }
+
     notas = notas.filter(n => n.id_estudiante && n.nota !== null && n.nota !== undefined && n.nota !== '' && !isNaN(Number(n.nota)));
     if (notas.length === 0) {
       console.log('❌ No hay notas válidas para guardar');
@@ -975,7 +1026,7 @@ router.post('/notas/actividad/:id_actividad', registrarAccion('Registro de notas
               
               // Solo intentar insertar si el comentario no es null (después del trim)
               if (comentarioMensaje) {
-                // MODIFIED: Added id_usuario to the INSERT query for comments
+                // MODIFIED: Added id_usuario and id_periodo to the INSERT query for comments
                 pool.query('INSERT INTO comentarios (id_estudiante, id_usuario, mensaje, fecha_hora, id_actividad) VALUES (?, ?, ?, NOW(), ?)', [n.id_estudiante, id_usuario_remitente, comentarioMensaje, id_actividad], (err) => {
                   if (err) {
                     console.error('Error en INSERT comentario:', err);
@@ -1072,7 +1123,7 @@ router.post('/notas/actividad/:id_actividad', registrarAccion('Registro de notas
                 const comentarioMensaje = n.comentarios && n.comentarios.trim() !== '' ? n.comentarios.trim() : null;
 
                 if (comentarioMensaje) { // Solo intentar insertar si el comentario no es null (después del trim)
-                  // MODIFIED: Added id_usuario to the INSERT query for comments
+                  // MODIFIED: Added id_usuario and id_periodo to the INSERT query for comments
                   conn.query('INSERT INTO comentarios (id_estudiante, id_usuario, mensaje, fecha_hora) VALUES (?, ?, ?, NOW())', [n.id_estudiante, id_usuario_remitente, comentarioMensaje], (err) => {
                     if (err) {
                       console.error('Error en INSERT comentario:', err);
@@ -1116,18 +1167,29 @@ router.post('/notas/actividad/:id_actividad', registrarAccion('Registro de notas
 });
 
 
+// ==========================================================
+// 🚀 RUTAS PARA GESTIÓN DE USUARIO_MATERIAS (MODIFICADA) 🚀
+// ==========================================================
+
+
+
 
 router.get('/materias/:id_materia/estudiantes', async (req, res) => {
   const { id_materia } = req.params;
+  const { id_periodo } = req.query; // Esperar id_periodo como query param
+
+  if (!id_periodo) {
+      return res.status(400).json({ error: 'Debes especificar el ID del periodo.' });
+  }
   try {
       const query = `
           SELECT u.id_usuario, u.primer_nombre, u.primer_apellido, u.cedula
           FROM usuarios u
           JOIN usuario_materias um ON u.id_usuario = um.id_usuario
-          WHERE um.id_materia = ? AND u.rol = 'estudiante'
+          WHERE um.id_materia = ? AND um.id_periodo = ? AND u.rol = 'estudiante' -- Filtrar por id_periodo
           ORDER BY u.primer_apellido, u.primer_nombre;
       `;
-      const [estudiantes] = await db.promise().query(query, [id_materia]);
+      const [estudiantes] = await db.promise().query(query, [id_materia, id_periodo]);
     res.json(estudiantes);
   } catch (error) {
     console.error('Error al obtener estudiantes de la materia:', error);
@@ -1141,14 +1203,19 @@ router.get('/materias/:id_materia/estudiantes', async (req, res) => {
 */
 router.get('/materias/:id_materia/actividades', async (req, res) => {
   const { id_materia } = req.params;
+  const { id_periodo } = req.query; // Esperar id_periodo como query param
+
+  if (!id_periodo) {
+      return res.status(400).json({ error: 'Debes especificar el ID del periodo.' });
+  }
   try {
       const query = `
-          SELECT id_actividad, nombre_actividad, descripcion, fecha_creacion AS fecha_entrega, ponderacion
+          SELECT id_actividad, nombre_actividad, descripcion, fecha_creacion AS fecha_entrega, ponderacion, id_periodo
           FROM actividades
-          WHERE id_materia = ?
+          WHERE id_materia = ? AND id_periodo = ?
           ORDER BY nombre_actividad;
       `;
-      const [actividades] = await db.promise().query(query, [id_materia]);
+      const [actividades] = await db.promise().query(query, [id_materia, id_periodo]);
       // FIX: Envolver el array de actividades en un objeto con la propiedad 'actividades'
       res.json({ actividades: actividades });
   } catch (error) {
@@ -1160,10 +1227,15 @@ router.get('/materias/:id_materia/actividades', async (req, res) => {
 // Obtener comentarios de un estudiante para una actividad
 router.get('/comentarios/actividad/:id_actividad/estudiante/:id_estudiante', async (req, res) => {
   const { id_actividad, id_estudiante } = req.params;
+  const { id_periodo } = req.query; // Esperar id_periodo como query param
+
+  if (!id_periodo) {
+    return res.status(400).json({ error: 'Debes especificar el ID del periodo.' });
+  }
   try {
     const [comentarios] = await db.promise().query(
-      `SELECT id_comentario, mensaje, fecha_hora FROM comentarios WHERE id_actividad = ? AND id_estudiante = ? ORDER BY fecha_hora DESC`,
-      [id_actividad, id_estudiante]
+      `SELECT id_comentario, mensaje, fecha_hora FROM comentarios WHERE id_actividad = ? AND id_estudiante = ? AND id_periodo = ? ORDER BY fecha_hora DESC`,
+      [id_actividad, id_estudiante, id_periodo]
     );
     res.json({ comentarios });
   } catch (error) {
@@ -1174,77 +1246,112 @@ router.get('/comentarios/actividad/:id_actividad/estudiante/:id_estudiante', asy
 
 // Obtener actividades de una materia (paginado)
 router.get('/materias/:id/actividades', async (req, res) => {
-  const { id } = req.params;
-  const page = parseInt(req.query.page || '1');
-  const limit = parseInt(req.query.limit || '10');
-  const offset = (page - 1) * limit;
-  try {
-    const [actividadesResult, actividadesCountResult] = await Promise.all([
-      db.promise().query(
-        `SELECT id_actividad, nombre_actividad, descripcion, fecha_creacion AS fecha_entrega, ponderacion
-         FROM actividades WHERE id_materia = ? ORDER BY fecha_creacion DESC LIMIT ?, ?`,
-        [id, offset, limit]
-      ),
-      db.promise().query(
-        `SELECT COUNT(*) AS total FROM actividades WHERE id_materia = ?`, [id]
-      )
-    ]);
-    
-    const actividades = actividadesResult[0]; // Esto es el array de filas de actividades
-    const totalPages = Math.ceil(actividadesCountResult[0][0].total / limit);
+    const { id } = req.params;
+    const page = parseInt(req.query.page || '1');
+    const limit = parseInt(req.query.limit || '10');
+    const offset = (page - 1) * limit;
+    const { id_periodo, search } = req.query; // Obtener id_periodo y el nuevo parámetro 'search'
 
-    console.log('DEBUG: Actividades y TotalPages para /materias/:id/actividades (paginado):', { actividades, totalPages }); // AÑADIDO PARA DEBUG
+    if (!id_periodo) {
+        return res.status(400).json({ error: 'Debes especificar el ID del periodo.' });
+    }
 
-    res.json({
-      actividades: actividades, // Aseguramos que se envía el array de actividades
-      totalPages: totalPages
-    });
-  } catch (error) {
-    console.error('Error al obtener actividades de la materia:', error);
-    res.status(500).json({ error: 'Error al obtener actividades de la materia', detalle: error.message });
-  }
+    try {
+        let sqlActividades = `
+            SELECT id_actividad, nombre_actividad, descripcion, fecha_creacion AS fecha_entrega, ponderacion, id_periodo
+            FROM actividades
+            WHERE id_materia = ? AND id_periodo = ?
+        `;
+        let sqlCount = `
+            SELECT COUNT(*) AS total FROM actividades
+            WHERE id_materia = ? AND id_periodo = ?
+        `;
+
+        let queryParams = [id, id_periodo];
+        let countParams = [id, id_periodo];
+
+        // Si existe un término de búsqueda, añadir la condición WHERE
+        if (search) {
+            sqlActividades += ` AND (nombre_actividad LIKE ? OR descripcion LIKE ?)`;
+            sqlCount += ` AND (nombre_actividad LIKE ? OR descripcion LIKE ?)`;
+            // Construir el término de búsqueda con comodines una sola vez
+            const searchTermPattern = `%${search}%`;
+            queryParams.push(searchTermPattern, searchTermPattern);
+            countParams.push(searchTermPattern, searchTermPattern);
+        }
+
+        // Añadir los parámetros de paginación al final de queryParams
+        sqlActividades += ` ORDER BY fecha_creacion DESC LIMIT ?, ?`;
+        queryParams.push(offset, limit);
+
+        const [actividadesResult, actividadesCountResult] = await Promise.all([
+            db.promise().query(sqlActividades, queryParams),
+            db.promise().query(sqlCount, countParams) // Usar countParams para la consulta de conteo
+        ]);
+
+        const actividades = actividadesResult[0]; // Array de filas de actividades
+        const totalRows = actividadesCountResult[0][0].total; // Total de actividades filtradas
+        const totalPages = Math.ceil(totalRows / limit);
+
+        console.log('DEBUG: Actividades y TotalPages para /materias/:id/actividades (paginado y con búsqueda):', { actividades, totalPages, totalRows });
+
+        res.json({
+            actividades: actividades,
+            totalPages: totalPages
+        });
+    } catch (error) {
+        console.error('Error al obtener actividades de la materia:', error);
+        res.status(500).json({ error: 'Error al obtener actividades de la materia', detalle: error.message });
+    }
 });
+
+
+
 
 // Resumen de actividades de una materia
 router.get('/materias/:id/actividades/resumen', async (req, res) => {
   const { id } = req.params;
+  const { id_periodo } = req.query; // Esperar id_periodo como query param
+
+  if (!id_periodo) {
+    return res.status(400).json({ error: 'Debes especificar el ID del periodo.' });
+  }
 
   try {
     // Total de actividades
     const [[{ totalActividades }]] = await db.promise().query(
-      'SELECT COUNT(*) AS totalActividades FROM actividades WHERE id_materia = ?', [id]
+      'SELECT COUNT(*) AS totalActividades FROM actividades WHERE id_materia = ? AND id_periodo = ?', [id, id_periodo]
     );
 
     // Promedio general simple (promedio de todas las notas de la materia)
     const [[{ promedioGeneralMateria }]] = await db.promise().query(
-      `SELECT AVG(nota) AS promedioGeneralMateria
+      `SELECT AVG(n.nota) AS promedioGeneralMateria
        FROM notas n
        JOIN actividades a ON n.id_actividad = a.id_actividad
-       WHERE a.id_materia = ?`, [id]
+       WHERE a.id_materia = ? AND a.id_periodo = ?`, [id, id_periodo]
     );
 
-    // Lista de estudiantes únicos relacionados con la materia
+    // Lista de estudiantes únicos relacionados con la materia y el periodo
     const [estudiantes] = await db.promise().query(
       `SELECT DISTINCT u.id_usuario AS id_estudiante 
        FROM usuarios u
        JOIN usuario_materias um ON u.id_usuario = um.id_usuario
-       WHERE um.id_materia = ? AND u.rol = 'estudiante'`, [id]
+       WHERE um.id_materia = ? AND um.id_periodo = ? AND u.rol = 'estudiante'`, [id, id_periodo]
     );
 
     // Actividades con ponderación
     const [actividades] = await db.promise().query(
       `SELECT id_actividad, ponderacion
        FROM actividades
-       WHERE id_materia = ?`, [id]
+       WHERE id_materia = ? AND id_periodo = ?`, [id, id_periodo]
     );
 
-    // Todas las notas registradas en actividades de esta materia
+    // Todas las notas registradas en actividades de esta materia y periodo
     const [notas] = await db.promise().query(
-      `SELECT id_estudiante, id_actividad, nota
-       FROM notas
-       WHERE id_actividad IN (
-         SELECT id_actividad FROM actividades WHERE id_materia = ?
-       )`, [id]
+      `SELECT n.id_estudiante, n.id_actividad, n.nota
+       FROM notas n
+       JOIN actividades a ON n.id_actividad = a.id_actividad
+       WHERE a.id_materia = ? AND a.id_periodo = ?`, [id, id_periodo]
     );
 
     // Crear mapa de ponderaciones
@@ -1304,6 +1411,11 @@ router.get('/materias/:id/actividades/resumen', async (req, res) => {
 // Obtener todas las notas de todos los estudiantes para todas las actividades de una materia
 router.get('/notas/materia/:id_materia', async (req, res) => {
   const { id_materia } = req.params;
+  const { id_periodo } = req.query; // Esperar id_periodo como query param
+
+  if (!id_periodo) {
+      return res.status(400).json({ error: 'Debes especificar el ID del periodo.' });
+  }
 
   try {
     const notasQuery = `
@@ -1317,16 +1429,17 @@ router.get('/notas/materia/:id_materia', async (req, res) => {
         u.primer_apellido,
         a.nombre_actividad,
         a.descripcion,
-        m.materia AS nombre_materia
+        m.materia AS nombre_materia,
+        a.id_periodo -- Incluido id_periodo de actividades
       FROM notas n
       JOIN usuarios u ON n.id_estudiante = u.id_usuario
       JOIN actividades a ON n.id_actividad = a.id_actividad
       JOIN materias m ON a.id_materia = m.id_materia
-      WHERE m.id_materia = ?
+      WHERE m.id_materia = ? AND a.id_periodo = ?
       ORDER BY u.primer_apellido ASC, u.primer_nombre ASC;
     `;
 
-    const [notas] = await db.promise().query(notasQuery, [id_materia]);
+    const [notas] = await db.promise().query(notasQuery, [id_materia, id_periodo]);
 
     res.json({ notas });
 
@@ -1338,8 +1451,5 @@ router.get('/notas/materia/:id_materia', async (req, res) => {
     });
   }
 });
-
-
-
 
 export default router;

@@ -118,7 +118,7 @@ import "../../style/style-profesor/seccion.css";
       materias.forEach(materia => {
         const card = document.createElement('a');
         // MODIFICACIÓN CLAVE: Enlace a la página de actividades y notas con el ID de la materia
-        card.href = `/Profesor-Control/actividades-notas?materiaId=${materia.id_materia}`;
+        card.href = `/Profesor-Control/actividades-notas?materiaId=${materia.id_materia}&periodoId=${materia.id_periodo}`;
         card.className = 'card-item materia-card'; // Apply the specific class for subject cards
 
         card.innerHTML = `

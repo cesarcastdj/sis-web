@@ -396,45 +396,59 @@ router.put('/estudiantes/:id', registrarAccion('Actualizacion datos estudiante',
 }); 
 
 router.get('/estudiantes/:id/academico', (req, res) => {
-  const { id } = req.params;
-  // Trae todas las relaciones cruzadas del estudiante
-  const sql = `
-    SELECT
-      p.periodo AS nombre_periodo,
-      c.curso AS nombre_curso,
-      m.materia AS nombre_materia,
-      s.seccion AS nombre_seccion,
-      COALESCE(
-        SUM(CASE WHEN n.nota IS NOT NULL THEN (n.nota * a.ponderacion) / 100 ELSE 0 END),
-        0.00
-      ) AS nota_final_materia,
-      CASE
-        WHEN COALESCE(
-               SUM(CASE WHEN n.nota IS NOT NULL THEN (n.nota * a.ponderacion) / 100 ELSE 0 END),
-               0.00
-             ) >= 10 THEN 'Aprobado'
-        ELSE 'Reprobado'
-      END AS estado_materia
-    FROM usuario_materias um
-    JOIN materias m ON um.id_materia = m.id_materia
-    LEFT JOIN cursos c ON m.id_curso = c.id_curso
-    LEFT JOIN materias_periodo mp ON m.id_materia = mp.id_materia
-    LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
-    LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia
-    LEFT JOIN seccion s ON ms.id_seccion = s.id_seccion
-    LEFT JOIN actividades a ON m.id_materia = a.id_materia
-    LEFT JOIN notas n ON a.id_actividad = n.id_actividad AND um.id_usuario = n.id_estudiante
-    WHERE um.id_usuario = ?
-    GROUP BY p.periodo, c.curso, m.materia, s.seccion, m.id_materia
-    ORDER BY p.periodo DESC, m.materia ASC;
-  `;
-  db.query(sql, [id], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al obtener información académica del estudiante', detalle: err.message });
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ error: 'ID de usuario no proporcionado.' });
     }
-    res.json({ academico: results });
-  });
+
+    const sql = `
+        SELECT
+            p.periodo AS nombre_periodo,
+            c.curso AS nombre_curso,
+            m.materia AS nombre_materia,
+            s.seccion AS nombre_seccion,
+            CONCAT(p.periodo, ' - ', m.materia) AS periodo_materia_display, -- Nuevo campo combinado
+            COALESCE(
+                SUM(CASE WHEN n.nota IS NOT NULL THEN (n.nota * a.ponderacion) / 100 ELSE 0 END),
+                0.00
+            ) AS nota_final_materia,
+            CASE
+                WHEN COALESCE(
+                        SUM(CASE WHEN n.nota IS NOT NULL THEN (n.nota * a.ponderacion) / 100 ELSE 0 END),
+                        0.00
+                     ) >= 10 THEN 'Aprobado'
+                ELSE 'Reprobado'
+            END AS estado_materia
+        FROM usuario_materias um
+        JOIN materias m ON um.id_materia = m.id_materia
+        LEFT JOIN cursos c ON m.id_curso = c.id_curso
+        LEFT JOIN periodo p ON um.id_periodo = p.id_periodo
+        LEFT JOIN cursos_seccion cs ON c.id_curso = cs.id_curso
+        LEFT JOIN seccion s ON cs.id_seccion = s.id_seccion
+        LEFT JOIN actividades a ON m.id_materia = a.id_materia
+        LEFT JOIN notas n ON a.id_actividad = n.id_actividad AND um.id_usuario = n.id_estudiante
+        WHERE um.id_usuario = ?
+        GROUP BY
+            um.id_usuario_materias,
+            p.periodo,
+            c.curso,
+            m.materia,
+            s.seccion,
+            m.id_materia
+        ORDER BY p.periodo DESC, m.materia ASC;
+    `;
+
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error('Error al obtener información académica del estudiante:', err);
+            return res.status(500).json({ error: 'Error al obtener información académica.', detalle: err.message });
+        }
+        res.json({ academico: results });
+    });
 });
+
+
 
 router.get('/estudiantes/mis-materias', /*isAuthenticated,*/ async (req, res) => {
     // Si tu middleware isAuthenticated adjunta el ID del usuario como req.user.id_usuario, úsalo directamente.

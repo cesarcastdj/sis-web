@@ -114,7 +114,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
   <!-- Sección de Gestión de Actividades -->
   <div id="actividadesSection">
-    <h3 class="mt-4 mb-3">Gestión de Actividades</h3>
+    <h3 class="mt-4 mb-3 text-center">Gestión de Actividades</h3>
     <div class="display-table mt-4" id="tableActividades">
       <div class="d-flex justify-content-end mb-3">
         <input type="text" id="searchInputActividades" class="form-control w-25" placeholder="Buscar actividad...">
@@ -134,7 +134,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           <tbody id="actividadesTableBody">
             <!-- Contenido de la tabla de actividades se carga aquí dinámicamente -->
             <tr>
-              <td colspan="7" class="text-center">Cargando actividades...</td>
+              <td colspan="6" class="text-center">Cargando actividades...</td>
             </tr>
           </tbody>
         </table>
@@ -153,7 +153,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
   <!-- Sección de Notas -->
   <div id="notasSection">
-    <h3 class="mt-4 mb-3">Gestión de Notas</h3>
+    <h3 class="mt-4 mb-3 text-center">Gestión de Notas</h3>
     <div class="display-table mt-4" id="tableNotas">
       <div class="d-flex justify-content-end mb-3">
         <!-- El botón "Añadir Nota" principal ahora está en el nuevo card -->
@@ -246,7 +246,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           </div>
           <div class="mb-3">
             <label for="editPonderacion" class="form-label">Ponderación <span class="campo-obligatorio">*</span></label>
-            <input type="number" class="form-control" id="editPonderacion" required min="0" max="100" step="0.01">
+            <input type="number" class="form-control" id="editPonderacion" required min="0" max="100" step="0.01"> <!-- CAMBIO AQUÍ: id="editPonderacion" -->
             <div class="invalid-feedback">Por favor, ingresa la ponderación.</div>
           </div>
           <div class="d-flex justify-content-between mt-4">
@@ -471,6 +471,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 <script is:inline>
   const API_BASE_URL = 'http://localhost:3001/api';
   let currentMateriaId = null;
+  let currentPeriodoId = null; // NUEVO: Para almacenar el ID del período de la URL
   let currentMateriaNombre = '';
   let currentPageActividades = 1;
   const itemsPerPageActividades = 10;
@@ -582,23 +583,24 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
   document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentMateriaId = urlParams.get('materiaId');
+    currentPeriodoId = urlParams.get('periodoId'); // NUEVO: Para almacenar el ID del período de la URL
     currentMateriaNombre = urlParams.get('nombreMateria') || 'Materia'; // Asumo que el nombre se pasa por URL también
 
-    if (!currentMateriaId) {
-      mostrarAlerta('ID de materia no especificado en la URL.', 'danger');
-      document.getElementById('materiaTitulo').textContent = 'Error: Materia no encontrada';
+    if (!currentMateriaId || !currentPeriodoId) { // Validar también currentPeriodoId
+      mostrarAlerta('ID de materia o período no especificado en la URL.', 'danger');
+      document.getElementById('materiaTitulo').textContent = 'Error: Materia o Periodo no encontrados';
       return;
     }
 
-    // Inicializar todo si el ID de materia está presente
-    await fetchMateriaDetails(currentMateriaId);
-    await fetchActividadesSummary(currentMateriaId); // Actualizado para incluir stats de estudiantes
-    await fetchActividades(currentMateriaId, currentPageActividades);
-    await loadNotasFiltradas(currentMateriaId, currentPageNotas); // Cargar notas también
+    // Inicializar todo si el ID de materia y periodo están presentes
+    await fetchMateriaDetails(currentMateriaId); // Esta función ya puede obtener el nombre
+    await fetchActividadesSummary(currentMateriaId, currentPeriodoId); // Actualizado para incluir stats de estudiantes y periodo
+    await fetchActividades(currentMateriaId, currentPeriodoId, currentPageActividades); // Pasar id_periodo
+    await loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPageNotas); // Cargar notas también con id_periodo
 
     // Listener para el botón de volver a materias
     document.getElementById('btnVolverMaterias').addEventListener('click', () => {
-      window.location.href = '/Admin-Control/Materias';
+      window.location.href = '/Admin-Control/Materias'; // No se necesita periodo aquí
     });
 
     // Enlazar el formulario de añadir actividad
@@ -636,8 +638,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         document.getElementById('anadirNotaValor').value = ''; // Limpiar nota
         document.getElementById('anadirComentarios').value = ''; // Limpiar comentarios
 
-        // Cargar estudiantes para el select
-        await loadEstudiantesModal(currentMateriaId, document.getElementById('selectAnadirEstudiante'));
+        // Cargar estudiantes para el select, pasando currentPeriodoId
+        await loadEstudiantesModal(currentMateriaId, currentPeriodoId, document.getElementById('selectAnadirEstudiante'));
         document.getElementById('selectAnadirEstudiante').value = ''; // Asegurar que no hay estudiante pre-seleccionado
 
         // Deshabilitar y limpiar actividades hasta que se seleccione un estudiante
@@ -661,8 +663,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         document.getElementById('anadirFechaRegistro').valueAsDate = new Date();
 
         if (selectedEstudianteId) {
-            // Cargar actividades para la materia actual
-            await loadActividadesModal(currentMateriaId, selectAnadirActividad);
+            // Cargar actividades para la materia y periodo actuales
+            await loadActividadesModal(currentMateriaId, currentPeriodoId, selectAnadirActividad);
             selectAnadirActividad.disabled = false;
             selectAnadirActividad.value = ''; // Asegurar que no haya actividad pre-seleccionada
         } else {
@@ -678,8 +680,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         const selectedActividadId = this.value;
 
         if (selectedEstudianteId && selectedActividadId) {
-            // Llamar a la función para prellenar la nota y el comentario si existen
-            await fetchExistingNoteForModal(selectedEstudianteId, selectedActividadId);
+            // Llamar a la función para prellenar la nota y el comentario si existen, pasando id_periodo
+            await fetchExistingNoteForModal(selectedEstudianteId, selectedActividadId, currentPeriodoId);
         } else {
             // Limpiar campos si no hay un estudiante o actividad válidos seleccionados
             document.getElementById('anadirNotaValor').value = '';
@@ -695,7 +697,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       await fetchMateriaDetails(currentMateriaId); 
       const modalElement = document.getElementById('modalGestionarEstudiantes');
       const bsModal = new bootstrap.Modal(modalElement);
-      await abrirModalGestionarEstudiantes(currentMateriaId);
+      await abrirModalGestionarEstudiantes(currentMateriaId, currentPeriodoId); // Pasar id_periodo
       bsModal.show();
     });
 
@@ -705,24 +707,43 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       await fetchMateriaDetails(currentMateriaId);
       const modalElement = document.getElementById('modalAsignarProfesor');
       const bsModal = new bootstrap.Modal(modalElement);
-      await abrirModalAsignarProfesor(currentMateriaId);
+      await abrirModalAsignarProfesor(currentMateriaId, currentPeriodoId); // Pasar id_periodo
       bsModal.show();
     });
+
+    // === INICIO DE LA LÓGICA PARA EL CAMPO DE BÚSQUEDA DE ACTIVIDADES ===
+    const searchInputActividades = document.getElementById('searchInputActividades');
+    if (searchInputActividades) {
+        searchInputActividades.addEventListener('input', () => {
+            currentPageActividades = 1; // Reiniciar a la primera página en cada búsqueda
+            // Llamar a fetchActividades con el término de búsqueda
+            fetchActividades(currentMateriaId, currentPeriodoId, currentPageActividades, searchInputActividades.value.trim());
+        });
+    }
+    // === FIN DE LA LÓGICA PARA EL CAMPO DE BÚSQUEDA DE ACTIVIDADES ===
   });
 
   async function fetchMateriaDetails(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/materias-academicas/${id}`);
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${id}?id_periodo=${currentPeriodoId}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
       currentMateriaNombre = data.nombre_materia;
-      document.getElementById('materiaTitulo').textContent = `Gestión de la materia "${data.nombre_materia || 'Materia Desconocida'}"`;
-      // Actualizar el nombre del profesor asignado
-      const profesorNombre = data.profesores_info && data.profesores_info.length > 0 ? data.profesores_info[0].nombre_completo : 'Sin asignar';
+      document.getElementById('materiaTitulo').textContent = `Gestión de la materia "${data.nombre_materia || 'Materia Desconocida'}" (${data.nombre_periodo || 'Periodo Desconocido'})`;
+      
+      // Update the name of the assigned professor for THIS PERIOD
+      // The backend API GET /materias-academicas/:id now filters professores_info by id_periodo
+      const profesorAsignado = data.profesores_info && data.profesores_info.length > 0
+                               ? data.profesores_info[0] // Since API already filters, take the first one
+                               : null;
+
+      const profesorNombre = profesorAsignado ? profesorAsignado.nombre_completo : 'Sin asignar';
       document.getElementById('profesorAsignadoNombre').textContent = profesorNombre;
-      profesorEnMateriaCache = data.profesores_info && data.profesores_info.length > 0 ? String(data.profesores_info[0].id_usuario) : null;
+      profesorEnMateriaCache = profesorAsignado ? String(profesorAsignado.id_usuario) : null;
+      
+      // Students in this subject and period (assuming that data.estudiantes_info already comes filtered by period)
       estudiantesEnMateriaCache = data.estudiantes_info ? data.estudiantes_info.map(e => String(e.id_usuario)) : [];
       
     } catch (error) {
@@ -732,9 +753,9 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     }
   }
 
-  async function fetchActividadesSummary(idMateria) {
+  async function fetchActividadesSummary(idMateria, idPeriodo) { // Aceptar idPeriodo
     try {
-      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/actividades/resumen`);
+      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/actividades/resumen?id_periodo=${idPeriodo}`); // Pass id_periodo
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -751,30 +772,39 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     }
   }
 
-  async function fetchActividades(idMateria, page) {
+  async function fetchActividades(idMateria, idPeriodo, page, searchTerm = '') { // Añadido searchTerm
     const tableBody = document.getElementById('actividadesTableBody');
     const paginationActividades = document.getElementById('paginationActividades');
-    tableBody.innerHTML = '<tr><td colspan="7" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Cargando actividades...</td></tr>';
-    paginationActividades.innerHTML = '';
+    
+    // Siempre limpiar la tabla al inicio de la carga, antes de cualquier fetch
+    tableBody.innerHTML = '<tr><td colspan="6" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Cargando actividades...</td></tr>';
+    paginationActividades.innerHTML = ''; // Limpiar paginación
 
     try {
-      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/actividades?page=${page}&limit=${itemsPerPageActividades}`);
+      let url = `${API_BASE_URL}/materias/${idMateria}/actividades?id_periodo=${idPeriodo}&page=${page}&limit=${itemsPerPageActividades}`;
+      if (searchTerm) {
+          url += `&search=${encodeURIComponent(searchTerm)}`; // Añadir término de búsqueda a la URL
+      }
+
+      const response = await fetch(url);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        // Mejorar el manejo de errores HTTP
+        const errorData = await response.json().catch(() => ({})); // Intenta parsear como JSON, si no, objeto vacío
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
 
       tableBody.innerHTML = ''; // Limpiar el mensaje de carga
 
+      // === INICIO DE LA LÓGICA DE MANEJO DE RESULTADOS VACÍOS ===
       if (!data || !Array.isArray(data.actividades) || data.actividades.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No se encontraron actividades para esta materia.</td></tr>';
-        if (data && data.message) { 
-             mostrarAlerta(data.message, 'info');
-        } else if (idMateria) { 
-             mostrarAlerta('No se encontraron actividades para esta materia o hubo un problema al cargarlas.', 'info');
-        }
-        return;
+        // Muestra el mensaje de "no encontrados" si no hay actividades
+        tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No se encontraron actividades ${searchTerm ? `que coincidan con "${searchTerm}"` : ''} para esta materia y período.</td></tr>`;
+        // No mostrar alerta adicional aquí, ya que el mensaje en tabla es suficiente
+        setupPagination(0, 1, 'actividades', searchTerm); // Reiniciar paginación si no hay resultados
+        return; // Detener la ejecución de la función aquí
       }
+      // === FIN DE LA LÓGICA DE MANEJO DE RESULTADOS VACÍOS ===
 
       data.actividades.forEach((actividad, index) => {
         const row = tableBody.insertRow();
@@ -800,36 +830,36 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         `;
       });
 
-      setupPagination(data.totalPages, page, 'actividades');
+      setupPagination(data.totalPages, page, 'actividades', searchTerm); // Pasa searchTerm a la paginación de actividades
       attachActividadesEventListeners();
 
     } catch (error) {
       console.error('Error al cargar las actividades:', error);
-      tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar las actividades.</td></tr>';
-      mostrarAlerta('Error al cargar las actividades. Por favor, verifica la conexión con el servidor o los datos de la materia.', 'danger');
+      tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error al cargar las actividades.</td></tr>'; // Colspan ajustado a 6
+      mostrarAlerta(`Error al cargar las actividades: ${error.message}. Por favor, verifica la conexión con el servidor o los datos de la materia.`, 'danger');
     }
   }
 
-  async function loadNotasFiltradas(id_materia, page) {
+  async function loadNotasFiltradas(id_materia, id_periodo, page) { // Aceptar id_periodo
     const notasTableBody = document.getElementById('notasTableBody');
     const notasTableHeader = document.getElementById('notasTableHeader');
     const paginationControls = document.getElementById('paginationControlsNotas');
     
     notasTableBody.innerHTML = `<tr><td colspan="3" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div> Cargando notas...</td></tr>`;
-    notasTableHeader.innerHTML = ''; // Limpiar encabezados anteriores
+    notasTableHeader.innerHTML = ''; // Clear previous headers
     paginationControls.innerHTML = '';
 
     try {
-      // 1. Obtener todos los datos necesarios
+      // 1. Get all necessary data, passing id_periodo
       const [studentsResponse, activitiesResponse, notesResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/materias/${id_materia}/estudiantes`),
-        fetch(`${API_BASE_URL}/materias/${id_materia}/actividades`),
-        fetch(`${API_BASE_URL}/notas/materia/${id_materia}?limit=9999`) // Obtener todas las notas para la agregación
+        fetch(`${API_BASE_URL}/materias/${id_materia}/estudiantes?id_periodo=${id_periodo}`), // Pass id_periodo
+        fetch(`${API_BASE_URL}/materias/${id_materia}/actividades?id_periodo=${id_periodo}`), // Pass id_periodo
+        fetch(`${API_BASE_URL}/notas/materia/${id_materia}?id_periodo=${id_periodo}&limit=9999`) // Pass id_periodo
       ]);
 
-      if (!studentsResponse.ok) throw new Error(`Error HTTP al obtener estudiantes: ${studentsResponse.status}`);
-      if (!activitiesResponse.ok) throw new Error(`Error HTTP al obtener actividades: ${activitiesResponse.status}`);
-      if (!notesResponse.ok) throw new Error(`Error HTTP al obtener notas: ${notesResponse.status}`);
+      if (!studentsResponse.ok) throw new Error(`HTTP error al obtener estudiantes: ${studentsResponse.status}`);
+      if (!activitiesResponse.ok) throw new Error(`HTTP error al obtener actividades: ${activitiesResponse.status}`);
+      if (!notesResponse.ok) throw new Error(`HTTP error al obtener notas: ${notesResponse.status}`);
 
       const allStudents = await studentsResponse.json();
       const allActivitiesData = await activitiesResponse.json();
@@ -843,10 +873,10 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       console.log("DEBUG: Actividades obtenidas:", activities.map(a => ({ id: a.id_actividad, nombre: a.nombre_actividad, ponderacion: a.ponderacion })));
       console.log("DEBUG: Notas obtenidas para materia:", notes.map(n => ({ id_nota: n.id_nota, id_estudiante: n.id_estudiante, id_actividad: n.id_actividad, nota: n.nota })));
 
-      // Crear un mapa para buscar notas fácilmente: { idEstudiante: { idActividad: objetoNota } }
+      // Create a map to easily find notes: { idEstudiante: { idActividad: noteObject } }
       const studentActivityNotesMap = new Map();
       notes.forEach(note => {
-        // Asegurarse de que los IDs se conviertan a números de manera segura
+        // Make sure IDs are safely converted to numbers
         const studentId = Number(note.id_estudiante);
         const activityId = Number(note.id_actividad);
 
@@ -865,9 +895,9 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       console.log("DEBUG: Mapa de notas construido (studentActivityNotesMap):", studentActivityNotesMap);
 
 
-      // 2. Construir encabezados de tabla dinámicamente
+      // 2. Build table headers dynamically
       let headerHtml = '<tr><th scope="col">Nº</th><th scope="col">Estudiante</th>';
-      // Ordenar actividades por nombre para un orden de columnas consistente
+      // Sort activities by name for consistent column order
       activities.sort((a, b) => a.nombre_actividad.localeCompare(b.nombre_actividad)).forEach(activity => {
         headerHtml += `<th scope="col" title="${activity.descripcion || ''}">${activity.nombre_actividad} (${activity.ponderacion.toFixed(0)}%)</th>`;
       });
@@ -875,16 +905,16 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       notasTableHeader.innerHTML = headerHtml;
       console.log("DEBUG: Encabezados de tabla generados.");
 
-      // 3. Rellenar el cuerpo de la tabla
-      notasTableBody.innerHTML = ''; // Limpiar mensaje de carga
+      // 3. Populate table body
+      notasTableBody.innerHTML = ''; // Clear loading message
 
       if (allStudents.length === 0) {
-        notasTableBody.innerHTML = `<tr><td colspan="${activities.length + 3}" class="text-center text-muted">No se encontraron estudiantes en esta materia.</td></tr>`;
+        notasTableBody.innerHTML = `<tr><td colspan="${activities.length + 3}" class="text-center text-muted">No se encontraron estudiantes en esta materia y período.</td></tr>`;
         console.log("DEBUG: No se encontraron estudiantes en la materia.");
         return;
       }
 
-      // Implementar paginación manual para estudiantes
+      // Implement manual pagination for students
       const totalStudents = allStudents.length;
       const totalPagesStudents = Math.ceil(totalStudents / itemsPerPageNotas);
       const startIndex = (page - 1) * itemsPerPageNotas;
@@ -905,64 +935,64 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         row.innerHTML = `<td>${startIndex + studentIndex + 1}</td>
                          <td>${student.primer_nombre} ${student.primer_apellido}</td>`;
         
-        let sumOfWeightedNotes = 0; // Esto acumulará la suma ponderada
-        const studentIdNum = Number(student.id_usuario); // Asegurar que el ID sea un número
+        let sumOfWeightedNotes = 0; // This will accumulate the weighted sum
+        const studentIdNum = Number(student.id_usuario); // Ensure ID is a number
         const studentNotes = studentActivityNotesMap.get(studentIdNum) || new Map();
         console.log(`DEBUG: --- Procesando estudiante: ${student.primer_nombre} ${student.primer_apellido} (ID: ${studentIdNum}) ---`);
         console.log("DEBUG: Notas mapeadas para este estudiante (studentNotes):", studentNotes);
 
-        // Iterar sobre las actividades ordenadas para asegurar que el orden de las columnas coincida con el encabezado
+        // Iterate over ordered activities to ensure column order matches header
         activities.sort((a, b) => a.nombre_actividad.localeCompare(b.nombre_actividad)).forEach(activity => {
-          const activityIdNum = Number(activity.id_actividad); // Asegurar que el ID sea un número
-          const note = studentNotes.get(activityIdNum); // Intenta obtener la nota para esta actividad de este estudiante
+          const activityIdNum = Number(activity.id_actividad); // Ensure ID is a number
+          const note = studentNotes.get(activityIdNum); // Try to get the note for this activity for this student
           
-          let noteValueForCalculation = 0; // Se inicializa a 0 para el cálculo de la nota definitiva
-          let cellDisplayContent = '<span class="text-muted">N/A</span>'; // Por defecto si no hay nota, con estilo atenuado
+          let noteValueForCalculation = 0; // Initialize to 0 for final grade calculation
+          let cellDisplayContent = '<span class="text-muted">N/A</span>'; // Default if no note, with subdued style
 
           console.log(`  DEBUG: Actividad: ${activity.nombre_actividad} (ID: ${activityIdNum}), Ponderación: ${activity.ponderacion}%`);
-          console.log(`    DEBUG: Nota encontrada para esta actividad/estudiante:`, note);
+          console.log(`    DEBUG: Nota found for this activity/student:`, note);
 
           if (note && note.nota !== null && note.nota !== undefined) {
               const parsedNote = parseFloat(note.nota);
               if (!isNaN(parsedNote)) {
-                  noteValueForCalculation = parsedNote; // Usar la nota válida para el cálculo
-                  cellDisplayContent = parsedNote.toFixed(2); // Mostrar la nota real
-                  console.log(`    DEBUG: Nota válida encontrada: ${parsedNote}. Para cálculo: ${noteValueForCalculation}. Para mostrar: ${cellDisplayContent}`);
+                  noteValueForCalculation = parsedNote; // Use the valid note for calculation
+                  cellDisplayContent = parsedNote.toFixed(2); // Display the actual note
+                  console.log(`    DEBUG: Valid note found: ${parsedNote}. For calculation: ${noteValueForCalculation}. For display: ${cellDisplayContent}`);
               } else {
-                  console.warn(`    DEBUG: WARNING: El valor de la nota para la actividad ${activity.nombre_actividad} (ID: ${activityIdNum}) del estudiante ${student.primer_nombre} ${student.primer_apellido} no es un número válido:`, note.nota);
-                  // cellDisplayContent se mantiene como N/A, noteValueForCalculation se mantiene como 0
+                  console.warn(`    DEBUG: WARNING: The note value for activity ${activity.nombre_actividad} (ID: ${activityIdNum}) of student ${student.primer_nombre} ${student.primer_apellido} is not a valid number:`, note.nota);
+                  // cellDisplayContent remains N/A, noteValueForCalculation remains 0
               }
           } else {
-              console.log(`    DEBUG: No se encontró nota para la actividad ${activity.nombre_actividad} (ID: ${activityIdNum}). Mostrando N/A y usando 0 para cálculo.`);
+              console.log(`    DEBUG: No note found for activity ${activity.nombre_actividad} (ID: ${activityIdNum}). Displaying N/A and using 0 for calculation.`);
           }
 
-          // Calcular la contribución ponderada al total
+          // Calculate the weighted contribution to the total
           sumOfWeightedNotes += (noteValueForCalculation * (activity.ponderacion / 100));
-          console.log(`    DEBUG: Contribución ponderada de ${activity.nombre_actividad}: ${noteValueForCalculation} * (${activity.ponderacion} / 100) = ${noteValueForCalculation * (activity.ponderacion / 100)}. Suma acumulada actual: ${sumOfWeightedNotes}`);
+          console.log(`    DEBUG: Weighted contribution of ${activity.nombre_actividad}: ${noteValueForCalculation} * (${activity.ponderacion} / 100) = ${noteValueForCalculation * (activity.ponderacion / 100)}. Current accumulated sum: ${sumOfWeightedNotes}`);
           
-          row.innerHTML += `<td class="text-center">${cellDisplayContent}</td>`; // Mostrar el contenido de la celda
+          row.innerHTML += `<td class="text-center">${cellDisplayContent}</td>`; // Display cell content
         });
 
-        // Añadir la columna de la Nota Definitiva
+        // Add the Final Grade column
         const finalGradeCell = document.createElement('td');
         finalGradeCell.className = 'text-center';
-        finalGradeCell.innerHTML = `<strong>${sumOfWeightedNotes.toFixed(2)}</strong>`; // Mostrar la suma ponderada acumulada
+        finalGradeCell.innerHTML = `<strong>${sumOfWeightedNotes.toFixed(2)}</strong>`; // Show the accumulated weighted sum
 
-        // Aplicar color según el estado de aprobación (asumiendo que 10 es la nota mínima para aprobar)
-        if (sumOfWeightedNotes >= 10) { // Comprobar contra la nota final calculada
-          finalGradeCell.classList.add('text-success'); // Clase de Bootstrap para texto verde
+        // Apply color based on approval status (assuming 10 is the minimum passing grade)
+        if (sumOfWeightedNotes >= 10) { // Check against the calculated final grade
+          finalGradeCell.classList.add('text-success'); // Bootstrap class for green text
         } else {
-          finalGradeCell.classList.add('text-danger'); // Clase de Bootstrap para texto rojo
+          finalGradeCell.classList.add('text-danger'); // Bootstrap class for red text
         }
         row.appendChild(finalGradeCell);
         
         notasTableBody.appendChild(row);
-        console.log(`DEBUG: Nota definitiva final para ${student.primer_nombre}: ${sumOfWeightedNotes.toFixed(2)}`);
+        console.log(`DEBUG: Final grade for ${student.primer_nombre}: ${sumOfWeightedNotes.toFixed(2)}`);
       });
       
-      // Actualizar el control de paginación para estudiantes
+      // Update pagination control for students
       setupPagination(totalPagesStudents, page, 'notas');
-      console.log("DEBUG: Renderizado de tabla de notas completado. --- FIN loadNotasFiltradas ---");
+      console.log("DEBUG: Notes table rendering completed. --- END loadNotasFiltradas ---");
 
     } catch (error) {
       notasTableBody.innerHTML = `<tr><td colspan="${activities.length + 3}" class="text-center text-danger">Error al cargar notas y actividades: ${error.message}. Por favor, revise la consola para más detalles.</td></tr>`;
@@ -972,7 +1002,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
   }
 
 
-  function setupPagination(totalPages, currentPage, type) {
+  function setupPagination(totalPages, currentPage, type, searchTerm = '') { // Añadido searchTerm para paginación de actividades
     const paginationContainerId = type === 'actividades' ? 'paginationActividades' : 'paginationControlsNotas';
     const paginationContainer = document.getElementById(paginationContainerId);
     paginationContainer.innerHTML = '';
@@ -991,8 +1021,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     prevLink.addEventListener('click', (e) => {
       e.preventDefault();
       if (currentPage > 1) {
-        if (type === 'actividades') fetchActividades(currentMateriaId, currentPage - 1);
-        else loadNotasFiltradas(currentMateriaId, currentPage - 1);
+        if (type === 'actividades') fetchActividades(currentMateriaId, currentPeriodoId, currentPage - 1, searchTerm); // Pasa searchTerm aquí
+        else loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPage - 1);
       }
     });
     prevLi.appendChild(prevLink);
@@ -1010,8 +1040,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       link.textContent = '1';
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        if (type === 'actividades') fetchActividades(currentMateriaId, 1);
-        else loadNotasFiltradas(currentMateriaId, 1);
+        if (type === 'actividades') fetchActividades(currentMateriaId, currentPeriodoId, 1, searchTerm); // Pasa searchTerm aquí
+        else loadNotasFiltradas(currentMateriaId, currentPeriodoId, 1);
       });
       li.appendChild(link);
       ul.appendChild(li);
@@ -1032,8 +1062,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       link.textContent = i;
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        if (type === 'actividades') fetchActividades(currentMateriaId, i);
-        else loadNotasFiltradas(currentMateriaId, i);
+        if (type === 'actividades') fetchActividades(currentMateriaId, currentPeriodoId, i, searchTerm); // Pasa searchTerm aquí
+        else loadNotasFiltradas(currentMateriaId, currentPeriodoId, i);
       });
       li.appendChild(link);
       ul.appendChild(li);
@@ -1054,8 +1084,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       link.textContent = totalPages;
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        if (type === 'actividades') fetchActividades(currentMateriaId, totalPages);
-        else loadNotasFiladas(currentMateriaId, totalPages);
+        if (type === 'actividades') fetchActividades(currentMateriaId, currentPeriodoId, totalPages, searchTerm); // Pasa searchTerm aquí
+        else loadNotasFiltradas(currentMateriaId, currentPeriodoId, totalPages);
       });
       li.appendChild(link);
       ul.appendChild(li);
@@ -1070,8 +1100,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     nextLink.addEventListener('click', (e) => {
       e.preventDefault();
       if (currentPage < totalPages) {
-        if (type === 'actividades') fetchActividades(currentMateriaId, currentPage + 1);
-        else loadNotasFiltradas(currentMateriaId, currentPage + 1);
+        if (type === 'actividades') fetchActividades(currentMateriaId, currentPeriodoId, currentPage + 1, searchTerm); // Pasa searchTerm aquí
+        else loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPage + 1);
       }
     });
     nextLi.appendChild(nextLink);
@@ -1124,6 +1154,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
     const data = {
       id_materia: parseInt(currentMateriaId),
+      id_periodo: parseInt(currentPeriodoId), // ENVIANDO id_periodo desde el frontend
       nombre_actividad: nombreActividad,
       descripcion: descripcionActividad,
       fecha_creacion: fechaEntrega,
@@ -1155,9 +1186,9 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       form.reset();
       form.classList.remove('was-validated');
 
-      await fetchActividadesSummary(currentMateriaId);
-      await fetchActividades(currentMateriaId, currentPageActividades);
-      await loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar notas también por si acaso
+      await fetchActividadesSummary(currentMateriaId, currentPeriodoId); // Pass id_periodo
+      await fetchActividades(currentMateriaId, currentPeriodoId, currentPageActividades); // Pass id_periodo
+      await loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPageNotas); // Reload notes also just in case
     } catch (error) {
       console.error('Error al añadir actividad:', error);
       mostrarAlerta(error.message || 'Ocurrió un error al añadir la actividad.', 'danger');
@@ -1177,6 +1208,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       document.getElementById('editNombreActividad').value = actividad.nombre_actividad;
       document.getElementById('editDescripcionActividad').value = actividad.descripcion || '';
       document.getElementById('editFechaEntrega').value = actividad.fecha_creacion ? new Date(actividad.fecha_creacion).toISOString().split('T')[0] : '';
+      // Se corrigió el ID aquí para que coincida con el HTML
       document.getElementById('editPonderacion').value = actividad.ponderacion ? actividad.ponderacion.toFixed(2) : '';
 
       const modalElement = document.getElementById('modalEditarActividad');
@@ -1208,8 +1240,9 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     const data = {
       nombre_actividad: nombreActividad,
       descripcion: descripcionActividad,
-      fecha_creacion: fechaEntrega, // Usar fecha_creacion como campo de actualización también
-      ponderacion: ponderacion
+      fecha_creacion: fechaEntrega, // Use fecha_creacion as update field as well
+      ponderacion: ponderacion,
+      id_periodo: parseInt(currentPeriodoId) // ENVIANDO id_periodo desde el frontend
     };
 
     try {
@@ -1232,9 +1265,9 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       if (bootstrapModal) bootstrapModal.hide();
 
       form.classList.remove('was-validated');
-      await fetchActividadesSummary(currentMateriaId);
-      await fetchActividades(currentMateriaId, currentPageActividades);
-      await loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar notas también
+      await fetchActividadesSummary(currentMateriaId, currentPeriodoId); // Pass id_periodo
+      await fetchActividades(currentMateriaId, currentPeriodoId, currentPageActividades); // Pass id_periodo
+      await loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPageNotas); // Reload notes also
     } catch (error) {
       console.error('Error al actualizar actividad:', error);
       mostrarAlerta(error.message || 'Ocurrió un error al actualizar la actividad.', 'danger');
@@ -1262,9 +1295,9 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
         const result = await response.json();
         mostrarAlerta(result.message, 'success');
-        await fetchActividadesSummary(currentMateriaId);
-        await fetchActividades(currentMateriaId, currentPageActividades);
-        await loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar notas también
+        await fetchActividadesSummary(currentMateriaId, currentPeriodoId); // Pass id_periodo
+        await fetchActividades(currentMateriaId, currentPeriodoId, currentPageActividades); // Pass id_periodo
+        await loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPageNotas); // Reload notes also
       } catch (error) {
         console.error('Error al eliminar actividad:', error);
         mostrarAlerta(error.message || 'Ocurrió un error al eliminar la actividad.', 'danger');
@@ -1281,18 +1314,19 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     document.getElementById('nombreActividadCalificar').textContent = actividad.nombre_actividad || 'Sin nombre';
     document.getElementById('nombreMateriaCalificar').textContent = currentMateriaNombre || 'Sin materia';
 
-    const estudiantes = await fetch(`${API_BASE_URL}/materias/${currentMateriaId}/estudiantes`).then(r => r.json());
-    const notasResp = await fetch(`${API_BASE_URL}/notas/actividad/${idActividad}`).then(r => r.json());
+    // Make sure to pass id_periodo to APIs that need it
+    const estudiantes = await fetch(`${API_BASE_URL}/materias/${currentMateriaId}/estudiantes?id_periodo=${currentPeriodoId}`).then(r => r.json());
+    const notasResp = await fetch(`${API_BASE_URL}/notas/actividad/${idActividad}`).then(r => r.json()); // This API does not need id_periodo in GET
     const notasMap = {};
     (notasResp.notas || []).forEach(n => { notasMap[n.id_estudiante] = n; });
 
     const cont = document.getElementById('listaEstudiantesNotas');
     if (!estudiantes.length) {
-      cont.innerHTML = '<div class="alert alert-warning">No hay estudiantes asociados a esta materia.</div>';
+      cont.innerHTML = '<div class="alert alert-warning">No hay estudiantes asociados a esta materia y período.</div>';
     } else {
       cont.innerHTML = estudiantes.map(est => {
         const nota = notasMap[est.id_usuario]?.nota ?? '';
-        const comentario = notasMap[est.id_usuario]?.comentarios ?? '';
+        const comentario = notasMap[est.id_usuario]?.comentarios ?? ''; // Comments are in the notes table if saved together
         return `<div class='row align-items-center mb-2'>
           <div class='col-5'><strong>${est.primer_nombre} ${est.primer_apellido}</strong> <span class='text-muted'>(${est.cedula})</span></div>
           <div class='col-3'><input type='number' class='form-control' name='nota_${est.id_usuario}' value='${nota}' min='0' max='20' step='0.01' placeholder='Nota (0-20)' autocomplete='off'></div>
@@ -1330,20 +1364,21 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         const nota = notaRaw === '' ? null : parseFloat(notaRaw);
         const comentarios = form[`comentario_${est.id_usuario}`].value;
         return { id_estudiante: est.id_usuario, nota: isNaN(nota) ? null : nota, fecha_registro: (new Date()).toISOString().slice(0,10), comentarios };
-      }).filter(n => n.nota !== null);
+      }).filter(n => n.nota !== null || (n.comentarios && n.comentarios.trim() !== '')); // Filter notes only if there is a note or comment
+      
       try {
         const resp = await fetch(`${API_BASE_URL}/notas/actividad/${idActividad}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ notas })
+          body: JSON.stringify({ notas, id_periodo: Number(currentPeriodoId) }) // SEND id_periodo
         });
         if (!resp.ok) throw new Error('Error al guardar notas');
         mostrarAlerta('Notas guardadas correctamente', 'success');
         bootstrap.Modal.getInstance(document.getElementById('modalCalificarEstudiantes')).hide();
-        fetchActividadesSummary(currentMateriaId);
-        fetchActividades(currentMateriaId, currentPageActividades);
-        loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar notas también
+        await fetchActividadesSummary(currentMateriaId, currentPeriodoId); // Pass id_periodo
+        await fetchActividades(currentMateriaId, currentPeriodoId, currentPageActividades); // Pass id_periodo
+        await loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPageNotas); // Reload notes also
       } catch (err) {
         mostrarAlerta('Error al guardar notas', 'danger');
       }
@@ -1356,22 +1391,22 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
   // ==========================================================
 
   function attachNotasEventListeners() {
-      // En la nueva tabla consolidada, no hay acciones de nota individuales por fila.
-      // Acciones como 'ver-mas', 'editar', 'eliminar' ahora se gestionan a través del modal 'Calificar Estudiantes'
-      // o a través de un modal 'Añadir Nota' separado.
-      // Esta función puede mantenerse vacía o eliminarse según el nuevo diseño de la tabla.
+      // In the new consolidated table, there are no individual note actions per row.
+      // Actions such as 'view-more', 'edit', 'delete' are now managed through the 'Rate Students' modal
+      // or through a separate 'Add Note' modal.
+      // This function can be kept empty or removed depending on the new table design.
   }
 
-  async function loadEstudiantesModal(idMateria, targetSelect) {
-    if (!idMateria) {
+  async function loadEstudiantesModal(idMateria, idPeriodo, targetSelect) { // Aceptar idPeriodo
+    if (!idMateria || !idPeriodo) {
       targetSelect.innerHTML = '<option value="" disabled selected>Seleccione un estudiante</option>';
       targetSelect.disabled = true;
       return;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/estudiantes`); // Obtener estudiantes inscritos en esta materia
-      if (!response.ok) throw new Error(`Error HTTP! estado: ${response.status}`);
-      const estudiantes = await response.json(); // Asume que devuelve directamente el array de estudiantes
+      const response = await fetch(`${API_BASE_URL}/materias/${idMateria}/estudiantes?id_periodo=${idPeriodo}`); // Get students enrolled in this subject and period
+      if (!response.ok) throw new Error(`HTTP error! estado: ${response.status}`);
+      const estudiantes = await response.json(); // Assumes it directly returns the student array
       targetSelect.innerHTML = '<option value="" disabled selected>Seleccione un estudiante</option>' +
                                estudiantes.map(e => `<option value="${e.id_usuario}">${e.primer_nombre} ${e.primer_apellido} (${e.cedula})</option>`).join('');
       targetSelect.disabled = false;
@@ -1384,30 +1419,31 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     }
   }
 
-  async function loadActividadesModal(idMateria, targetSelect) {
-    console.log('Iniciando loadActividadesModal para idMateria:', idMateria);
+  async function loadActividadesModal(idMateria, idPeriodo, targetSelect) { // Aceptar idPeriodo
+    console.log('Iniciando loadActividadesModal para idMateria:', idMateria, 'idPeriodo:', idPeriodo);
     console.log('Target Select:', targetSelect);
 
-    if (!idMateria) {
-        console.warn('idMateria es nulo o indefinido. No se cargarán actividades.');
+    if (!idMateria || !idPeriodo) {
+        console.warn('idMateria o idPeriodo es nulo o indefinido. No se cargarán actividades.');
         targetSelect.innerHTML = '<option value="" disabled selected>Seleccione una actividad</option>';
         targetSelect.disabled = true;
         return;
     }
     try {
-        const apiUrl = `${API_BASE_URL}/materias/${idMateria}/actividades`;
+        // Modificado para incluir el término de búsqueda, aunque de momento esta función no lo utiliza para filtrar
+        const apiUrl = `${API_BASE_URL}/materias/${idMateria}/actividades?id_periodo=${idPeriodo}&limit=9999`; // Limitamos para cargar todas las actividades en el select
         console.log('Realizando fetch a:', apiUrl);
         const response = await fetch(apiUrl);
 
         if (!response.ok) {
-            const errorText = await response.text(); // Obtener el texto del error para más detalles
-            throw new Error(`Error HTTP! estado: ${response.status}. Mensaje: ${errorText}`);
+            const errorText = await response.text(); // Get the error text for more details
+            throw new Error(`HTTP error! estado: ${response.status}. Mensaje: ${errorText}`);
         }
 
         const data = await response.json();
-        console.log('Datos de la API recibidos:', data); // Verifica la estructura aquí
+        console.log('Datos de la API recibidos:', data); // Check the structure here
         const actividades = data.actividades || [];
-        console.log('Actividades extraídas:', actividades); // Verifica si 'actividades' es un array aquí
+        console.log('Actividades extraídas:', actividades); // Check if 'activities' is an array here
 
         targetSelect.innerHTML = '<option value="" disabled selected>Seleccione una actividad</option>' +
                                  actividades.map(a => `<option value="${a.id_actividad}">${a.nombre_actividad}</option>`).join('');
@@ -1420,43 +1456,51 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     }
 }
 
-  // NUEVA FUNCIÓN para obtener y prellenar la nota y el comentario existentes
-  async function fetchExistingNoteForModal(idEstudiante, idActividad) {
+  // NEW FUNCTION to get and pre-fill the existing note and comment
+  async function fetchExistingNoteForModal(idEstudiante, idActividad, idPeriodo) { // Aceptar idPeriodo
       const anadirNotaValor = document.getElementById('anadirNotaValor');
       const anadirComentarios = document.getElementById('anadirComentarios');
       const anadirFechaRegistro = document.getElementById('anadirFechaRegistro');
 
-      anadirNotaValor.value = ''; // Limpiar siempre antes de intentar cargar
+      anadirNotaValor.value = ''; // Always clear before trying to load
       anadirComentarios.value = '';
-      anadirFechaRegistro.valueAsDate = new Date(); // Resetear a la fecha actual
+      anadirFechaRegistro.valueAsDate = new Date(); // Reset to current date
 
       try {
-          const response = await fetch(`${API_BASE_URL}/notas/${idActividad}/${idEstudiante}`);
+          // The API /notas/:id_actividad/:id_estudiante will need id_periodo to be more specific
+          // If your API does not support it in GET, you would have to modify it to filter it.
+          // For now, we assume that /notas/:id_actividad/:id_estudiante looks for the unique note.
+          // If you can modify that API to accept id_periodo, it would be more robust:
+          const response = await fetch(`${API_BASE_URL}/notas/actividad/${idActividad}/estudiante/${idEstudiante}?id_periodo=${idPeriodo}`); // Pass id_periodo
           if (response.ok) {
               const data = await response.json();
-              console.log('DEBUG: Nota existente encontrada para prellenar:', data);
-              anadirNotaValor.value = data.nota !== null ? data.nota : '';
-              anadirComentarios.value = data.comentarios || '';
-              if (data.fecha_registro) {
-                  // Los inputs type="date" esperan formato YYYY-MM-DD
-                  anadirFechaRegistro.value = new Date(data.fecha_registro).toISOString().slice(0, 10);
+              if (data.notas && data.notas.length > 0) {
+                const notaExistente = data.notas[0];
+                console.log('DEBUG: Existing note found to pre-fill:', notaExistente);
+                anadirNotaValor.value = notaExistente.nota !== null ? notaExistente.nota : '';
+                anadirComentarios.value = notaExistente.mensaje || ''; // Assume comment comes in 'mensaje'
+                if (notaExistente.fecha_hora) { // Assume comment date is 'fecha_hora'
+                    anadirFechaRegistro.value = new Date(notaExistente.fecha_hora).toISOString().slice(0, 10);
+                } else {
+                    anadirFechaRegistro.valueAsDate = new Date();
+                }
               } else {
-                  anadirFechaRegistro.valueAsDate = new Date();
+                console.log('DEBUG: No existing note found. Note and comment fields remain empty.');
               }
-              // Limpiar validación si había
+              // Clear validation if there was
               limpiarError(anadirNotaValor);
               limpiarError(anadirFechaRegistro);
           } else if (response.status === 404) {
-              // No hay nota existente, los campos ya están limpios
-              console.log('DEBUG: No se encontró nota existente. Campos de nota y comentario permanecen vacíos.');
+              // No existing note, fields are already clear
+              console.log('DEBUG: No existing note found. Note and comment fields remain empty.');
           } else {
-              const errorData = await response.json();
+              const errorData = await response.json().catch(() => ({}));
               throw new Error(errorData.message || `Error al cargar nota existente: ${response.status}`);
           }
       } catch (error) {
           console.error('Error fetching existing note for modal:', error);
           mostrarAlerta('No se pudo cargar la nota existente para esta actividad y estudiante.', 'danger');
-          // Asegurarse de que los campos estén vacíos en caso de error
+          // Make sure fields are empty in case of error
           anadirNotaValor.value = '';
           anadirComentarios.value = '';
           anadirFechaRegistro.valueAsDate = new Date();
@@ -1523,15 +1567,16 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       const formData = {
         id_estudiante: parseInt(selectAnadirEstudiante.value),
         id_actividad: parseInt(selectAnadirActividad.value),
-        nota: notaNum, // Usar la nota numérica validada
+        nota: notaNum, // Use the validated numeric note
         fecha_registro: anadirFechaRegistro.value,
-        comentarios: anadirComentarios.value.trim() || null
+        comentarios: anadirComentarios.value.trim() || null,
+        id_periodo: parseInt(currentPeriodoId) // SEND id_periodo
       };
 
-      // Esta es la API que acabamos de modificar para manejar insert/update y comentarios
+      // This is the API we just modified to handle insert/update and comments
       const response = await fetch(`${API_BASE_URL}/notas`, {
         method: 'POST',
-        credentials: 'include', // Asegurarse de enviar cookies de sesión si es necesario
+        credentials: 'include', // Make sure to send session cookies if necessary
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
@@ -1549,7 +1594,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         modal.hide();
       }
 
-      loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar la tabla de notas principal
+      await loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPageNotas); // Reload main notes table
+      await fetchActividadesSummary(currentMateriaId, currentPeriodoId); // Reload summary
 
     } catch (error) {
       console.error('❌ Error en la adición/actualización de la nota (frontend):', error); 
@@ -1601,14 +1647,14 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
     } catch (error) {
         console.error('Error en mostrarModalVerMasInformacionNota:', error);
-        mostrarAlerta(error.message || 'No se pudo cargar la información de la nota.', 'danger');
+        mostrarAlerta('No se pudo cargar la información de la nota.', 'danger');
     }
   }
 
   async function editarNota(notaId) {
       try {
           const response = await fetch(`${API_BASE_URL}/notas/${notaId}`);
-          if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+          if (!response.ok) throw new Error(`HTTP: ${response.status}`);
           const data = await response.json();
           const detallesCompletos = data.nota;
 
@@ -1635,7 +1681,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
     const form = e.target;
     const id_nota = document.getElementById('editIdNota').value;
-    const editIdActividad = document.getElementById('editIdActividad'); // Readonly, pero se usa su valor
+    const editIdActividad = document.getElementById('editIdActividad'); // Readonly, but its value is used
     const editNotaValor = document.getElementById('editNotaValor');
     const editFechaRegistro = document.getElementById('editFechaRegistro');
     const editComentarios = document.getElementById('editComentarios');
@@ -1681,7 +1727,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
     try {
       const formData = {
-        id_actividad: parseInt(editIdActividad.value), // Se mantiene para el backend
+        id_actividad: parseInt(editIdActividad.value), // Kept for the backend
         nota: notaNum,
         fecha_registro: editFechaRegistro.value,
         comentarios: editComentarios.value.trim() || null
@@ -1706,7 +1752,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           modal.hide();
       }
       
-      loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar la tabla principal
+      await loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPageNotas); // Reload main table
+      await fetchActividadesSummary(currentMateriaId, currentPeriodoId); // Reload summary
 
     } catch (error) {
       console.error('❌ Error en la actualización de la nota (frontend):', error);
@@ -1736,14 +1783,16 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           }
 
           mostrarAlerta(`Nota con ID ${notaId} eliminada exitosamente.`, 'success');
-          loadNotasFiltradas(currentMateriaId, currentPageNotas); // Recargar la tabla principal
+          await loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPageNotas); // Reload main table
+          await fetchActividadesSummary(currentMateriaId, currentPeriodoId); // Reload summary
+
       } catch (error) {
           console.error('Error al eliminar nota:', error);
           mostrarAlerta(`Error al eliminar la nota: ${error.message}`, 'danger');
       }
   }
 
-  // Funciones auxiliares para validación de formularios
+  // Helper functions for form validation
   function mostrarError(elemento, mensaje) {
     elemento.classList.add('is-invalid');
     const errorElement = elemento.nextElementSibling; 
@@ -1767,17 +1816,17 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
   }
 
   // ==========================================================
-  // Lógica de Gestión de Estudiantes y Profesores para la materia actual
+  // Logic for Managing Students and Professors for the current subject
   // ==========================================================
 
-  async function abrirModalGestionarEstudiantes(idMateria) {
+  async function abrirModalGestionarEstudiantes(idMateria, idPeriodo) { // Accept idPeriodo
     const listaEstudiantesCont = document.getElementById('listaEstudiantesGestion');
     const buscarEstudianteInput = document.getElementById('buscarEstudianteGestion');
     listaEstudiantesCont.innerHTML = '<div class="text-center text-muted">Cargando estudiantes...</div>';
-    buscarEstudianteInput.value = ''; // Limpiar búsqueda previa
+    buscarEstudianteInput.value = ''; // Clear previous search
 
     try {
-      const allEstudiantes = await fetchEstudiantesActivos(); // Obtener todos los estudiantes activos
+      const allEstudiantes = await fetchEstudiantesActivos(); // Get all active students
       
       const renderEstudiantes = (estudiantesToRender) => {
         listaEstudiantesCont.innerHTML = '';
@@ -1789,7 +1838,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
           const div = document.createElement('div');
           div.className = 'usuario-item';
           div.dataset.id = est.id_usuario;
-          // Usar un checkbox visualmente para la selección
+          // Use a visually styled checkbox for selection
           div.innerHTML = `
             <label class="d-flex align-items-center w-100 mb-0">
               <input type="checkbox"  class="custom-select-list-item" value="${est.id_usuario}" ${estudiantesEnMateriaCache.includes(String(est.id_usuario)) ? 'checked' : ''}>
@@ -1800,13 +1849,13 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         });
       };
 
-      renderEstudiantes(allEstudiantes); // Renderizar todos al inicio
+      renderEstudiantes(allEstudiantes); // Render all at the beginning
 
       buscarEstudianteInput.onkeyup = () => {
         const searchTerm = buscarEstudianteInput.value.toLowerCase();
         const results = allEstudiantes.filter(est => 
           est.nombre_completo.toLowerCase().includes(searchTerm) || 
-          String(est.cedula).toLowerCase().includes(searchTerm) // Permitir buscar por cédula
+          String(est.cedula).toLowerCase().includes(searchTerm) // Allow search by ID
         );
         renderEstudiantes(results);
       };
@@ -1814,9 +1863,9 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       const form = document.getElementById('formGestionarEstudiantes');
       form.onsubmit = async (ev) => {
         ev.preventDefault();
-        // Recoger los IDs de los checkboxes seleccionados
+        // Collect IDs of selected checkboxes
         const estudiantesSeleccionados = Array.from(listaEstudiantesCont.querySelectorAll('input[type="checkbox"]:checked')).map(input => Number(input.value));
-        await guardarAsignacionEstudiantes(idMateria, estudiantesSeleccionados);
+        await guardarAsignacionEstudiantes(idMateria, idPeriodo, estudiantesSeleccionados); // Pass idPeriodo
       };
 
     } catch (error) {
@@ -1825,12 +1874,11 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       mostrarAlerta('Error al cargar estudiantes para la gestión.', 'danger');
     }
   }
-
-  async function abrirModalAsignarProfesor(idMateria) {
+  async function abrirModalAsignarProfesor(idMateria, idPeriodo) { // Accept idPeriodo
     const listaProfesoresCont = document.getElementById('listaProfesoresAsignar');
     const buscarProfesorInput = document.getElementById('buscarProfesorAsignar');
     listaProfesoresCont.innerHTML = '<div class="text-center text-muted">Cargando profesores...</div>';
-    buscarProfesorInput.value = ''; // Limpiar búsqueda previa
+    buscarProfesorInput.value = ''; // Clear previous search
 
     try {
       const allProfesores = await fetchProfesoresActivos(); 
@@ -1861,7 +1909,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         const searchTerm = buscarProfesorInput.value.toLowerCase();
         const results = allProfesores.filter(prof => 
           prof.nombre_completo.toLowerCase().includes(searchTerm) || 
-          String(prof.cedula).toLowerCase().includes(searchTerm) // Permitir buscar por cédula
+          String(prof.cedula).toLowerCase().includes(searchTerm) // Allow search by ID
         );
         renderProfesores(results);
       };
@@ -1876,23 +1924,23 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         let nombreProfesorActual = document.getElementById('profesorAsignadoNombre').textContent;
         const nuevoProfesorNombre = profesorSeleccionadoRadio ? profesorSeleccionadoRadio.nextElementSibling.textContent : 'Nadie';
 
-        if (profesorEnMateriaCache !== String(nuevoProfesorId) && nuevoProfesorId !== null) { // Si el profesor cambió y no es nulo
+        if (profesorEnMateriaCache !== String(nuevoProfesorId) && nuevoProfesorId !== null) { // If professor changed and is not null
             confirmado = await mostrarConfirmacion(
                 `¿Estás seguro de asignar a <b>${nuevoProfesorNombre}</b> como profesor de esta materia? El profesor actual es: <b>${nombreProfesorActual}</b>.`,
                 'Confirmar Cambio de Profesor'
             );
-        } else if (profesorEnMateriaCache !== null && nuevoProfesorId === null) { // Si se está desasignando un profesor
+        } else if (profesorEnMateriaCache !== null && nuevoProfesorId === null) { // If unassigning a professor
              confirmado = await mostrarConfirmacion(
                 `¿Estás seguro de desasignar al profesor <b>${nombreProfesorActual}</b> de esta materia?`,
                 'Confirmar Desasignación de Profesor'
             );
-        } else if (profesorEnMateriaCache === null && nuevoProfesorId === null) { // Si no había profesor y se intenta asignar a nadie
+        } else if (profesorEnMateriaCache === null && nuevoProfesorId === null) { // If there was no professor and trying to assign no one
              mostrarAlerta('No se ha seleccionado ningún profesor para asignar.', 'info');
              return;
         }
 
         if (confirmado) {
-            await guardarAsignacionProfesor(idMateria, nuevoProfesorId);
+            await guardarAsignacionProfesor(idMateria, idPeriodo, nuevoProfesorId); // Pass idPeriodo
         }
       };
 
@@ -1903,15 +1951,23 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     }
   }
 
-  // **NUEVA FUNCIÓN** para guardar solo estudiantes
-  async function guardarAsignacionEstudiantes(materiaId, estudiantesIds) {
+  // **NEW FUNCTION** to save only students
+  async function guardarAsignacionEstudiantes(materiaId, periodoId, estudiantesIds) {
     try {
+      // Filter invalid IDs to avoid type or reference errors
+      const filteredEstudiantesIds = estudiantesIds.filter(id => typeof id === 'number' && !isNaN(id));
+      // const filteredProfesorId = profesorEnMateriaCache ? [Number(profesorEnMateriaCache)].filter(id => typeof id === 'number' && !isNaN(id)) : []; // REMOVE: No longer needed here
+
+
       const payload = {
-        estudiantes: estudiantesIds,
-        profesores: profesorEnMateriaCache ? [Number(profesorEnMateriaCache)] : [], // Mantenemos el profesor actual
+        estudiantes: filteredEstudiantesIds,
+        // profesores: filteredProfesorId, // REMOVE: No longer sending professors in this payload
+        id_periodo: Number(periodoId) // Ensure id_periodo is a number
       };
 
-      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}/asignar`, {
+      console.log('DEBUG: Payload para asignar estudiantes:', payload); // DEBUG LOG
+
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}/asignar-estudiantes`, { // Use new API endpoint
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -1928,8 +1984,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       const modalGestionEst = bootstrap.Modal.getInstance(document.getElementById('modalGestionarEstudiantes'));
       if (modalGestionEst) modalGestionEst.hide();
 
-      await fetchMateriaDetails(currentMateriaId); // Actualizar cachés y UI
-      await fetchActividadesSummary(currentMateriaId); // Para actualizar conteo de estudiantes
+      await fetchMateriaDetails(currentMateriaId); // Update caches and UI
+      await fetchActividadesSummary(currentMateriaId, currentPeriodoId); // To update student count
 
     } catch (error) {
       console.error('Error al guardar asignación de estudiantes:', error);
@@ -1937,15 +1993,22 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     }
   }
 
-  // **NUEVA FUNCIÓN** para guardar solo profesor
-  async function guardarAsignacionProfesor(materiaId, profesorId) {
+  // **NEW FUNCTION** to save only professor
+  async function guardarAsignacionProfesor(materiaId, periodoId, profesorId) {
     try {
+      // Filter invalid IDs to avoid type or reference errors
+      // const filteredEstudiantesIds = estudiantesEnMateriaCache.map(Number).filter(id => typeof id === 'number' && !isNaN(id)); // REMOVE: No longer needed here
+      const filteredProfesorId = profesorId ? [Number(profesorId)].filter(id => typeof id === 'number' && !isNaN(id)) : [];
+
       const payload = {
-        estudiantes: estudiantesEnMateriaCache.map(Number), // Mantenemos los estudiantes actuales
-        profesores: profesorId ? [profesorId] : [], // Si es null, enviamos un array vacío para desasignar
+        // estudiantes: filteredEstudiantesIds, // REMOVE: No longer sending students in this payload
+        profesores: filteredProfesorId, // If null, send an empty array to unassign (filtered)
+        id_periodo: Number(periodoId) // Ensure id_periodo is a number
       };
 
-      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}/asignar`, {
+      console.log('DEBUG: Payload para asignar profesor:', payload); // DEBUG LOG
+
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}/asignar-profesor`, { // Use new API endpoint
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -1962,7 +2025,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       const modalAsignProf = bootstrap.Modal.getInstance(document.getElementById('modalAsignarProfesor'));
       if (modalAsignProf) modalAsignProf.hide();
 
-      await fetchMateriaDetails(currentMateriaId); // Actualizar cachés y UI
+      await fetchMateriaDetails(currentMateriaId); // Update caches and UI
 
     } catch (error) {
       console.error('Error al guardar asignación de profesor:', error);
@@ -1978,7 +2041,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       cedula: est.cedula,
       primer_nombre: est.primer_nombre,
       primer_apellido: est.primer_apellido,
-      nombre_completo: `${est.primer_nombre} ${est.primer_apellido} (${est.cedula})` // Agregado (cedula)
+      nombre_completo: `${est.primer_nombre} ${est.primer_apellido} (${est.cedula})` // Added (cedula)
     }));
   }
 
@@ -1990,7 +2053,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       cedula: prof.cedula, 
       primer_nombre: prof.primer_nombre,
       primer_apellido: prof.primer_apellido,
-      nombre_completo: `${prof.primer_nombre} ${prof.primer_apellido} (${prof.cedula})` // Agregado (cedula)
+      nombre_completo: `${prof.primer_nombre} ${prof.primer_apellido} (${prof.cedula})` // Added (cedula)
     }));
   }
 

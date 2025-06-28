@@ -181,12 +181,7 @@ import "../../style/style-admin/cursos.css";
             </select>
             <div class="invalid-feedback">Por favor, selecciona una sección.</div>
           </div>
-          <div class="mb-3">
-            <label for="editEstudiantesCurso" class="form-label">Estudiantes Asignados al Curso</label>
-            <select class="form-select" id="editEstudiantesCurso" multiple>
-              <!-- Opciones de estudiantes se cargarán aquí -->
-            </select>
-          </div>
+          <!-- Se ha eliminado la sección "Estudiantes Asignados al Curso" editable -->
           <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <button type="submit" class="btn btn-primary">Guardar Cambios</button>
@@ -196,6 +191,38 @@ import "../../style/style-admin/cursos.css";
     </div>
   </div>
 </div>
+
+<!-- Modal para Ver Más Información del Curso -->
+<div class="modal fade" id="modalVerMasInformacionCurso" tabindex="-1" aria-labelledby="modalVerMasInformacionCursoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-custom-width modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalVerMasInformacionCursoLabel">Detalles del Curso</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h6 class="section-title">Información del Curso</h6>
+        <p><strong>Nombre del Curso:</strong> <span id="detalleCursoNombre"></span></p>
+        <p><strong>Período Académico:</strong> <span id="detalleCursoPeriodo"></span></p>
+        <p><strong>Sección:</strong> <span id="detalleCursoSeccion"></span></p>
+        <h6 class="section-title mt-4">Materias del Curso</h6>
+        <div id="tablaMateriasCurso"></div>
+
+        <h6 class="section-title mt-4">Estudiantes Asignados por Materia</h6>
+        <div id="tablaEstudiantesCurso"></div>
+
+        <h6 class="section-title mt-4">Profesores Asignados por Materia</h6>
+        <div id="tablaProfesoresCurso"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- Scripts de Bootstrap y JavaScript personalizado -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
@@ -434,6 +461,7 @@ import "../../style/style-admin/cursos.css";
                 <i class='bx bx-dots-vertical-rounded'></i>
               </button>
               <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${curso.id_curso}">
+                <li><a class="dropdown-item ver-mas-curso-btn" href="#" data-id="${curso.id_curso}"><i class='bx bx-info-circle me-2'></i>Ver más información</a></li>
                 <li><a class="dropdown-item edit-curso-btn" href="#" data-id="${curso.id_curso}"><i class='bx bx-edit-alt'></i> Editar</a></li>
                 ${curso.estado === 1 ? `
                     <li><a class="dropdown-item toggle-curso-estado-btn" href="#" data-id="${curso.id_curso}" data-new-estado="0"><i class='bx bx-pause'></i> Desactivar</a></li>
@@ -546,6 +574,12 @@ import "../../style/style-admin/cursos.css";
       button.addEventListener('click', handleEditCurso);
     });
 
+    // Event listeners para botones de "Ver más información"
+    document.querySelectorAll('.ver-mas-curso-btn').forEach(button => {
+        button.removeEventListener('click', handleVerMasCurso); // Evitar duplicados
+        button.addEventListener('click', handleVerMasCurso);
+    });
+
     // Event listeners para los botones de cambiar/desactivar estado unificados
     document.querySelectorAll('.toggle-curso-estado-btn').forEach(button => {
       button.removeEventListener('click', toggleCursoEstado); // Evitar duplicados
@@ -637,43 +671,13 @@ import "../../style/style-admin/cursos.css";
       document.getElementById('editIdPeriodo').value = curso.id_periodo;
       document.getElementById('editIdSeccion').value = curso.id_seccion;
 
-      // Mostrar estudiantes y profesores asignados (solo lectura)
-      let estudiantesHtml = '';
-      if (Array.isArray(curso.estudiantes_info) && curso.estudiantes_info.length > 0) {
-        estudiantesHtml = curso.estudiantes_info.map(e => `<li>${e.nombre_completo}</li>`).join('');
-      } else {
-        estudiantesHtml = '<li>No hay estudiantes asignados</li>';
+      // Se elimina la lógica de mostrar estudiantes y profesores en el modal de edición,
+      // ahora se hará en el modal "Ver más información".
+      let infoAsignadosCursoDiv = document.getElementById('infoAsignadosCurso');
+      if (infoAsignadosCursoDiv) {
+        infoAsignadosCursoDiv.remove(); // Asegurarse de que no quede HTML de la versión anterior.
       }
-      let profesoresHtml = '';
-      if (Array.isArray(curso.profesores_info) && curso.profesores_info.length > 0) {
-        profesoresHtml = curso.profesores_info.map(p => `<li>${p.nombre_completo}</li>`).join('');
-      } else {
-        profesoresHtml = '<li>No hay profesores asignados</li>';
-      }
-      // Agrega o actualiza el área de solo lectura en el modal
-      let refArea = document.getElementById('infoAsignadosCurso');
-      if (!refArea) {
-        refArea = document.createElement('div');
-        refArea.id = 'infoAsignadosCurso';
-        refArea.innerHTML = `
-          <div class="mb-2"><strong>Estudiantes asignados:</strong><ul id="listEstudiantesCurso">${estudiantesHtml}</ul></div>
-          <div class="mb-2"><strong>Profesores asignados:</strong><ul id="listProfesoresCurso">${profesoresHtml}</ul></div>
-        `;
-        const modalBody = document.querySelector('#modalEditarCurso .modal-body');
-        modalBody.insertBefore(refArea, modalBody.firstChild);
-      } else {
-        refArea.querySelector('#listEstudiantesCurso').innerHTML = estudiantesHtml;
-        refArea.querySelector('#listProfesoresCurso').innerHTML = profesoresHtml;
-      }
-
-      // Seleccionar los estudiantes asignados actualmente al curso (si aplica para edición múltiple)
-      const editEstudiantesCursoSelect = document.getElementById('editEstudiantesCurso');
-      if (editEstudiantesCursoSelect && Array.isArray(curso.estudiantes_info)) {
-        Array.from(editEstudiantesCursoSelect.options).forEach(option => {
-          option.selected = curso.estudiantes_info.some(est => String(est.id_usuario) === option.value);
-        });
-      }
-
+      
       const modalElement = document.getElementById('modalEditarCurso');
       const bootstrapModal = new bootstrap.Modal(modalElement);
       bootstrapModal.show();
@@ -684,6 +688,70 @@ import "../../style/style-admin/cursos.css";
     }
   }
 
+  async function handleVerMasCurso(event) {
+    const cursoId = event.currentTarget.dataset.id;
+    try {
+        const response = await fetch(`${API_BASE_URL}/cursos-academicos/${cursoId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const curso = await response.json();
+
+        // Populate basic course info
+        document.getElementById('detalleCursoNombre').textContent = curso.nombre_curso || 'N/A';
+        document.getElementById('detalleCursoPeriodo').textContent = curso.nombre_periodo || 'N/A';
+        document.getElementById('detalleCursoSeccion').textContent = curso.nombre_seccion || 'N/A';
+
+        // Populate Materias table
+        const tablaMateriasCurso = document.getElementById('tablaMateriasCurso');
+        if (Array.isArray(curso.materias_info) && curso.materias_info.length > 0) {
+            let materiasHtml = `<div class=\"table-responsive\"><table class=\"table table-bordered table-sm table-dark\"><thead><tr><th>Materia</th></tr></thead><tbody>`;
+            curso.materias_info.forEach(materia => {
+                materiasHtml += `<tr><td>${materia.nombre_materia || 'N/A'}</td></tr>`;
+            });
+            materiasHtml += `</tbody></table></div>`;
+            tablaMateriasCurso.innerHTML = materiasHtml;
+        } else {
+            tablaMateriasCurso.innerHTML = '<div class="text-center text-muted">No hay materias asignadas a este curso.</div>';
+        }
+
+        // Populate Estudiantes table
+        const tablaEstudiantesCurso = document.getElementById('tablaEstudiantesCurso');
+        if (Array.isArray(curso.estudiantes_info) && curso.estudiantes_info.length > 0) {
+            let estudiantesHtml = `<div class=\"table-responsive\"><table class=\"table table-bordered table-sm table-dark\"><thead><tr><th>Período</th><th>Estudiante</th><th>Materia</th></tr></thead><tbody>`;
+            curso.estudiantes_info.forEach(estudiante => {
+                estudiantesHtml += `<tr><td>${estudiante.nombre_periodo || 'N/A'}</td><td>${estudiante.nombre_usuario || 'N/A'}</td><td>${estudiante.nombre_materia || 'N/A'}</td></tr>`;
+            });
+            estudiantesHtml += `</tbody></table></div>`;
+            tablaEstudiantesCurso.innerHTML = estudiantesHtml;
+        } else {
+            tablaEstudiantesCurso.innerHTML = '<div class="text-center text-muted">No hay estudiantes asignados a este curso o a sus materias.</div>';
+        }
+
+        // Populate Profesores table
+        const tablaProfesoresCurso = document.getElementById('tablaProfesoresCurso');
+        if (Array.isArray(curso.profesores_info) && curso.profesores_info.length > 0) {
+            let profesoresHtml = `<div class=\"table-responsive\"><table class=\"table table-bordered table-sm table-dark\"><thead><tr><th>Período</th><th>Profesor Asignado</th><th>Materia</th></tr></thead><tbody>`;
+            curso.profesores_info.forEach(profesor => {
+                profesoresHtml += `<tr><td>${profesor.nombre_periodo || 'N/A'}</td><td>${profesor.nombre_usuario || 'N/A'}</td><td>${profesor.nombre_materia || 'N/A'}</td></tr>`;
+            });
+            profesoresHtml += `</tbody></table></div>`;
+            tablaProfesoresCurso.innerHTML = profesoresHtml;
+        } else {
+            tablaProfesoresCurso.innerHTML = '<div class="text-center text-muted">No hay profesores asignados a este curso o a sus materias.</div>';
+        }
+
+        const modalElement = document.getElementById('modalVerMasInformacionCurso');
+        const bootstrapModal = new bootstrap.Modal(modalElement);
+        bootstrapModal.show();
+
+    } catch (error) {
+        console.error('Error al cargar datos para "Ver más información" del curso:', error);
+        mostrarAlerta('Error al cargar los datos del curso.', 'danger');
+    }
+  }
+
+
   async function editarCurso(event) {
     event.preventDefault();
 
@@ -692,7 +760,7 @@ import "../../style/style-admin/cursos.css";
     const nombreCurso = form.elements['editNombreCurso'].value.trim();
     const idPeriodo = form.elements['editIdPeriodo'].value;
     const idSeccion = form.elements['editIdSeccion'].value;
-    const estudiantesCurso = Array.from(form.elements['editEstudiantesCurso'].selectedOptions).map(option => option.value);
+    // Se elimina la línea de obtención de estudiantes del select, ya que el select ha sido removido.
 
     if (!nombreCurso || !idPeriodo || !idSeccion) {
       form.classList.add('was-validated');
@@ -703,8 +771,8 @@ import "../../style/style-admin/cursos.css";
     const data = {
       nombre_curso: nombreCurso,
       id_periodo: parseInt(idPeriodo),
-      id_seccion: parseInt(idSeccion),
-      estudiantes: estudiantesCurso // Estudiantes actualizados para el curso
+      id_seccion: parseInt(idSeccion)
+      // Se elimina el campo 'estudiantes' del objeto de datos a enviar.
     };
 
     try {
