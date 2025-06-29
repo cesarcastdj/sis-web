@@ -22,6 +22,7 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
             data-bs-toggle="offcanvas"
             data-bs-target="#offcanvasNotifications"
             aria-controls="offcanvasNotifications"
+            id="notificationBellButton"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -41,10 +42,10 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
               ></path>
               <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
             </svg>
-            <span class="notification"></span>
+            <span class="notification-badge" id="unreadCommentsBadge"></span>
           </button>
 
-          <!-- Offcanvas de notificaciones -->
+          <!-- Offcanvas de notificaciones (se mantiene offcanvas-start y data-bs-backdrop="false") -->
           <div
             class="offcanvas offcanvas-start"
             data-bs-scroll="true"
@@ -66,12 +67,12 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
                 <i class="bx bx-chevrons-left"></i>
               </button>
             </div>
-            <div class="noticatacion-card">
+            <div class="noticatacion-card" id="notificacionComentariosContainer">
               <!-- Aquí se inyectan dinámicamente los comentarios -->
               <p class="text-center text-muted p-4">Cargando comentarios...</p>
             </div>
             <hr />
-            <button class="btn-view-all">Ver todos los comentarios</button>
+            <a href="/Students-Control/Comentarios" class="btn-view-all">Ver todos los comentarios</a>
           </div>
         </div>
 
@@ -137,7 +138,7 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
   </div>
 </nav>
 
-<!-- Nuevo Modal para ver el mensaje completo del comentario -->
+<!-- Nuevo Modal para ver el mensaje completo del comentario (se mantiene intacto) -->
 <div class="modal fade" id="modalVerMensaje" tabindex="-1" aria-labelledby="modalVerMensajeLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -149,8 +150,8 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
         <p><strong>De:</strong> <span id="remitenteNombre"></span> (<span id="remitenteRol"></span>)</p>
         <p><strong>Fecha:</strong> <span id="mensajeFecha"></span></p>
         <hr>
-        <p style="font-size: 20px;"><strong>Actividad:</strong> <span id="actividad"></span></p>
-        <p style="font-size: 16px;"><strong>Mensaje:</strong> <span id="mensajeCompleto"></span></p>
+        <p class="mb-2 modal-activity-title"><strong>Actividad:</strong> <span id="actividad"></span></p>
+        <p class="modal-message-content"><strong>Mensaje:</strong> <span id="mensajeCompleto"></span></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -159,7 +160,7 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
   </div>
 </div>
 
-<!-- Toast “Listo” (confirmación de éxito) -->
+<!-- Toast “Listo” (confirmación de éxito) - se mantiene intacto -->
 <div class="toast-container position-fixed top-0 end-0 p-3">
   <div id="toastConfirmacion"
        class="toast align-items-center text-white bg-success border-0"
@@ -175,7 +176,7 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
   </div>
 </div>
 
-<!-- Toast de Error (para errores de logout u otros) -->
+<!-- Toast de Error (para errores de logout u otros) - se mantiene intacto -->
 <div class="toast-container position-fixed top-0 end-0 p-3">
   <div id="toastError"
        class="toast align-items-center text-white bg-danger border-0"
@@ -194,28 +195,148 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
 
 <script type="module">
   // Importa Bootstrap Bundle con Popper para que los offcanvas y modales funcionen
-  import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js';
+  import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js';
 
   // Base URL for your API, make sure it is correct.
   const API_BASE_URL = 'http://localhost:3001/api';
 
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM completamente cargado. Inicializando funciones de navegación.');
-    cargarUsuarioLogueado();
-    cargarComentariosEstudiante(); // Cambiado de cargarNotificaciones a cargarComentariosEstudiante
-    configurarLogout();
-    // NOTA: Las funciones relacionadas con el modal de asignación de usuario (para admin)
-    // han sido removidas de este archivo navEst.txt ya que no corresponden al rol de estudiante.
-    const editProfileNavButton = document.getElementById('editProfileNavButton');
-    if (editProfileNavButton) {
-      editProfileNavButton.addEventListener('click', () => {
-        // Redirige a la página de perfil al hacer clic en el botón
-        window.location.href = '/Students-Control/Editar-perfil'; 
-      });
+  // Define la función para mostrar alertas (debería ser la misma que en tu sidebar y otras páginas)
+  let globalMostrarAlerta;
+
+  // Lógica de carga de Bootstrap JS (importante para que los modales y offcanvas funcionen)
+  const loadBootstrapPromise = new Promise((resolve, reject) => {
+    const checkBootstrapReady = setInterval(() => {
+        if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal && window.bootstrap.Alert && window.bootstrap.Offcanvas) {
+            clearInterval(checkBootstrapReady);
+            console.log("Bootstrap ya cargado en el ámbito global.");
+            resolve();
+        }
+    }, 50); // Chequea cada 50ms
+  });
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    console.log("Navbar DOMContentLoaded: Iniciando script.");
+    try {
+      await loadBootstrapPromise;
+      console.log("Navbar: Bootstrap JS disponible.");
+
+      // Definir globalMostrarAlerta aquí
+      globalMostrarAlerta = function(mensaje, tipo, duracion = 5000) {
+        const alertContainer = document.getElementById('alertContainer') || (() => {
+          const div = document.createElement('div');
+          div.id = 'alertContainer';
+          div.style.position = 'fixed';
+          div.style.top = '20px';
+          div.style.left = '50%';
+          div.style.transform = 'translateX(-50%)';
+          div.style.zIndex = '9999';
+          div.style.width = 'auto';
+          div.style.maxWidth = '90%';
+          document.body.appendChild(div);
+          return div;
+        })();
+
+        const alertElement = document.createElement('div');
+        alertElement.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertElement.role = 'alert';
+        alertElement.textContent = mensaje;
+        alertContainer.appendChild(alertElement);
+
+        setTimeout(() => {
+          if (alertElement.parentNode) {
+            const bsAlert = new bootstrap.Alert(alertElement);
+            bsAlert.dispose();
+          }
+        }, duracion);
+      };
+
+      // Inicializar el dropdown del usuario (se mantiene intacto)
+      const userDropdownToggle = document.getElementById('userDropdownToggle');
+      const userDropdownMenu = document.getElementById('userDropdownMenu'); 
+      if (userDropdownToggle && userDropdownMenu) { 
+        const dropdown = new bootstrap.Dropdown(userDropdownToggle);
+        userDropdownToggle.addEventListener('click', () => {
+            dropdown.toggle(); 
+        });
+      } else {
+          console.warn("Elementos del dropdown de usuario no encontrados o no aplicables para este HTML.");
+      }
+      
+      // Lógica de Logout (se mantiene intacta, con tu función de toast)
+      configurarLogout(); 
+
+      // --- Nuevas funcionalidades para notificaciones ---
+      const unreadCommentsBadge = document.getElementById('unreadCommentsBadge');
+      const notificationBellButton = document.getElementById('notificationBellButton');
+      const offcanvasNotifications = document.getElementById('offcanvasNotifications');
+
+      // Función para actualizar el conteo de notificaciones
+      async function updateUnreadCommentsCount() {
+        console.log("Intentando actualizar el conteo de comentarios no leídos...");
+        try {
+          const response = await fetch(`${API_BASE_URL}/estudiantes/comentarios/no-leidos/count`, {
+            method: 'GET',
+            credentials: 'include'
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
+            throw new Error(`HTTP error! Status: ${response.status}. Detalles: ${errorData.error}`);
+          }
+
+          const data = await response.json();
+          const count = data.count;
+          console.log("Conteo de comentarios no leídos:", count);
+
+          if (count > 0) {
+            if (unreadCommentsBadge) {
+              unreadCommentsBadge.textContent = ''; // Solo el punto, sin número
+              unreadCommentsBadge.classList.add('visible'); // Muestra el badge rosado
+            }
+          } else {
+            if (unreadCommentsBadge) {
+              unreadCommentsBadge.textContent = '';
+              unreadCommentsBadge.classList.remove('visible'); // Oculta el badge rosado
+            }
+          }
+        } catch (error) {
+          console.error("Error al obtener el conteo de comentarios no leídos:", error);
+          if (unreadCommentsBadge) {
+            unreadCommentsBadge.textContent = '';
+            unreadCommentsBadge.classList.remove('visible'); // Oculta el badge si hay un error
+          }
+          // No mostrar alerta al usuario por esto, ya que es una función de fondo
+        }
+      }
+
+      // Hacemos global la función para que la página de comentarios la pueda llamar
+      window.updateUnreadCommentsCountFromNavbar = updateUnreadCommentsCount;
+
+      // CAMBIO: Al abrir el offcanvas de notificaciones, SOLO cargar los comentarios no leídos.
+      if (offcanvasNotifications) {
+        offcanvasNotifications.addEventListener('show.bs.offcanvas', async () => {
+          console.log("Offcanvas de notificaciones abriéndose. Cargando comentarios no leídos en el offcanvas.");
+          await cargarComentariosEstudiante(); // Solo mostrará no leídos
+        });
+      }
+
+      // CAMBIO: Cargar los comentarios y actualizar el conteo AL INICIAR LA PÁGINA
+      await cargarComentariosEstudiante(); // Carga inicial al cargar la página (solo no leídos).
+      await updateUnreadCommentsCount(); // Actualizar el conteo del badge al cargar la página.
+
+      // Llamar a cargarUsuarioLogueado al inicio (se mantiene tu función existente)
+      cargarUsuarioLogueado(); 
+
+
+    } catch (error) {
+      console.error("Error crítico en el script del Navbar:", error);
+      if (typeof alert !== 'undefined') {
+        alert("Error crítico en la navegación. Algunas funciones pueden no estar disponibles. Detalles: " + error.message);
+      }
     }
   });
 
-  // Función para mostrar un toast de error
+  // Función para mostrar un toast de error (Mantenida de tu código)
   function mostrarToastError(message = 'Ocurrió un error inesperado.') {
     const toastErrorEl = document.getElementById('toastError');
     const toastErrorBody = document.getElementById('toastErrorBody');
@@ -230,98 +351,160 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
     }
   }
 
-
-  // 1) Carga datos del usuario logueado en el offcanvas de perfil
+  // 1) Carga datos del usuario logueado en el offcanvas de perfil (Mantenida de tu código)
   async function cargarUsuarioLogueado() {
     try {
-      const res = await fetch('http://localhost:3001/usuario', { // Asume que esta ruta devuelve los datos del usuario logueado
+      const res = await fetch('http://localhost:3001/usuario', { 
         method: 'GET',
-        credentials: 'include' // Incluye cookies de sesión
+        credentials: 'include' 
       });
       const data = await res.json();
 
       if (!res.ok || !data.id) {
-        // Si la respuesta no es OK o no hay ID de usuario, registra un error y no actualiza la UI
         console.warn('No se pudo obtener datos del usuario logueado o el usuario no está autenticado.');
-        // Puedes optar por dejar los textos en "Cargando..." o poner "No disponible"
         return;
       }
 
-      // Actualiza los datos en la interfaz del perfil
       document.getElementById('nombreUsuario').textContent = `${data.primer_nombre} ${data.primer_apellido}`;
       document.getElementById('emailUsuario').textContent = data.correo;
       document.getElementById('rolUsuario').textContent = data.rol;
     } catch (error) {
       console.error('❌ Error obteniendo datos del usuario:', error);
-      // No mostrar toast de error aquí, ya que es una carga inicial y podría ser normal si no hay sesión
     }
   }
 
-  // 2) Carga comentarios (antes "notificaciones") y las inyecta en el offcanvas
-  async function cargarComentariosEstudiante() {
-    const btnBell = document.querySelector('.notification-container button');
-    const dot = btnBell.querySelector('.notification');
-    const container = document.querySelector('.noticatacion-card');
-    container.innerHTML = `<p class="text-center text-muted p-4">Cargando comentarios...</p>`; // Mensaje de carga inicial
+  // 2) Carga comentarios y los inyecta en el offcanvas (Modificada para mostrar SOLO no leídos)
+  async function cargarComentariosEstudiante() { 
+    const container = document.getElementById('notificacionComentariosContainer'); 
+    if (!container) {
+        console.error("Contenedor de notificaciones no encontrado: #notificacionComentariosContainer");
+        return;
+    }
+    container.innerHTML = `<p class="text-center text-muted p-4">Cargando comentarios...</p>`; 
 
     try {
-      // **CAMBIADO**: Ahora llama a la API de comentarios para estudiantes
       const resp = await fetch(`${API_BASE_URL}/comentarios`, { 
+        method: 'GET',
         credentials: 'include'
       });
-      const { comentarios } = await resp.json(); // La API debe devolver { comentarios: [...] }
 
-      if (comentarios.length > 0) {
-        dot.style.display = 'block'; // Muestra el punto si hay comentarios
-      } else {
-        dot.style.display = 'none'; // Oculta el punto si no hay comentarios
-        container.innerHTML = `<p class="text-center text-muted p-4">Sin comentarios pendientes</p>`;
+      if (!resp.ok) {
+        const errorData = await resp.json().catch(() => ({ error: "Error desconocido" }));
+        throw new Error(`Error HTTP! Status: ${resp.status}. Detalles: ${errorData.error}`);
+      }
+      
+      const { comentarios } = await resp.json(); 
+      console.log("Comentarios recibidos para offcanvas:", comentarios);
+
+      container.innerHTML = ''; 
+
+      // CAMBIO CLAVE: Filtrar para mostrar SOLO comentarios NO LEÍDOS en el offcanvas
+      const unreadComentarios = comentarios.filter(c => !c.leido_por_estudiante);
+
+      if (unreadComentarios.length === 0) {
+        container.innerHTML = `<p class="text-center text-muted p-4">Sin comentarios nuevos.</p>`;
         return;
       }
 
-      container.innerHTML = ''; // Limpia el mensaje de carga antes de añadir los comentarios
-
-      // Añade los comentarios dinámicamente
-      comentarios.forEach(c => {
+      // Añade los comentarios no leídos dinámicamente
+      unreadComentarios.forEach(c => { 
         const card = document.createElement('div');
-        card.className = 'offcanvas-body notificacion-item'; // Clase para aplicar estilos
-        // No necesitamos data-notificacionId ni data-usuarioId si no se va a procesar en un modal de admin
+        card.className = 'offcanvas-body notificacion-item';
+        card.dataset.comentarioId = c.id_comentario; 
+        card.dataset.comentarioData = JSON.stringify(c); 
+        
         card.innerHTML = `
           <div class="notification-content">
             <i class="bx bx-user-circle"></i>
           </div>
           <div class="notification-text">
             <h6 class="name-user-notifi">
-              ${c.nombre_emisor} ${c.apellido_emisor} <span>(${c.rol_emisor})</span>
+              ${c.nombre_profesor} ${c.apellido_profesor} <span>(${c.rol_emisor})</span>
             </h6>
             <p class="message-user-notifi">Actividad: <strong>${c.nombre_actividad}</strong></p>
-            <small class="text-info">${c.fecha_hora_formateada}</small>
+            <p class="message-user-notifi-short">${c.contenido.substring(0, 50)}${c.contenido.length > 50 ? '...' : ''}</p>
+            <small class="text-info">${new Date(c.fecha_creacion).toLocaleDateString()} ${new Date(c.fecha_creacion).toLocaleTimeString()}</small>
+            <span class="read-status-offcanvas">
+              <i class="bx bx-check unread-icon"></i> <!-- Siempre 'nuevo' aquí inicialmente -->
+            </span>
           </div>`;
-        // **CAMBIADO**: Abre el nuevo modal de ver mensaje al hacer clic
-        card.addEventListener('click', () => abrirModalVerMensaje(c));
+        
+        // Abre el modal de ver mensaje Y MARCA COMO LEÍDO al hacer clic en la tarjeta
+        card.addEventListener('click', async (event) => {
+            const clickedCard = event.currentTarget;
+            const comentarioId = clickedCard.dataset.comentarioId;
+            const comentarioData = JSON.parse(clickedCard.dataset.comentarioData);
+
+            await abrirModalVerMensaje(comentarioData); // Abre el modal
+
+            // Marcar como leído en el backend
+            await markCommentsAsRead([parseInt(comentarioId)]);
+
+            // Quitar el comentario del offcanvas inmediatamente
+            clickedCard.remove(); 
+
+            // CAMBIO CLAVE: Pequeña demora para asegurar que la DB se actualice antes de pedir el nuevo conteo.
+            setTimeout(() => {
+                if (window.updateUnreadCommentsCountFromNavbar) {
+                    console.log("Notificando al navbar para actualizar el conteo después de un breve retraso.");
+                    window.updateUnreadCommentsCountFromNavbar();
+                }
+            }, 200); // 200ms de retraso
+        });
         container.appendChild(card);
       });
-    } catch (error) {
-      console.error('Error cargando comentarios para el estudiante:', error);
+
+    }                       catch (error) {
+      console.error('Error cargando comentarios para el offcanvas:', error);
       container.innerHTML = `<p class="text-center text-danger p-4">Error al cargar comentarios.</p>`;
-      mostrarToastError(`Error al cargar comentarios: ${error.message}`);
     }
   }
 
-  // **NUEVA FUNCIÓN**: Abrir modal para ver el mensaje completo de un comentario
+  // Función para abrir modal para ver el mensaje completo del comentario (Mantenida de tu código)
   function abrirModalVerMensaje(comentario) {
-    document.getElementById('remitenteNombre').textContent = `${comentario.nombre_emisor} ${comentario.apellido_emisor}`;
+    document.getElementById('remitenteNombre').textContent = `${comentario.nombre_profesor} ${comentario.apellido_profesor}`; 
     document.getElementById('remitenteRol').textContent = comentario.rol_emisor;
-    document.getElementById('mensajeFecha').textContent = comentario.fecha_hora_formateada;
+    document.getElementById('mensajeFecha').textContent = new Date(comentario.fecha_creacion).toLocaleDateString() + ' ' + new Date(comentario.fecha_creacion).toLocaleTimeString(); 
     document.getElementById('actividad').textContent = comentario.nombre_actividad;
-    document.getElementById('mensajeCompleto').textContent = comentario.mensaje;
+    document.getElementById('mensajeCompleto').textContent = comentario.contenido;
 
     const modalVerMensaje = new bootstrap.Modal(document.getElementById('modalVerMensaje'));
     modalVerMensaje.show();
   }
 
+  /**
+   * @function markCommentsAsRead
+   * @description Llama a la API para marcar un array de comentarios como leídos.
+   * Esta función es llamada desde `Comentarios.astro` (la página principal de comentarios)
+   * y ahora también desde el `estd-.txt` (navbar) al abrir el modal de comentario.
+   * @param {number[]} ids - Array de IDs de comentarios a marcar como leídos.
+   */
+  async function markCommentsAsRead(ids) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/comentarios/marcar-leido`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comentarioIds: ids }),
+        credentials: 'include'
+      });
 
-  // 6) Configurar logout
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
+        throw new Error(`Error HTTP! Estado: ${response.status}. Detalles: ${errorData.error}`);
+      }
+
+      const result = await response.json();
+      console.log("Respuesta de marcar como leído:", result.message);
+
+    } catch (error) {
+      console.error("Error al marcar comentarios como leídos en el backend:", error);
+    }
+  }
+
+
+  // 6) Configurar logout (Mantenida de tu código)
   function configurarLogout() {
     const btn = document.getElementById('logoutButton');
     if (!btn) {
@@ -329,9 +512,9 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
       return;
     }
     btn.addEventListener('click', async (event) => {
-      event.preventDefault(); // Evita el comportamiento por defecto del botón
+      event.preventDefault(); 
       try {
-        const response = await fetch('http://localhost:3001/logout', {
+        const response = await fetch('http://localhost:3001/logout', { 
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -342,10 +525,8 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
         if (response.ok) {
           const data = await response.json();
           console.log('Respuesta del backend al logout:', data.message);
-          // Opcional: Elimina cualquier bandera de sesión que tengas en localStorage
-          localStorage.removeItem('isLoggedIn');
-          // Redirige al usuario
-          window.location.href = '/';
+          localStorage.removeItem('isLoggedIn'); 
+          window.location.href = '/'; 
         } else {
           const errorData = await response.json();
           console.error('Error al cerrar sesión en el backend:', errorData.error || response.statusText);
@@ -358,11 +539,144 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
     });
   }
 
-  // --- LAS SIGUIENTES FUNCIONES HAN SIDO ELIMINADAS/COMENTADAS ---
-  // Las funciones `abrirModalAsignacion`, `cargarSelect` y `configurarAsignacion`
-  // son para la gestión de usuarios (admin) y no son parte de la funcionalidad
-  // del menú de navegación de un estudiante. Para mantener el código limpio y
-  // enfocado al rol del archivo, se asume que esta lógica se encuentra
-  // en los archivos correspondientes al panel de administración.
-  // Si las necesitas en otro contexto, deberás gestionarlas allí.
+  // Se mantiene tu lógica de redirección para editar perfil
+  const editProfileNavButton = document.getElementById('editProfileNavButton');
+  if (editProfileNavButton) {
+    editProfileNavButton.addEventListener('click', () => {
+      window.location.href = '/Students-Control/Editar-perfil'; 
+    });
+  }
+
 </script>
+
+<style>
+  /* Asegúrate de que estos estilos estén en tu NavigationBar.css o un archivo CSS importado. */
+  .notification-container {
+    position: relative;
+    display: inline-block; /* Para que el badge se posicione relativo a él */
+  }
+
+  .notification-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: var(--color-danger); /* Color rosado */
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 0.7em;
+    line-height: 1;
+    font-weight: bold;
+    display: none; /* Por defecto, oculto */
+    z-index: 10;
+    transform: translate(50%, -50%);
+  }
+
+  .notification-badge.visible {
+    display: block; /* Se muestra cuando hay notificaciones */
+  }
+
+  /* Nuevos estilos para el estado de leído en el offcanvas */
+  .notificacion-item {
+    display: flex;
+    align-items: flex-start; /* Alineación superior para el icono */
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    position: relative; /* Para posicionar el check de leído */
+  }
+
+  .notificacion-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .notification-content {
+    flex-shrink: 0; /* Evita que el icono se encoja */
+  }
+
+  .notification-content i.bx {
+    font-size: 24px;
+    color: var(--color-secondary); /* Color para el icono de usuario/libro */
+  }
+
+  .notification-text {
+    flex-grow: 1;
+  }
+
+  .name-user-notifi {
+    font-size: 0.95em;
+    font-weight: bold;
+    color: var(--color-primary); /* Color para el nombre del remitente */
+    margin-bottom: 2px;
+  }
+
+  .name-user-notifi span {
+    font-weight: normal;
+    color: var(--color-text-light); /* Color más claro para el rol */
+    font-size: 0.85em;
+  }
+
+  .message-user-notifi {
+    font-size: 0.9em;
+    color: var(--color-text); /* Color para el mensaje */
+    margin-bottom: 2px;
+  }
+
+  .message-user-notifi-short { /* Estilo para el snippet del mensaje */
+    font-size: 0.85em;
+    color: var(--color-text-light);
+    margin-bottom: 2px;
+  }
+
+  .text-info {
+    font-size: 0.75em;
+    color: var(--color-info); /* Un color azul claro o gris para la fecha */
+  }
+
+  .read-status-offcanvas {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.1em;
+  }
+
+  .read-status-offcanvas .read-icon {
+    color: var(--color-success); /* Verde para leído */
+  }
+
+  .read-status-offcanvas .unread-icon {
+    color: var(--color-warning); /* Naranja/amarillo para no leído */
+  }
+
+  /* Estilos para el botón "Ver todos los comentarios" */
+  .btn-view-all {
+    display: block;
+    width: calc(100% - 20px); /* Ajusta el ancho para dejar padding */
+    margin: 10px auto; /* Centra y da espacio */
+    padding: 8px 15px;
+    background-color: var(--color-primary); /* Color de fondo personalizado */
+    color: white;
+    text-align: center;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-view-all:hover {
+    background-color: var(--color-primary-dark); /* Color más oscuro al pasar el ratón */
+    color: white;
+  }
+
+  /* Asegúrate de que tus variables CSS como --color-danger, --color-primary, etc. estén definidas en NavigationBar.css */
+
+  /* Estilos movidos del HTML a CSS */
+  .modal-activity-title {
+    font-size: 20px;
+  }
+
+  .modal-message-content {
+    font-size: 16px;
+  }
+</style>

@@ -408,116 +408,128 @@ router.get('/profesores/:id/academico', (req, res) => {
 // ... (imports y otras rutas existentes) ...
 
 router.get('/profesor/mis-materias', /*isAuthenticated,*/ async (req, res) => {
-  // Si tu middleware isAuthenticated adjunta el ID del usuario como req.user.id_usuario, úsalo directamente.
-  // Si no tienes autenticación aún o para pruebas, puedes usar un ID fijo:
-  const id_profesor = req.session.usuario ? req.session.usuario.id : null; 
+    // Si tu middleware isAuthenticated adjunta el ID del usuario como req.user.id_usuario, úsalo directamente.
+    // Si no tienes autenticación aún o para pruebas, puedes usar un ID fijo:
+    const id_profesor = req.session.usuario ? req.session.usuario.id : null; 
 
-  console.log("DEBUG: ID de profesor de la sesión:", id_profesor); // Para depuración
+    console.log("DEBUG: ID de profesor de la sesión:", id_profesor); // Para depuración
 
-  if (!id_profesor) {
-      // Si no hay ID de profesor en la sesión, el usuario no está autorizado
-      return res.status(401).json({ error: 'No autorizado: ID de profesor no disponible en la sesión. Por favor, inicia sesión.' });
-  }
+    if (!id_profesor) {
+        // Si no hay ID de profesor en la sesión, el usuario no está autorizado
+        return res.status(401).json({ error: 'No autorizado: ID de profesor no disponible en la sesión. Por favor, inicia sesión.' });
+    }
 
+    console.log(`DEBUG: Obteniendo materias para el profesor con ID: ${id_profesor}`);
 
-  console.log(`DEBUG: Obteniendo materias para el profesor con ID: ${id_profesor}`);
+    try {
+        const query = `
+            SELECT
+                m.id_materia,
+                m.materia AS nombre_materia,
+                c.id_curso,
+                c.curso AS nombre_curso,
+                s.id_seccion,
+                s.seccion AS nombre_seccion,
+                p.id_periodo,
+                p.periodo AS nombre_periodo,
+                (
+                    -- Contar estudiantes para esta combinación específica de materia-sección-período
+                    SELECT COUNT(DISTINCT um_est.id_usuario)
+                    FROM usuario_materias um_est
+                    JOIN usuarios u_est ON um_est.id_usuario = u_est.id_usuario
+                    -- Unir a materias_seccion y materias_periodo para filtrar por sección y período
+                    JOIN materias_seccion ms_sub ON um_est.id_materia = ms_sub.id_materia
+                    JOIN materias_periodo mp_sub ON um_est.id_materia = mp_sub.id_materia
+                    WHERE um_est.id_materia = um.id_materia       -- Coincidir con la materia de la consulta externa
+                      AND um_est.id_periodo = um.id_periodo       -- Coincidir con el período de la asignación del profesor
+                      AND ms_sub.id_seccion = ms.id_seccion       -- Coincidir con la sección de la unión externa
+                      AND mp_sub.id_periodo = um.id_periodo       -- Asegurar consistencia con el período
+                      AND u_est.rol = 'estudiante'
+                ) AS total_estudiantes
+            FROM usuario_materias um -- Empezar por las asignaciones específicas del profesor
+            JOIN usuarios u ON um.id_usuario = u.id_usuario
+            JOIN materias m ON um.id_materia = m.id_materia
+            LEFT JOIN cursos c ON m.id_curso = c.id_curso
+            
+            -- Unir para obtener la información de la sección de la materia
+            JOIN materias_seccion ms ON m.id_materia = ms.id_materia
+            JOIN seccion s ON ms.id_seccion = s.id_seccion
+            
+            -- Unir para obtener la información del período, ¡CRUCIALMENTE usando um.id_periodo para la coincidencia!
+            JOIN materias_periodo mp ON um.id_materia = mp.id_materia AND um.id_periodo = mp.id_periodo
+            JOIN periodo p ON um.id_periodo = p.id_periodo 
+            
+            WHERE u.rol = 'profesor' AND u.id_usuario = ?
+            GROUP BY m.id_materia, c.id_curso, s.id_seccion, p.id_periodo
+            ORDER BY p.periodo DESC, s.seccion, m.materia;
+        `;
+        db.query(query, [id_profesor], (err, results) => {
+            if (err) {
+                console.error("❌ Error al obtener materias del profesor:", err);
+                return res.status(500).json({ error: "Error al obtener materias del profesor", detalle: err.message });
+            }
+            res.json(results);
+        });
 
-  try {
-      const query = `
-          SELECT
-              m.id_materia,
-              m.materia AS nombre_materia,
-              c.id_curso,
-              c.curso AS nombre_curso,
-              s.id_seccion,
-              s.seccion AS nombre_seccion,
-              p.id_periodo,
-              p.periodo AS nombre_periodo,
-              (
-                  SELECT COUNT(DISTINCT um_est.id_usuario)
-                  FROM usuario_materias um_est
-                  JOIN usuarios u_est ON um_est.id_usuario = u_est.id_usuario
-                  WHERE um_est.id_materia = m.id_materia AND u_est.rol = 'estudiante'
-              ) AS total_estudiantes
-          FROM materias m
-          JOIN usuario_materias um ON m.id_materia = um.id_materia
-          JOIN usuarios u ON um.id_usuario = u.id_usuario
-          LEFT JOIN cursos c ON m.id_curso = c.id_curso
-          LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia
-          LEFT JOIN seccion s ON ms.id_seccion = s.id_seccion
-          LEFT JOIN materias_periodo mp ON m.id_materia = mp.id_materia
-          LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
-          WHERE u.rol = 'profesor' AND u.id_usuario = ?
-          GROUP BY m.id_materia, c.id_curso, s.id_seccion, p.id_periodo
-          ORDER BY m.materia; -- Se corrigió 'm.nombre_materia' a 'm.materia'
-      `;
-      db.query(query, [id_profesor], (err, results) => {
-          if (err) {
-              console.error("❌ Error al obtener materias del profesor:", err);
-              return res.status(500).json({ error: "Error al obtener materias del profesor", detalle: err.message });
-          }
-          res.json(results);
-      });
-
-  } catch (error) {
-      console.error("❌ Error en la ruta /profesor/mis-materias:", error);
-      res.status(500).json({ error: "Error interno del servidor", detalle: error.message });
-  }
+    } catch (error) {
+        console.error("❌ Error en la ruta /profesor/mis-materias:", error);
+        res.status(500).json({ error: "Error interno del servidor", detalle: error.message });
+    }
 });
+
 
 router.get('/profesor/sidebard', /*isAuthenticated,*/ async (req, res) => {
-  // If your isAuthenticated middleware attaches the user ID as req.user.id_usuario, use it directly.
-  // If you don't have authentication yet or for testing, you can use a fixed ID:
-  const id_profesor = req.session.usuario ? req.session.usuario.id : null; 
+    // Si tu middleware isAuthenticated adjunta el ID del usuario como req.user.id_usuario, úsalo directamente.
+    // Si no tienes autenticación aún o para pruebas, puedes usar un ID fijo:
+    const id_profesor = req.session.usuario ? req.session.usuario.id : null; 
 
-  console.log("DEBUG: Professor ID from session:", id_profesor); // For debugging
+    console.log("DEBUG: Professor ID from session:", id_profesor); // For debugging
 
-  if (!id_profesor) {
-      // If there's no professor ID in the session, the user is not authorized
-      return res.status(401).json({ error: 'Unauthorized: Professor ID not available in session. Please log in.' });
-  }
+    if (!id_profesor) {
+        // Si no hay ID de profesor en la sesión, el usuario no está autorizado
+        return res.status(401).json({ error: 'Unauthorized: Professor ID not available in session. Please log in.' });
+    }
 
+    console.log(`DEBUG: Getting subjects for professor with ID: ${id_profesor}`);
 
-  console.log(`DEBUG: Getting subjects for professor with ID: ${id_profesor}`);
+    try {
+        const query = `
+            SELECT
+                m.id_materia,
+                m.materia AS nombre_materia,
+                c.id_curso,
+                c.curso AS nombre_curso,
+                s.id_seccion,
+                s.seccion AS nombre_seccion,
+                p.id_periodo,
+                p.periodo AS nombre_periodo
+            FROM usuario_materias um -- Empezar por las asignaciones específicas del profesor
+            JOIN usuarios u ON um.id_usuario = u.id_usuario
+            JOIN materias m ON um.id_materia = m.id_materia
+            LEFT JOIN cursos c ON m.id_curso = c.id_curso
+            
+            -- Unir para obtener la información de la sección de la materia
+            JOIN materias_seccion ms ON m.id_materia = ms.id_materia
+            JOIN seccion s ON ms.id_seccion = s.id_seccion
+            
+            -- Unir para obtener la información del período, ¡CRUCIALMENTE usando um.id_periodo para la coincidencia!
+            JOIN materias_periodo mp ON um.id_materia = mp.id_materia AND um.id_periodo = mp.id_periodo
+            JOIN periodo p ON um.id_periodo = p.id_periodo 
+            
+            WHERE u.rol = 'profesor' AND u.id_usuario = ?
+            GROUP BY m.id_materia, c.id_curso, s.id_seccion, p.id_periodo
+            ORDER BY p.periodo DESC, s.seccion, m.materia;
+        `;
+        // Using db.promise().query for consistency with other routes in this file
+        const [results] = await db.promise().query(query, [id_profesor]);
+        res.json(results);
 
-  try {
-      const query = `
-          SELECT
-              m.id_materia,
-              m.materia AS nombre_materia,
-              c.id_curso,
-              c.curso AS nombre_curso,
-              s.id_seccion,
-              s.seccion AS nombre_seccion,
-              p.id_periodo,
-              p.periodo AS nombre_periodo,
-              (
-                  SELECT COUNT(DISTINCT um_est.id_usuario)
-                  FROM usuario_materias um_est
-                  JOIN usuarios u_est ON um_est.id_usuario = u_est.id_usuario
-                  WHERE um_est.id_materia = m.id_materia AND u_est.rol = 'estudiante'
-              ) AS total_estudiantes
-          FROM materias m
-          JOIN usuario_materias um ON m.id_materia = um.id_materia
-          JOIN usuarios u ON um.id_usuario = u.id_usuario
-          LEFT JOIN cursos c ON m.id_curso = c.id_curso
-          LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia
-          LEFT JOIN seccion s ON ms.id_seccion = s.id_seccion
-          LEFT JOIN materias_periodo mp ON m.id_materia = mp.id_materia
-          LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
-          WHERE u.rol = 'profesor' AND u.id_usuario = ?
-          GROUP BY m.id_materia, c.id_curso, s.id_seccion, p.id_periodo
-          ORDER BY m.materia; -- Corrected 'm.nombre_materia' to 'm.materia'
-      `;
-      // Using db.promise().query for consistency with other routes in this file
-      const [results] = await db.promise().query(query, [id_profesor]);
-      res.json(results);
-
-  } catch (error) {
-      console.error("❌ Error getting professor's subjects:", error);
-      res.status(500).json({ error: "Error getting professor's subjects", detalle: error.message });
-  }
+    } catch (error) {
+        console.error("❌ Error getting professor's subjects for sidebar:", error);
+        res.status(500).json({ error: "Error getting professor's subjects for sidebar", detalle: error.message });
+    }
 });
+
 
 
 export default router;

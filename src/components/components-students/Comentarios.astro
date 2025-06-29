@@ -1,0 +1,240 @@
+---
+// src/pages/Students-Control/Comentarios.astro
+import "../../style/style-students/comentarios.css"; // Puedes reutilizar estilos si aplican, o crear uno específico.
+// Asegúrate de que el componente de sidebar esté importado si lo usas aquí (no incluido en este snippet)
+// import Sidebar from '../../components/Sidebar.astro';
+// import import Navbar from '../../components/Navbar.astro'; // Si el Navbar es un componente aparte
+---
+
+<section class="data-content-section">
+  <!-- Título principal de la sección -->
+  <section class="comentarios-header-card mb-4">
+    <div class="welcome-search-data">
+      <h2 class="welcome-search-data__title">Mis Comentarios y Notificaciones</h2>
+      <button class="btn btn-outline-secondary btn-sm ms-auto" id="btnVolverHome" type="button">
+        <i class='bx bx-arrow-back'></i> Volver a Página Principal
+      </button>
+    </div>
+  </section>
+
+  <!-- Sección de Tabla de Comentarios -->
+  <div class="content-info-data">
+    <div class="display-table mt-4" id="tableComentariosContainer">
+      <div class="tabla-info-person tabla-scroll">
+        <table class="table table-dark table-striped">
+          <thead>
+            <tr>
+              <th>Profesor</th>
+              <th>Actividad</th>
+              <th>Comentario</th>
+              <th>Fecha</th>
+              <th>Estado</th> <!-- Nueva columna para el estado de lectura -->
+            </tr>
+          </thead>
+          <tbody id="comentariosTableBody">
+            <!-- Los comentarios se cargarán aquí dinámicamente -->
+            <tr><td colspan="5">Cargando comentarios...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p id="no-comentarios-message" class="alert alert-info mt-3">No tienes comentarios.</p>
+    <p id="error-comentarios-message" class="alert alert-danger mt-3">Error al cargar los comentarios.</p>
+  </div>
+</section>
+
+<script type="module">
+  const API_BASE_URL = 'http://localhost:3001/api';
+
+  // Define la función para mostrar alertas (debería ser la misma que en tu sidebar y otras páginas)
+  let globalMostrarAlerta;
+
+  // Lógica de carga de Bootstrap JS
+  const loadBootstrapPromise = new Promise((resolve, reject) => {
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal && bootstrap.Alert) {
+      console.log("Bootstrap ya cargado en el ámbito global en Comentarios.");
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js";
+    script.integrity = "sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz";
+    script.crossOrigin = "anonymous";
+    script.onload = () => {
+      console.log("Bootstrap JS cargado dinámicamente en Comentarios.");
+      setTimeout(resolve, 50);
+    };
+    script.onerror = (e) => {
+      console.error("Fallo al cargar el script de Bootstrap JS en Comentarios:", e);
+      reject(new Error("El script de Bootstrap falló en cargar."));
+    };
+    document.head.appendChild(script);
+  });
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    console.log("Comentarios DOMContentLoaded: Iniciando script.");
+    try {
+      await loadBootstrapPromise;
+      console.log("Comentarios: Bootstrap JS disponible.");
+
+      globalMostrarAlerta = function(mensaje, tipo, duracion = 5000) {
+        const alertContainer = document.getElementById('alertContainer') || (() => {
+          const div = document.createElement('div');
+          div.id = 'alertContainer';
+          div.style.position = 'fixed';
+          div.style.top = '20px';
+          div.style.left = '50%';
+          div.style.transform = 'translateX(-50%)';
+          div.style.zIndex = '9999';
+          div.style.width = 'auto';
+          div.style.maxWidth = '90%';
+          document.body.appendChild(div);
+          return div;
+        })();
+
+        const alertElement = document.createElement('div');
+        alertElement.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertElement.role = 'alert';
+        alertElement.textContent = mensaje;
+        alertContainer.appendChild(alertElement);
+
+        setTimeout(() => {
+          if (alertElement.parentNode) {
+            const bsAlert = new bootstrap.Alert(alertElement);
+            bsAlert.dispose();
+          }
+        }, duracion);
+      };
+
+      // Se carga y muestra los comentarios, y se marcan como leídos aquí.
+      await fetchAndDisplayComentarios();
+
+      // Listener para el botón "Volver a Página Principal"
+      const btnVolverHome = document.getElementById('btnVolverHome');
+      if (btnVolverHome) {
+        btnVolverHome.addEventListener('click', () => {
+          window.location.href = '/Students-Control/Students-Control';
+        });
+      }
+
+    } catch (error) {
+      console.error("Error crítico en el script de Comentarios:", error);
+      if (typeof alert !== 'undefined') {
+        alert("Error crítico al cargar la página de comentarios. Detalles: " + error.message);
+      }
+    }
+  });
+
+  /**
+   * @function fetchAndDisplayComentarios
+   * @description Obtiene y muestra los comentarios del estudiante, y marca los no leídos como leídos.
+   */
+  async function fetchAndDisplayComentarios() {
+    const comentariosTableBody = document.getElementById('comentariosTableBody');
+    const noComentariosMessage = document.getElementById('no-comentarios-message');
+    const errorComentariosMessage = document.getElementById('error-comentarios-message');
+    const tableComentariosContainer = document.getElementById('tableComentariosContainer');
+
+    comentariosTableBody.innerHTML = '<tr><td colspan="5" class="text-center">Cargando comentarios...</td></tr>';
+    noComentariosMessage.style.display = 'none';
+    errorComentariosMessage.style.display = 'none';
+    tableComentariosContainer.style.display = 'block'; // Asegura que la tabla esté visible por defecto
+
+    let unreadCommentIds = []; // Para almacenar IDs de comentarios no leídos
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/comentarios`, { 
+        method: 'GET',
+        credentials: 'include' // Importante para enviar cookies de sesión
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Error desconocido" }));
+        throw new Error(`Error HTTP! Estado: ${res.status}. Detalles: ${errorData.error}`);
+      }
+
+      const { comentarios } = await res.json();
+      console.log("Comentarios recibidos:", comentarios);
+
+      comentariosTableBody.innerHTML = ''; // Limpiar el mensaje de carga
+
+      if (comentarios.length === 0) {
+        noComentariosMessage.style.display = 'block';
+        tableComentariosContainer.style.display = 'none'; // Ocultar la tabla si no hay comentarios
+        return;
+      }
+
+      comentarios.forEach((comentario) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${comentario.nombre_profesor} ${comentario.apellido_profesor}</td>
+          <td>${comentario.nombre_actividad || 'N/A'}</td>
+          <td>${comentario.contenido}</td>
+          <td>${new Date(comentario.fecha_creacion).toLocaleDateString()} ${new Date(comentario.fecha_creacion).toLocaleTimeString()}</td>
+          <td>
+            <span class="read-status" data-comentario-id="${comentario.id_comentario}">
+              ${comentario.leido_por_estudiante ? '<i class="bx bx-check-double read-icon"></i> Leído' : '<i class="bx bx-check unread-icon"></i> Nuevo'}
+            </span>
+          </td>
+        `;
+        comentariosTableBody.appendChild(row);
+
+        if (!comentario.leido_por_estudiante) {
+          unreadCommentIds.push(comentario.id_comentario);
+        }
+      });
+
+      // Si hay comentarios no leídos, marcarlos como leídos en el backend
+      if (unreadCommentIds.length > 0) {
+        console.log("Marcando comentarios como leídos:", unreadCommentIds);
+        await markCommentsAsRead(unreadCommentIds);
+        // Notificar al navbar para actualizar su conteo después de una breve demora
+        setTimeout(() => {
+            if (window.updateUnreadCommentsCountFromNavbar) {
+                 console.log("Notificando al navbar para actualizar el conteo desde Comentarios.astro.");
+                 window.updateUnreadCommentsCountFromNavbar();
+            } else {
+                 console.warn("La función updateUnreadCommentsCountFromNavbar no está disponible globalmente.");
+            }
+        }, 200); // Pequeña demora para asegurar que la DB se actualice
+      }
+
+    } catch (error) {
+      console.error('Error al cargar y mostrar comentarios:', error);
+      comentariosTableBody.innerHTML = ''; // Limpiar el mensaje de carga
+      errorComentariosMessage.style.display = 'block';
+      globalMostrarAlerta(`Error al cargar los comentarios: ${error.message}`, 'danger');
+    }
+  }
+
+  /**
+   * @function markCommentsAsRead
+   * @description Llama a la API para marcar un array de comentarios como leídos.
+   * @param {number[]} ids - Array de IDs de comentarios a marcar como leídos.
+   */
+  async function markCommentsAsRead(ids) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/comentarios/marcar-leido`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comentarioIds: ids }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
+        throw new Error(`Error HTTP! Estado: ${response.status}. Detalles: ${errorData.error}`);
+      }
+
+      const result = await response.json();
+      console.log("Respuesta de marcar como leído:", result.message);
+
+    } catch (error) {
+      console.error("Error al marcar comentarios como leídos en el backend:", error);
+    }
+  }
+</script>
+

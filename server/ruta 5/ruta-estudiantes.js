@@ -451,18 +451,18 @@ router.get('/estudiantes/:id/academico', (req, res) => {
 
 
 router.get('/estudiantes/mis-materias', /*isAuthenticated,*/ async (req, res) => {
-    // Si tu middleware isAuthenticated adjunta el ID del usuario como req.user.id_usuario, úsalo directamente.
-    // Si no tienes autenticación aún o para pruebas, puedes usar un ID fijo:
+    // If your isAuthenticated middleware attaches the user ID as req.user.id_usuario, use it directly.
+    // If you don't have authentication yet or for testing, you can use a fixed ID:
     const id_estudiante = req.session.usuario ? req.session.usuario.id : null; 
 
-    console.log("DEBUG: ID de estudiante de la sesión:", id_estudiante); // Para depuración
+    console.log("DEBUG: Student ID from session:", id_estudiante); // For debugging
 
     if (!id_estudiante) {
-        // Si no hay ID de estudiante en la sesión, el usuario no está autorizado
-        return res.status(401).json({ error: 'No autorizado: ID de estudiante no disponible en la sesión. Por favor, inicia sesión.' });
+        // If there's no student ID in the session, the user is not authorized
+        return res.status(401).json({ error: 'Unauthorized: Student ID not available in session. Please log in.' });
     }
 
-    console.log(`DEBUG: Obteniendo materias para el estudiante con ID: ${id_estudiante}`);
+    console.log(`DEBUG: Getting subjects for student with ID: ${id_estudiante}`);
 
     try {
         const query = `
@@ -475,45 +475,66 @@ router.get('/estudiantes/mis-materias', /*isAuthenticated,*/ async (req, res) =>
                 s.seccion AS nombre_seccion,
                 p.id_periodo,
                 p.periodo AS nombre_periodo,
+                -- Subquery to count students in this specific subject-section-period combination
+                -- This subquery now correctly references ms.id_seccion and um_est.id_periodo
                 (
                     SELECT COUNT(DISTINCT um_est.id_usuario)
                     FROM usuario_materias um_est
                     JOIN usuarios u_est ON um_est.id_usuario = u_est.id_usuario
-                    WHERE um_est.id_materia = m.id_materia AND u_est.rol = 'estudiante'
+                    -- Join to materias_seccion and materias_periodo to filter by section and period
+                    JOIN materias_seccion ms_est ON um_est.id_materia = ms_est.id_materia
+                    JOIN materias_periodo mp_est ON um_est.id_materia = mp_est.id_materia
+                    WHERE um_est.id_materia = um.id_materia
+                      AND ms_est.id_seccion = ms.id_seccion -- Use ms.id_seccion from outer query's join
+                      AND um_est.id_periodo = um.id_periodo -- Use um.id_periodo from outer query's main table
+                      AND u_est.rol = 'estudiante'
                 ) AS total_estudiantes,
-                -- Agregado para buscar el profesor asignado a la materia usando una subconsulta
+                -- Subquery to get the professor assigned to this specific combination
+                -- This subquery now correctly references ms.id_seccion and um_prof_sub.id_periodo
                 (
                     SELECT CONCAT(prof_sub.primer_nombre, ' ', prof_sub.primer_apellido)
                     FROM usuario_materias um_prof_sub
                     JOIN usuarios prof_sub ON um_prof_sub.id_usuario = prof_sub.id_usuario
-                    WHERE um_prof_sub.id_materia = m.id_materia AND prof_sub.rol = 'profesor'
-                    LIMIT 1 -- Limita a un solo profesor si hay múltiples asignados a la misma materia
+                    -- Join to materias_seccion and materias_periodo to filter by section and period
+                    JOIN materias_seccion ms_prof_sub ON um_prof_sub.id_materia = ms_prof_sub.id_materia
+                    JOIN materias_periodo mp_prof_sub ON um_prof_sub.id_materia = mp_prof_sub.id_materia
+                    WHERE um_prof_sub.id_materia = um.id_materia
+                      AND ms_prof_sub.id_seccion = ms.id_seccion -- Use ms.id_seccion from outer query's join
+                      AND um_prof_sub.id_periodo = um.id_periodo -- Use um.id_periodo from outer query's main table
+                      AND prof_sub.rol = 'profesor'
+                    LIMIT 1
                 ) AS nombre_completo_profesor
-            FROM materias m
-            JOIN usuario_materias um ON m.id_materia = um.id_materia
+            FROM usuario_materias um -- Start from the direct association table which has id_periodo
             JOIN usuarios u ON um.id_usuario = u.id_usuario
+            JOIN materias m ON um.id_materia = m.id_materia
             LEFT JOIN cursos c ON m.id_curso = c.id_curso
-            LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia
-            LEFT JOIN seccion s ON ms.id_seccion = s.id_seccion
-            LEFT JOIN materias_periodo mp ON m.id_materia = mp.id_materia
-            LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
-            WHERE u.rol = 'estudiante' AND u.id_usuario = ?
-            GROUP BY m.id_materia, c.id_curso, s.id_seccion, p.id_periodo -- Grupo por las claves primarias de la materia para evitar duplicación
-            ORDER BY m.materia;
+            -- Join to materias_seccion and then seccion to get section details
+            JOIN materias_seccion ms ON m.id_materia = ms.id_materia
+            JOIN seccion s ON ms.id_seccion = s.id_seccion
+            -- Join directly to periodo from usuario_materias since it has id_periodo
+            JOIN periodo p ON um.id_periodo = p.id_periodo 
+            WHERE u.rol = 'estudiante' 
+              AND u.id_usuario = ?
+            GROUP BY m.id_materia, c.id_curso, s.id_seccion, p.id_periodo 
+            ORDER BY p.periodo DESC, s.seccion, m.materia;
         `;
         db.query(query, [id_estudiante], (err, results) => {
             if (err) {
-                console.error("❌ Error al obtener materias del estudiante:", err);
-                return res.status(500).json({ error: "Error al obtener materias del estudiante", detalle: err.message });
+                console.error("❌ Error getting student's subjects:", err);
+                return res.status(500).json({ error: "Error getting student's subjects", detail: err.message });
             }
             res.json(results);
         });
 
     } catch (error) {
-        console.error("❌ Error en la ruta /estudiantes/mis-materias:", error);
-        res.status(500).json({ error: "Error interno del servidor", detalle: error.message });
+        console.error("❌ Error in /estudiantes/mis-materias route:", error);
+        res.status(500).json({ error: "Internal server error", detail: error.message });
     }
 });
+
+
+
+
 
 
 /**
@@ -526,52 +547,69 @@ router.get('/estudiantes/mis-materias', /*isAuthenticated,*/ async (req, res) =>
  * @returns {json} Lista de notas paginadas con detalles de actividad y comentarios.
  */
 router.get('/notas/materia/:id_materia/estudiante/:id_usuario', async (req, res) => {
-  const { id_materia, id_usuario } = req.params;
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const offset = (page - 1) * limit;
+    const { id_materia, id_usuario } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const { id_periodo } = req.query; // ¡Ahora obtenemos el id_periodo de los query parameters!
 
-  try {
-      // Consulta para el conteo total de notas del estudiante para esa materia
-      const countSql = `
-          SELECT COUNT(n.id_nota) AS total
-          FROM notas n
-          JOIN actividades a ON n.id_actividad = a.id_actividad
-          WHERE a.id_materia = ? AND n.id_estudiante = ?
-      `;
-      const [[{ total }]] = await db.promise().query(countSql, [id_materia, id_usuario]);
-      const totalCount = total;
-      const totalPages = Math.ceil(totalCount / limit);
+    // Validar que id_periodo esté presente
+    if (!id_periodo) {
+        return res.status(400).json({ error: 'Debes especificar el ID del periodo para obtener las notas.' });
+    }
 
-      // Consulta para obtener las notas del estudiante para la materia con detalles de actividad y comentarios
-      const sql = `
-          SELECT
-              n.id_nota,
-              n.nota,
-              n.fecha_registro,
-              n.id_estudiante,
-              a.id_actividad,
-              a.nombre_actividad,
-              a.descripcion AS descripcion_actividad,
-              a.ponderacion,
-              c.mensaje AS comentario_actividad,    -- Mensaje del comentario de la tabla 'comentarios'
-              a.fecha_creacion AS fecha_comentario      -- Fecha del comentario de la tabla 'comentarios'
-          FROM notas n
-          JOIN actividades a ON n.id_actividad = a.id_actividad
-          LEFT JOIN comentarios c ON n.id_estudiante = c.id_estudiante AND n.id_actividad = c.id_actividad
-          WHERE a.id_materia = ? AND n.id_estudiante = ?
-          ORDER BY n.fecha_registro DESC
-          LIMIT ? OFFSET ?
-      `;
-      const [notas] = await db.promise().query(sql, [id_materia, id_usuario, limit, offset]);
+    try {
+        // Consulta para el conteo total de notas del estudiante para esa materia y período
+        const countSql = `
+            SELECT COUNT(n.id_nota) AS total
+            FROM notas n
+            JOIN actividades a ON n.id_actividad = a.id_actividad
+            WHERE n.id_estudiante = ? 
+              AND a.id_materia = ? 
+              AND a.id_periodo = ?
+        `;
+        const [[{ total }]] = await db.promise().query(countSql, [id_usuario, id_materia, id_periodo]);
+        const totalCount = total;
+        const totalPages = Math.ceil(totalCount / limit);
 
-      res.json({ notas, totalCount, totalPages, currentPage: page });
+        // Consulta para obtener las notas del estudiante para la materia y período con detalles de actividad y comentarios
+        const sql = `
+            SELECT
+                n.id_nota,
+                n.nota,
+                -- Usar COALESCE para asegurar que fecha_registro no sea NULL, o usar la fecha de comentario si es más relevante
+                COALESCE(n.fecha_registro, c.fecha_hora) AS fecha_registro, 
+                n.id_estudiante,
+                a.id_actividad,
+                a.nombre_actividad,
+                a.descripcion AS descripcion_actividad,
+                a.ponderacion,
+                c.mensaje AS comentarios, -- Se mantiene como 'comentarios' para el frontend
+                c.fecha_hora AS fecha_comentario_original -- Columna para depuración si es necesario
+            FROM notas n
+            JOIN actividades a ON n.id_actividad = a.id_actividad
+            LEFT JOIN comentarios c ON n.id_estudiante = c.id_estudiante AND n.id_actividad = c.id_actividad
+            WHERE n.id_estudiante = ? 
+              AND a.id_materia = ? 
+              AND a.id_periodo = ? 
+            ORDER BY n.fecha_registro DESC
+            LIMIT ? OFFSET ?
+        `;
+        const [notas] = await db.promise().query(sql, [id_usuario, id_materia, id_periodo, limit, offset]);
 
-  } catch (err) {
-      console.error('Error al obtener notas de la materia por usuario:', err);
-      res.status(500).json({ error: 'Error al obtener notas', detalle: err.message });
-  }
+        // Debugging: Log the notes data right before sending it to the frontend
+        console.log('DEBUG (API): Datos de notas enviados al frontend:', notas);
+
+        res.json({ notas, totalCount, totalPages, currentPage: page });
+
+    } catch (err) {
+        console.error('Error al obtener notas de la materia por usuario:', err);
+        res.status(500).json({ error: 'Error al obtener notas', detalle: err.message });
+    }
 });
+
+
+
 
 router.get('/notas/estudiante/:id_materia', async (req, res) => {
   const { id_materia } = req.params;
@@ -620,6 +658,50 @@ router.get('/notas/estudiante/:id_materia', async (req, res) => {
       res.status(500).json({ error: 'Error al obtener calificaciones', detalle: err.message });
   }
 });
+
+router.get('/estudiantes/sidebard', /*isAuthenticated,*/ async (req, res) => {
+    const id_estudiante = req.session.usuario ? req.session.usuario.id : null; 
+
+    console.log("DEBUG: Student ID from session (sidebar):", id_estudiante); 
+
+    if (!id_estudiante) {
+        return res.status(401).json({ error: 'Unauthorized: Student ID not available in session. Please log in.' });
+    }
+
+    console.log(`DEBUG: Getting subjects for student sidebar with ID: ${id_estudiante}`);
+
+    try {
+        const query = `
+            SELECT
+                m.id_materia,
+                m.materia AS nombre_materia,
+                p.id_periodo,
+                p.periodo AS nombre_periodo,
+                s.id_seccion,
+                s.seccion AS nombre_seccion,
+                c.id_curso,
+                c.curso AS nombre_curso
+            FROM usuario_materias um
+            JOIN usuarios u ON um.id_usuario = u.id_usuario
+            JOIN materias m ON um.id_materia = m.id_materia
+            JOIN periodo p ON um.id_periodo = p.id_periodo
+            JOIN materias_seccion ms ON m.id_materia = ms.id_materia
+            JOIN seccion s ON ms.id_seccion = s.id_seccion
+            LEFT JOIN cursos c ON m.id_curso = c.id_curso
+            WHERE u.rol = 'estudiante' AND u.id_usuario = ?
+            GROUP BY m.id_materia, p.id_periodo, s.id_seccion, c.id_curso
+            ORDER BY p.periodo DESC, m.materia;
+        `;
+        const [results] = await db.promise().query(query, [id_estudiante]);
+        res.json(results);
+
+    } catch (error) {
+        console.error("❌ Error getting student's subjects for sidebar:", error);
+        res.status(500).json({ error: "Error getting student's subjects for sidebar", detalle: error.message });
+    }
+});
+
+
 
 
 export default router;

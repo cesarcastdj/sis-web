@@ -165,56 +165,123 @@ router.get('/notificaciones', isAuthenticated, (req, res) => {
   });
 });
 
+// Asegúrate de importar tu conexión a la base de datos y la autenticación si es necesaria
+// const db = require('../config/db'); // O tu archivo de conexión
+// const router = require('express').Router();
+// const isAuthenticated = require('../middlewares/isAuthenticated'); // Si tienes un middleware de autenticación
+
+// API Principal: Ruta para obtener comentarios de un estudiante (modificada para usar la autenticación y el campo 'leido_por_estudiante')
 router.get('/comentarios', isAuthenticated, async (req, res) => {
-  // 1. Verificación de rol: Solo estudiantes pueden acceder a sus comentarios.
-  if (!req.session.usuario || req.session.usuario.rol !== 'estudiante') {
-    console.warn(`Intento de acceso no autorizado a /comentarios por usuario con rol: ${req.session.usuario?.rol || 'N/A'}`);
-    return res.status(403).json({ error: 'Acceso denegado: Solo los estudiantes pueden ver sus comentarios.' });
-  }
+    // 1. Verificación de rol: Solo estudiantes pueden acceder a sus comentarios.
+    if (!req.session.usuario || req.session.usuario.rol !== 'estudiante') {
+        console.warn(`Intento de acceso no autorizado a /comentarios por usuario con rol: ${req.session.usuario?.rol || 'N/A'}`);
+        return res.status(403).json({ error: 'Acceso denegado: Solo los estudiantes pueden ver sus comentarios.' });
+    }
 
-  // 2. Obtener el ID del estudiante desde la sesión del usuario autenticado.
-  const id_estudiante_actual = req.session.usuario.id; 
+    // 2. Obtener el ID del estudiante desde la sesión del usuario autenticado.
+    const id_estudiante_actual = req.session.usuario.id; 
 
-  if (!id_estudiante_actual) {
-      console.error("Error: ID de estudiante no encontrado en la sesión para /comentarios.");
-      return res.status(400).json({ error: 'ID de estudiante no disponible en la sesión.' });
-  }
+    if (!id_estudiante_actual) {
+        console.error("Error: ID de estudiante no encontrado en la sesión para /comentarios.");
+        return res.status(400).json({ error: 'ID de estudiante no disponible en la sesión.' });
+    }
 
-  console.log(`DEBUG: Obteniendo comentarios para el estudiante con ID: ${id_estudiante_actual}`);
+    console.log(`DEBUG: Obteniendo comentarios para el estudiante con ID: ${id_estudiante_actual}`);
 
-  try {
-    // 3. Consulta SQL para obtener los comentarios dirigidos a este estudiante,
-    // incluyendo la información del REMITENTE (profesor/administrador).
-    // Asume que la tabla 'comentarios' tiene una columna 'id_usuario' que guarda el ID del usuario remitente.
-    const query = `
-      SELECT 
-        c.id_comentario,
-        c.id_estudiante,
-        c.id_actividad,
-        a.nombre_actividad,
-        c.mensaje,
-        DATE_FORMAT(c.fecha_hora, '%d/%m/%Y %H:%i') AS fecha_hora_formateada, -- Formatear fecha/hora
-        u_emisor.primer_nombre AS nombre_emisor,
-        u_emisor.primer_apellido AS apellido_emisor,
-        u_emisor.rol AS rol_emisor,
-        u_emisor.cedula AS cedula_emisor
-      FROM comentarios c
-      JOIN actividades a ON c.id_actividad = a.id_actividad
-      JOIN usuarios u_emisor ON c.id_usuario = u_emisor.id_usuario -- Unir con usuarios para obtener datos del remitente (id_usuario en lugar de id_emisor)
-      WHERE c.id_estudiante = ?
-      ORDER BY c.fecha_hora DESC;
-    `;
-    
-    const [results] = await db.promise().query(query, [id_estudiante_actual]);
+    try {
+        // 3. Consulta SQL para obtener los comentarios dirigidos a este estudiante,
+        // incluyendo el estado de 'leido_por_estudiante' y la información del remitente.
+        const query = `
+            SELECT 
+                c.id_comentario,
+                c.id_estudiante,
+                c.id_actividad,
+                a.nombre_actividad,
+                c.mensaje AS contenido,               -- Contenido del comentario (el frontend espera 'contenido')
+                c.leido_por_estudiante,             -- ¡IMPORTANTE: Columna para el estado de lectura!
+                c.fecha_hora AS fecha_creacion,     -- Fecha de creación del comentario (el frontend espera 'fecha_creacion')
+                u_emisor.primer_nombre AS nombre_profesor,   -- Nombre del remitente (profesor/admin, el frontend espera 'nombre_profesor')
+                u_emisor.primer_apellido AS apellido_profesor, -- Apellido del remitente (el frontend espera 'apellido_profesor')
+                u_emisor.rol AS rol_emisor,
+                u_emisor.cedula AS cedula_emisor
+            FROM comentarios c
+            JOIN actividades a ON c.id_actividad = a.id_actividad
+            JOIN usuarios u_emisor ON c.id_usuario = u_emisor.id_usuario -- Unir con usuarios para obtener datos del remitente
+            WHERE c.id_estudiante = ?
+            ORDER BY c.fecha_hora DESC;
+        `;
+        
+        const [results] = await db.promise().query(query, [id_estudiante_actual]);
 
-    // 4. Enviar los comentarios como respuesta JSON.
-    res.json({ comentarios: results });
+        // 4. Enviar los comentarios como respuesta JSON.
+        res.json({ comentarios: results });
 
-  } catch (err) {
-    console.error("❌ Error obteniendo comentarios para el estudiante:", err);
-    res.status(500).json({ error: "Error al obtener comentarios", detalle: err.message });
-  }
+    } catch (err) {
+        console.error("❌ Error obteniendo comentarios para el estudiante:", err);
+        res.status(500).json({ error: "Error al obtener comentarios", detalle: err.message });
+    }
 });
+
+// NUEVA API: Marcar uno o varios comentarios como leídos
+router.put('/comentarios/marcar-leido', /*isAuthenticated,*/ async (req, res) => {
+    // Para mayor seguridad, verifica que el usuario en sesión sea el estudiante al que pertenecen los comentarios
+    const estudianteId = req.session.usuario ? req.session.usuario.id : null;
+    if (!estudianteId) {
+        return res.status(401).json({ error: 'Unauthorized: Student ID not available in session.' });
+    }
+
+    const { comentarioIds } = req.body; // Esperamos un array de IDs de comentarios
+
+    if (!comentarioIds || !Array.isArray(comentarioIds) || comentarioIds.length === 0) {
+        return res.status(400).json({ error: 'Se requiere un array de IDs de comentarios para marcar como leídos.' });
+    }
+
+    try {
+        // Asegúrate de que solo los comentarios de este estudiante sean marcados
+        const query = `
+            UPDATE comentarios
+            SET leido_por_estudiante = TRUE 
+            WHERE id_comentario IN (?) AND id_estudiante = ?;
+        `;
+        const [result] = await db.promise().query(query, [comentarioIds, estudianteId]);
+        
+        // Opcional: Si tienes una tabla de notificaciones, actualiza o elimina la notificación relevante.
+        // Por ejemplo, si tienes una notificación general "hay comentarios nuevos".
+        // UPDATE notificaciones SET leido = TRUE WHERE tipo = 'comentario_nuevo' AND id_usuario = ?;
+
+        res.json({ message: `${result.affectedRows} comentarios marcados como leídos.` });
+    } catch (error) {
+        console.error("Error al marcar comentarios como leídos:", error);
+        res.status(500).json({ error: "Error interno del servidor al marcar comentarios como leídos", detalle: error.message });
+    }
+});
+
+// NUEVA API: Obtener el conteo de comentarios no leídos para el estudiante logueado
+router.get('/estudiantes/comentarios/no-leidos/count', /*isAuthenticated,*/ async (req, res) => {
+    const estudianteId = req.session.usuario ? req.session.usuario.id : null;
+
+    if (!estudianteId) {
+        return res.status(401).json({ error: 'Unauthorized: Student ID not available in session.' });
+    }
+
+    try {
+        const query = `
+            SELECT COUNT(*) AS count
+            FROM comentarios
+            WHERE id_estudiante = ? AND leido_por_estudiante = FALSE; 
+        `;
+        const [results] = await db.promise().query(query, [estudianteId]);
+        const unreadCount = results[0] ? results[0].count : 0;
+        res.json({ count: unreadCount });
+    } catch (error) {
+        console.error("Error al obtener el conteo de comentarios no leídos:", error);
+        res.status(500).json({ error: "Error interno del servidor al obtener el conteo de comentarios no leídos", detalle: error.message });
+    }
+});
+
+// Exporta el router si estás usando módulos
+// module.exports = router;
+
 
 
 

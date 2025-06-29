@@ -13,9 +13,9 @@ import "../../style/style-profesor/seccion.css";
 
   <!-- Container for dynamically generated subject cards -->
   <section id="materias-container" class="info-cards-section">
-    <p id="loading-materias" class="loading-message">Cargando materias del profesor...</p>
+    <p id="loading-materias" class="loading-message">Cargando materias del estudiante...</p>
     <p id="error-materias" class="error-message hidden">Error al cargar las materias. Inténtalo de nuevo más tarde.</p>
-    <p id="no-materias" class="no-results-message hidden">No se encontraron materias asignadas para este profesor.</p>
+    <p id="no-materias" class="no-results-message hidden">No se encontraron materias asignadas para este estudiante.</p>
   </section>
 </section>
 
@@ -23,8 +23,8 @@ import "../../style/style-profesor/seccion.css";
   document.addEventListener('DOMContentLoaded', async () => {
     // Load user name first
     await cargarNombreUsuario();
-    // Then, load the logged-in professor's subjects
-    cargarMateriasProfesor(); // No longer needs an ID, the backend gets it from the session
+    // Then, load the logged-in student's subjects
+    cargarMateriasEstudiante(); // No longer needs an ID, the backend gets it from the session
   });
 
   /**
@@ -72,12 +72,12 @@ import "../../style/style-profesor/seccion.css";
   }
 
   /**
-   * @function cargarMateriasProfesor
-   * @description Gets the subjects assigned to the logged-in professor from the backend API
+   * @function cargarMateriasEstudiante
+   * @description Gets the subjects assigned to the logged-in student from the backend API
    * and dynamically creates cards to display them. It does not need an explicit ID,
    * as the backend will get it from the session.
    */
-  async function cargarMateriasProfesor() {
+  async function cargarMateriasEstudiante() { // Renamed from cargarMateriasProfesor
     const materiasContainer = document.getElementById('materias-container');
     const loadingMessage = document.getElementById('loading-materias');
     const errorMessage = document.getElementById('error-materias');
@@ -89,7 +89,7 @@ import "../../style/style-profesor/seccion.css";
     noMateriasMessage.classList.add('hidden');
 
     try {
-      // Make the request to the backend route without including the ID in the URL
+      // Make the request to the backend route for student's subjects
       const res = await fetch('http://localhost:3001/api/estudiantes/mis-materias', {
         method: 'GET',
         credentials: 'include' // Important for sending the session/authentication cookie
@@ -105,20 +105,21 @@ import "../../style/style-profesor/seccion.css";
       }
 
       const materias = await res.json();
-      console.log("Materias del profesor recibidas:", materias);
+      console.log("Materias del estudiante recibidas:", materias);
 
       loadingMessage.classList.add('hidden'); // Hide loading message
 
       if (materias.length === 0) {
         noMateriasMessage.classList.remove('hidden'); // Show no subjects message
+        noMateriasMessage.textContent = 'No se encontraron materias asignadas para este estudiante.'; // Specific message for students
         return;
       }
 
       // Generate and add cards for each subject
       materias.forEach(materia => {
         const card = document.createElement('a');
-        // MODIFICACIÓN CLAVE: Enlace a la página de actividades y notas con el ID de la materia
-        card.href = `/Students-Control/Notas?materiaId=${materia.id_materia}`;
+        // MODIFICACIÓN CLAVE AQUÍ: Incluir id_periodo en la URL
+        card.href = `/Students-Control/Notas?materiaId=${materia.id_materia}&periodoId=${materia.id_periodo}`; // AÑADIDO id_periodo
         card.className = 'card-item materia-card'; // Apply the specific class for subject cards
 
         card.innerHTML = `
@@ -137,7 +138,7 @@ import "../../style/style-profesor/seccion.css";
       });
 
     } catch (error) {
-      console.error('Error al cargar las materias del profesor:', error);
+      console.error('Error al cargar las materias del estudiante:', error);
       loadingMessage.classList.add('hidden'); // Hide loading message
       errorMessage.classList.remove('hidden'); // Show error message
       errorMessage.textContent = `Error al cargar las materias: ${error.message}`;

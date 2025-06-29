@@ -1,0 +1,189 @@
+ /* Importar las variables y estilos globales desde aj-s.txt */
+  @import "../../style/variables.css";
+  @import "../../style/global.css";
+  
+  body {
+      overflow-y: auto; /* Permite el desplazamiento vertical para toda la página */
+  }
+
+  /* Sección principal de contenido para la página de comentarios (similar a actividades) */
+  .data-content-section {
+      background-color: var(--color-GRIS);
+      height: auto;
+      min-height: calc(100vh - 2rem);
+      margin-right: 24px;
+      border-top-right-radius: var(--border-radius-16);
+      border-top-left-radius: var(--border-radius-16);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      margin-top: 0;
+  }
+
+  /* Estilos para el título "Mis Comentarios y Notificaciones" (similar a actividades-header-card) */
+  .comentarios-header-card {
+      background-color: var(--color-tertiary);
+      padding: var(--spacing-24) var(--spacing-60);
+      border-radius: var(--border-radius-16);
+      box-shadow: var(--box-shadow-button1);
+      margin-bottom: var(--spacing-24);
+      text-align: center;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      border-top-left-radius: var(--border-radius-16);
+      border-top-right-radius: var(--border-radius-16);
+  }
+
+  .comentarios-header-card .welcome-search-data {
+      display: flex;
+      align-items: center;
+      justify-content: center; /* Centrar horizontalmente el contenido */
+      gap: 1rem; /* Espacio entre el título y el botón de volver */
+  }
+
+  .comentarios-header-card .welcome-search-data__title {
+      font-size: var(--font-size-title);
+      font-weight: var(--font-weight-700);
+      color: var(--color-quaternary); /* Color blanco o muy claro */
+      text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.5);
+      margin-bottom: 0; /* Eliminar margen inferior predeterminado */
+      font-family: var(--font-family-titleMain);
+      padding: auto;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+  }
+
+  /* Estilos para el botón de volver (similar a actividades-header-card .btn-outline-secondary) */
+  .comentarios-header-card .btn-outline-secondary {
+      color: var(--color-quaternary);
+      border-color: var(--color-quaternary);
+      transition: all 0.3s ease;
+  }
+
+  .comentarios-header-card .btn-outline-secondary:hover {
+      background-color: var(--color-quaternary);
+      color: var(--color-primary);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+
+  /* Sección de información general y tarjetas */
+  .content-info-data {
+      padding: var(--spacing-16) var(--spacing-24);
+      margin-bottom: var(--spacing-24);
+  }
+
+  /* Estilos de la tabla (tomados de .display-table y .table-dark en aj-s.txt) */
+  .display-table {
+      padding: 0 24px; /* Mantener padding */
+      margin-top: 1.5rem; /* Espacio entre las tarjetas y la tabla */
+      margin-bottom: 24px; /* Espacio debajo de la tabla */
+      max-height: calc(100vh - 400px); /* Ajusta esta altura según el diseño general */
+      overflow-y: auto; /* Permite el desplazamiento vertical si el contenido es demasiado largo */
+      border-radius: var(--border-radius-16);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .tabla-info-person {
+      width: 100%;
+      overflow-x: auto; /* Permite el desplazamiento horizontal en la tabla para pantallas pequeñas */
+  }
+
+  .table-dark {
+      --bs-table-bg: #191919; /* Fondo oscuro para la tabla */
+      --bs-table-color: var(--color-tertiary); /* Color de texto claro */
+      --bs-table-border-color: var(--color-secondary); /* Color de borde que coincide con el tema */
+      --bs-table-striped-bg: #2a2a2a; /* Ligeramente más claro para filas rayadas */
+      --bs-table-hover-bg: #3a3a3a; /* Aún más claro para el efecto hover */
+  }
+
+  .table-dark thead th {
+      background: var(--color-primary); /* Fondo de encabezado morado */
+      color: var(--color-quaternary); /* Texto blanco para el encabezado */
+      border-bottom: 2px solid var(--color-pink-hover); /* Borde rosa en la parte inferior del encabezado */
+      font-weight: var(--font-weight-700);
+      padding: var(--spacing-12);
+      text-align: left;
+      text-transform: uppercase;
+      letter-spacing: 0.05rem;
+      font-family: var(--font-family-Paragraph);
+  }
+
+  .table-dark th,
+  .table-dark td {
+      padding: var(--spacing-12);
+      text-align: left;
+      font-size: var(--font-size-medium);
+      color: var(--color-tertiary); /* Texto claro para el contenido de la tabla */
+      border-bottom: 1px solid var(--color-secondary); /* Borde ligero para las filas */
+      font-family: var(--font-family-Paragraph);
+  }
+
+  .table-dark tr:hover {
+      background: var(--color-secondary); /* Morado más claro al pasar el ratón */
+      color: var(--color-quaternary); /* Texto más oscuro al pasar el ratón para un mejor contraste */
+      transition: background 0.3s ease;
+  }
+
+  /* Estilos específicos para el estado de leído en la tabla de comentarios */
+  .read-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    font-family: var(--font-family-Paragraph); /* Coherencia con el resto del texto */
+  }
+
+  .read-status .read-icon {
+    color: var(--color-success); /* Verde para "leído" */
+  }
+
+  .read-status .unread-icon {
+    color: var(--color-warning); /* Naranja/Amarillo para "nuevo" */
+  }
+
+  /* Responsive adjustments (adaptados de aj-s.txt) */
+  @media (max-width: 991.98px) {
+      .data-content-section {
+          margin-right: 0;
+          border-radius: 0;
+          padding: 1rem;
+      }
+      .comentarios-header-card { /* Ajustes para que cubra todo el ancho en pantallas pequeñas */
+          width: calc(100% + (1rem * 2)); /* Ajusta para padding de 1rem en el padre */
+          margin-left: -1rem;
+          margin-right: -1rem;
+          padding: var(--spacing-16) var(--spacing-24);
+          margin-bottom: var(--spacing-16);
+          border-radius: 0; /* Eliminar border-radius en móviles para ocupar todo el ancho */
+      }
+      .comentarios-header-card .welcome-search-data__title {
+          font-size: 2rem;
+      }
+      .display-table {
+          padding: 0 1rem; /* Ajustar padding */
+      }
+      .table-dark thead th, .table-dark tbody td {
+          font-size: 0.75rem;
+          padding: 0.6rem;
+      }
+  }
+
+  @media (max-width: 767.98px) {
+      .comentarios-header-card .welcome-search-data {
+          flex-direction: column; /* Apilar título y botón en pantallas pequeñas */
+          text-align: center;
+      }
+      .comentarios-header-card .btn-outline-secondary {
+          margin-left: 0 !important; /* Anular ms-auto en móviles */
+          margin-top: 1rem; /* Espacio superior */
+      }
+  }
+
+  @media (max-width: 575.98px) {
+      .comentarios-header-card .welcome-search-data__title {
+          font-size: 1.5rem;
+      }
+  }
