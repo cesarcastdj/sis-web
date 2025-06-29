@@ -6,6 +6,7 @@ import { hashPassword } from '../f(x)/contrasenias.js';
 import { syncRelationships, syncSingleRelationship } from '../f(x)/relaciones.js';
 import bcrypt from 'bcrypt';
 import { registrarAccion } from '../middleware/historial.js';
+import nodemailer from 'nodemailer';
 
 const router = express.Router();
 router.post('/login', async (req, res) => {
@@ -455,6 +456,136 @@ router.post('/login', async (req, res) => {
       res.status(500).json({ error: 'Ocurrió un error al actualizar el perfil.', detalle: error.message });
     }
   });
- 
- 
+
+router.post('/solicitar-codigo-recuperacion', async (req, res) => {
+    const { correo } = req.body;
+
+    if (!correo) {
+        return res.status(400).json({ error: 'El correo electrónico es obligatorio.' });
+    }
+
+    try {
+        // 1. Verificar si el correo existe en la tabla de usuarios
+        const [userResults] = await db.promise().query('SELECT id_usuario FROM usuarios WHERE correo = ?', [correo]);
+
+        if (userResults.length === 0) {
+            // No se debe indicar al atacante si el correo existe o no por seguridad
+            // Se envía un mensaje genérico de éxito para no dar pistas
+            console.warn(`Intento de recuperación de contraseña para correo no registrado: ${correo}`);
+            return res.json({ message: 'Si el correo electrónico está registrado, se enviará un código de recuperación.' });
+        }
+
+        // 2. Generar un código de 6 dígitos
+        const recoveryCode = Math.floor(100000 + Math.random() * 900000).toString(); // Código numérico de 6 dígitos
+        const expirationTime = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos de validez
+
+        // 3. Invalidar códigos anteriores para este correo antes de insertar uno nuevo
+        await db.promise().query(
+            'UPDATE codigos_recuperacion SET usado = TRUE WHERE correo = ? AND usado = FALSE AND expiracion > NOW()',
+            [correo]
+        );
+
+        // 4. Guardar el nuevo código en la base de datos
+        await db.promise().query(
+            'INSERT INTO codigos_recuperacion (correo, codigo, expiracion) VALUES (?, ?, ?)',
+            [correo, recoveryCode, expirationTime]
+        );
+
+        // 5. Configurar el transporter de Nodemailer (REEMPLAZAR CON TUS CREDENCIALES REALES)
+        // Utiliza variables de entorno para la seguridad de tus credenciales
+        const transporter = nodemailer.createTransport({ 
+            service: 'gmail', // Puedes cambiarlo a 'hotmail', 'outlook', o un host SMTP específico
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            auth: {
+                user: 'andislopez777@gmail.com', // ⚠️ REEMPLAZA CON TU CORREO ELECTRÓNICO
+                pass: 'hlfw cfyh ywiu jdzh', // ⚠️ REEMPLAZA CON TU CONTRASEÑA O CONTRASEÑA DE APLICACIÓN (PARA GMAIL)
+            }
+        });
+
+        // Opciones del correo
+        const mailOptions = {
+            from: 'andislopez777@gmail.com', // Debe coincidir con el 'user' del transporter
+            to: correo,
+            subject: 'Código de recuperación de contraseña GLLR',
+            text: `Tu código de recuperación es: ${recoveryCode}\nEste código expirará en 15 minutos.`,
+            html: `<p>Tu código de recuperación es: <strong>${recoveryCode}</strong></p><p>Este código expirará en 15 minutos.</p><p>Si no solicitaste esto, puedes ignorar este correo.</p>`
+        };
+
+        // Enviar el correo
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error enviando correo con Nodemailer:', error);
+                // Aquí podrías decidir enviar un error al cliente o simplemente loguearlo
+                // Si el error de envío de correo no es crítico para el flujo, puedes continuar
+                // y dejar que el cliente asuma que el correo fue enviado (por seguridad).
+            } else {
+                console.log('Correo enviado: ' + info.response);
+            }
+        });
+
+        res.json({ message: 'Código de recuperación enviado exitosamente.' });
+
+    } catch (error) {
+        console.error('Error al solicitar código de recuperación:', error);
+        res.status(500).json({ error: 'Error interno del servidor al solicitar el código.' });
+    }
+});
+
+/**
+ * @route POST /restablecer-contrasena
+ * @description Verifica el código de recuperación y actualiza la contraseña del usuario.
+ * @param {string} req.body.correo - Correo electrónico del usuario.
+ * @param {string} req.body.codigo - Código de verificación recibido.
+ * @param {string} req.body.nuevaContrasena - Nueva contraseña del usuario.
+ * @returns {json} Mensaje de éxito o error.
+ */
+router.post('/restablecer-contrasena', async (req, res) => {
+    const { correo, codigo, nuevaContrasena } = req.body;
+
+    if (!correo || !codigo || !nuevaContrasena) {
+        return res.status(400).json({ error: 'Faltan campos obligatorios (correo, código o nueva contraseña).' });
+    }
+
+    try {
+        // 1. Buscar el código de recuperación más reciente para el correo, que no esté usado y no haya expirado.
+        const [codeResults] = await db.promise().query(
+            'SELECT * FROM codigos_recuperacion WHERE correo = ? AND usado = FALSE AND expiracion > NOW() ORDER BY created_at DESC LIMIT 1',
+            [correo]
+        );
+
+        const storedCode = codeResults[0];
+
+        if (!storedCode || storedCode.codigo !== codigo) {
+            // Por seguridad, un mensaje genérico para no dar pistas sobre códigos existentes
+            return res.status(400).json({ error: 'Código de verificación inválido o expirado.' });
+        }
+
+        // 2. Hashear la nueva contraseña
+        const hashedNewPassword = await bcrypt.hash(nuevaContrasena, 10);
+
+        // 3. Actualizar la contraseña del usuario en la tabla 'usuarios'
+        const [updateUserResult] = await db.promise().query(
+            'UPDATE usuarios SET contraseña = ? WHERE correo = ?',
+            [hashedNewPassword, correo]
+        );
+
+        if (updateUserResult.affectedRows === 0) {
+            return res.status(500).json({ error: 'No se pudo actualizar la contraseña. Usuario no encontrado o sin cambios.' });
+        }
+
+        // 4. Marcar el código de recuperación como usado para que no se pueda reutilizar
+        await db.promise().query(
+            'UPDATE codigos_recuperacion SET usado = TRUE WHERE id = ?',
+            [storedCode.id]
+        );
+
+        res.json({ message: 'Contraseña restablecida exitosamente.' });
+
+    } catch (error) {
+        console.error('Error al restablecer contraseña:', error);
+        res.status(500).json({ error: 'Error interno del servidor al restablecer la contraseña.' });
+    }
+});
 export default router;
