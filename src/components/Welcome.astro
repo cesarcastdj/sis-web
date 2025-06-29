@@ -1,884 +1,1644 @@
 ---
-import '../style/welcome.css';
+import "../style/welcome.css";
 ---
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GLLR - Sistema de Gestión de Notas</title>
     <!-- Incluye Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
     <!-- Incluye Boxicons para íconos -->
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link
+      href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+      rel="stylesheet"
+    />
     <!-- Enlaza tu archivo CSS personalizado -->
-    <link rel="stylesheet" href="/style/welcome.css">
+    <link rel="stylesheet" href="/style/welcome.css" />
     <!-- Fonts - Inter y otras que se usan en tu CSS -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-</head>
-<body>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
 
+    <!-- MODIFICACIÓN: Estilos para select deshabilitado y otros inputs en tema oscuro -->
+    <style>
+      .form-select:disabled,
+      .form-control:disabled {
+        background-color: #2b2b2b !important; /* Color de fondo oscuro */
+        color: #ffffff !important; /* Color de texto blanco */
+        opacity: 0.8; /* Ligeramente menos opaco para indicar que está deshabilitado */
+        border-color: #444444 !important; /* Borde más oscuro */
+      }
+      /* Asegura que el color del placeholder también sea visible en oscuro si el input está deshabilitado */
+      .form-control:disabled::placeholder,
+      .form-select:disabled option {
+        color: #aaaaaa !important;
+      }
+      /* Asegura el color del texto de opción seleccionado en select deshabilitado */
+      .form-select:disabled {
+        -webkit-text-fill-color: #ffffff !important; /* Para navegadores basados en WebKit */
+      }
+      /* Asegurar que los inputs en general tengan un estilo oscuro */
+      .form-control,
+      .form-select {
+        background-color: #2b2b2b;
+        color: #ffffff;
+        border: 1px solid #444444;
+      }
+      .form-control::placeholder {
+        /* Estilo para el texto del placeholder */
+        color: #aaaaaa;
+      }
+
+      /* INICIO MODIFICACIÓN: Estilos para ocultar el scrollbar predeterminado del body */
+      body.modal-open {
+        overflow: hidden !important; /* Forzar ocultar el scrollbar del body cuando el modal está abierto */
+      }
+
+      /* Ocultar el scrollbar por defecto para navegadores Webkit (Chrome, Safari) */
+      body.modal-open::-webkit-scrollbar,
+      .modal-body::-webkit-scrollbar {
+        /* Aplicado también al modal-body */
+        display: none;
+        width: 0px; /* Para ocultarlo completamente */
+        background: transparent; /* Hacer el scrollbar invisible */
+      }
+
+      /* Ocultar el scrollbar para Firefox */
+      body.modal-open,
+      .modal-body {
+        /* Aplicado también al modal-body */
+        scrollbar-width: none; /* Firefox */
+      }
+
+      /* Ocultar el scrollbar para IE/Edge */
+      body.modal-open,
+      .modal-body {
+        /* Aplicado también al modal-body */
+        -ms-overflow-style: none; /* IE y Edge */
+      }
+      /* FIN MODIFICACIÓN: Estilos para ocultar el scrollbar predeterminado del body */
+    </style>
+  </head>
+  <body>
     <!-- Contenido principal de la página -->
     <section class="welcome-contents">
-        <!-- Elementos decorativos (elipses) -->
-        <img src="/public/SVG/EllipseFigma.svg" class="welcome-elipce-1 welcome-elipce" alt="Elipse decorativa">
-        <img src="/public/SVG/EllipseFigma.svg" class="welcome-elipce-2 welcome-elipce" alt="Elipse decorativa">
+      <!-- Elementos decorativos (elipses) -->
+      <img
+        src="/public/SVG/EllipseFigma.svg"
+        class="welcome-elipce-1 welcome-elipce"
+        alt="Elipse decorativa"
+      />
+      <img
+        src="/public/SVG/EllipseFigma.svg"
+        class="welcome-elipce-2 welcome-elipce"
+        alt="Elipse decorativa"
+      />
 
-        <!-- Barra de navegación (Header) -->
-        <header class="navbar-gllr">
-            <div class="container align-items-center">
-                <div class="navbar-logo">
-                    <img src="/public/SVG/Logo-1.svg" alt="GLLR Logo">
-                </div>
-                <div class="navbar-buttons">
-                    <!-- Botones de navegación con nuevas clases para el degradado -->
-                    <button class="btn btn-nav-gradient-primary" data-bs-toggle="modal" data-bs-target="#loginModal">Ingresar <i class='bx bx-right-arrow-alt'></i></button>
-                    <!-- El botón de registro ahora abre el registerModal (el nuevo formulario principal) -->
-                    <button class="btn btn-nav-gradient-secondary" data-bs-toggle="modal" data-bs-target="#registerModal">Registrarse <i class='bx bx-right-arrow-alt'></i></button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Contenido principal de la bienvenida (Hero Section) -->
-        <div class="welcome-content-info">
-            <div class="welcome-content-text">
-                <h1 class="welcome-title">¡Bienvenido/a a GLLR!</h1>
-                <p class="welcome-content-sub-paragraph">
-                    Con GLLR, lleva un control detallado de tus calificaciones, organiza tus tareas y gestiona tus objetivos académicos de forma sencilla y eficiente.
-                </p>
-            </div>
+      <!-- Barra de navegación (Header) -->
+      <header class="navbar-gllr">
+        <div class="container align-items-center">
+          <div class="navbar-logo">
+            <img src="/public/SVG/Logo-1.svg" alt="GLLR Logo" />
+          </div>
+          <div class="navbar-buttons">
+            <!-- Botones de navegación con nuevas clases para el degradado -->
+            <button
+              class="btn btn-nav-gradient-primary"
+              data-bs-toggle="modal"
+              data-bs-target="#loginModal"
+              >Ingresar <i class="bx bx-right-arrow-alt"></i></button
+            >
+            <!-- El botón de registro ahora abre el registerModal (el nuevo formulario principal) -->
+            <button
+              class="btn btn-nav-gradient-secondary"
+              data-bs-toggle="modal"
+              data-bs-target="#registerModal"
+              >Registrarse <i class="bx bx-right-arrow-alt"></i></button
+            >
+          </div>
         </div>
-        <!-- Imagen de fondo que se fusiona con el contenido -->
-        <div class="welcome-background-image"></div>
+      </header>
+
+      <!-- Contenido principal de la bienvenida (Hero Section) -->
+      <div class="welcome-content-info">
+        <div class="welcome-content-text">
+          <h1 class="welcome-title">¡Bienvenido/a a GLLR!</h1>
+          <p class="welcome-content-sub-paragraph">
+            Con GLLR, lleva un control detallado de tus calificaciones, organiza
+            tus tareas y gestiona tus objetivos académicos de forma sencilla y
+            eficiente.
+          </p>
+        </div>
+      </div>
+      <!-- Imagen de fondo que se fusiona con el contenido -->
+      <div class="welcome-background-image"></div>
     </section>
 
     <!-- Pie de página (Footer) -->
     <footer class="footer-gllr">
-        <div class="container text-center">
-            <div class="footer-logo">
-                <img src="/public/SVG/Logo-1.svg" alt="GLLR Logo">
-            </div>
-            <div class="footer-social-icons">
-                <a href="#"><i class='bx bxl-facebook-square'></i></a>
-                <a href="#"><i class='bx bxl-instagram'></i></a>
-                <a href="#"><i class='bx bxl-linkedin-square'></i></a>
-            </div>
-            <p class="footer-copyright">&copy; 2025 Todos los derechos reservados</p>
+      <div class="container text-center">
+        <div class="footer-logo">
+          <img src="/public/SVG/Logo-1.svg" alt="GLLR Logo" />
         </div>
+        <div class="footer-social-icons">
+          <a href="#"><i class="bx bxl-facebook-square"></i></a>
+          <a href="#"><i class="bx bxl-instagram"></i></a>
+          <a href="#"><i class="bx bxl-linkedin-square"></i></a>
+        </div>
+        <p class="footer-copyright">
+          &copy; 2025 Todos los derechos reservados
+        </p>
+      </div>
     </footer>
 
     <!-- Modal LOGIN -->
-    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                    <img class="logo-login" src="/public/SVG/Logo-1.svg" alt="GLLR Logo">
-                    <h5 class="modal-title" id="loginModalLabel">Bienvenido De Nuevo 👋</h5>
-                    <p class="login-modal-p">Inicia sesión para empezar la revisión de tus notas.</p>
-                    <form id="loginForm">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="email" required />
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Contraseña</label>
-                            <input type="password" class="form-control" id="password" required />
-                        </div>
-                        <!-- Botón del modal de login con la clase personalizada -->
-                        <button type="submit" class="btn btn-primary-custom w-100">Iniciar Sesión</button>
-                    </form>
-                    <div class="text-center mt-3">
-                        <!-- El botón de "Regístrate aquí" ahora abre el registerModal -->
-                        <button class="btn btn-link" data-bs-toggle="modal" data-bs-target="#registerModal" data-bs-dismiss="modal">
-                            ¿No tienes cuenta? Regístrate aquí
-                        </button>
-                    </div>
-                </div>
+    <div
+      class="modal fade"
+      id="loginModal"
+      tabindex="-1"
+      aria-labelledby="loginModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body">
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Cerrar"></button>
+            <img
+              class="logo-login"
+              src="/public/SVG/Logo-1.svg"
+              alt="GLLR Logo"
+            />
+            <h5 class="modal-title" id="loginModalLabel">
+              Bienvenido De Nuevo 👋
+            </h5>
+            <p class="login-modal-p">
+              Inicia sesión para empezar la revisión de tus notas.
+            </p>
+            <form id="loginForm">
+              <div class="mb-3">
+                <label for="email" class="form-label">Correo Electrónico</label>
+                <input type="email" class="form-control" id="email" required />
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Contraseña</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="password"
+                  required
+                />
+              </div>
+              <!-- Botón del modal de login con la clase personalizada -->
+              <button type="submit" class="btn btn-primary-custom w-100"
+                >Iniciar Sesión</button
+              >
+            </form>
+            <div class="text-center mt-3">
+              <!-- Enlace para "Recuperar Contraseña" -->
+              <button class="btn btn-link" id="forgotPasswordBtn"
+                >¿Olvidaste tu contraseña?</button
+              >
+              <br />
+              <!-- El botón de "Regístrate aquí" ahora abre el registerModal -->
+              <button
+                class="btn btn-link"
+                data-bs-toggle="modal"
+                data-bs-target="#registerModal"
+                data-bs-dismiss="modal"
+                id="openRegisterFromLoginBtn"
+              >
+                ¿No tienes cuenta? Regístrate aquí
+              </button>
             </div>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Nuevo Modal: Recuperar Contraseña - PASO 1 (Ingresar Correo) -->
+    <div
+      class="modal fade"
+      id="forgotPasswordModal"
+      tabindex="-1"
+      aria-labelledby="forgotPasswordModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body">
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Cerrar"></button>
+            <img
+              class="logo-login"
+              src="/public/SVG/Logo-1.svg"
+              alt="GLLR Logo"
+            />
+            <h5 class="modal-title" id="forgotPasswordModalLabel">
+              Recuperar Contraseña
+            </h5>
+            <p class="login-modal-p">
+              Ingresa tu correo electrónico para enviarte un código de
+              verificación.
+            </p>
+            <form id="forgotPasswordForm">
+              <div class="mb-3">
+                <label for="recoveryEmail" class="form-label"
+                  >Correo Electrónico</label
+                >
+                <input
+                  type="email"
+                  class="form-control"
+                  id="recoveryEmail"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary-custom w-100"
+                >Enviar Código</button
+              >
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nuevo Modal: Recuperar Contraseña - PASO 2 (Verificar Código y Nueva Contraseña) -->
+    <div
+      class="modal fade"
+      id="verifyCodeModal"
+      tabindex="-1"
+      aria-labelledby="verifyCodeModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body">
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Cerrar"></button>
+            <img
+              class="logo-login"
+              src="/public/SVG/Logo-1.svg"
+              alt="GLLR Logo"
+            />
+            <h5 class="modal-title" id="verifyCodeModalLabel">
+              Verificación y Nueva Contraseña
+            </h5>
+            <p class="login-modal-p">
+              Ingresa el código enviado a tu correo y tu nueva contraseña.
+            </p>
+            <form id="verifyCodeForm">
+              <div class="mb-3">
+                <label for="verificationCode" class="form-label"
+                  >Código de Verificación</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="verificationCode"
+                  required
+                  maxlength="6"
+                />
+              </div>
+              <div class="mb-3">
+                <label for="newPassword" class="form-label"
+                  >Nueva Contraseña</label
+                >
+                <input
+                  type="password"
+                  class="form-control"
+                  id="newPassword"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="confirmNewPassword" class="form-label"
+                  >Confirmar Nueva Contraseña</label
+                >
+                <input
+                  type="password"
+                  class="form-control"
+                  id="confirmNewPassword"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary-custom w-100"
+                >Restablecer Contraseña</button
+              >
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Nuevo Modal: Registro (registerModal) - ESTE ES EL FORMULARIO DE REGISTRO PRINCIPAL -->
-    <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg"> <!-- Cambiado a modal-lg para más espacio -->
+    <div
+      class="modal fade"
+      id="registerModal"
+      tabindex="-1"
+      aria-labelledby="registerModalLabel"
+      aria-hidden="true"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+    >
+      <!-- MODIFICACIÓN: AÑADIDO data-bs-backdrop y data-bs-keyboard -->
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <!-- Cambiado a modal-lg para más espacio -->
         <div class="modal-content">
           <div class="modal-body">
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            <img class="logo-login" src="/public/SVG/Logo-1.svg" alt="GLLR Logo"> <!-- Logo dentro del modal como en la imagen -->
-            <h5 class="modal-title" id="registerModalLabel">Registro</h5> <!-- Título "Registro" como en la imagen -->
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Cerrar"></button>
+            <img
+              class="logo-login"
+              src="/public/SVG/Logo-1.svg"
+              alt="GLLR Logo"
+            />
+            <!-- Logo dentro del modal como en la imagen -->
+            <h5 class="modal-title" id="registerModalLabel">Registro</h5>
+            <!-- Título "Registro" como en la imagen -->
             <p class="login-modal-p">Crea tu cuenta para acceder al sistema.</p>
 
-            <form id="formRegistroPrincipal"> <!-- Nuevo ID para el formulario principal de registro -->
+            <form id="formRegistroPrincipal">
+              <!-- Nuevo ID para el formulario principal de registro -->
               <!-- 🔹 Información Personal -->
               <h6 class="section-title">Información Personal</h6>
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label for="regCedula" class="form-label">Cédula <span class="campo-obligatorio">*</span></label>
+                  <label for="regCedula" class="form-label"
+                    >Cédula <span class="campo-obligatorio">*</span></label
+                  >
                   <!-- Campo de cédula modificado para incluir maxlength -->
-                  <input type="tel" class="form-control" id="regCedula" placeholder="Ejemplo: 123456789" pattern="[0-9]{6,15}" maxlength="15" required />
+                  <input
+                    type="tel"
+                    class="form-control"
+                    id="regCedula"
+                    placeholder="Ejemplo: 123456789"
+                    pattern="[0-9]{6,15}"
+                    maxlength="15"
+                    required
+                  />
                   <div class="invalid-feedback"></div>
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label for="regPrimerNombre" class="form-label">Primer Nombre <span class="campo-obligatorio">*</span></label>
-                  <input type="text" class="form-control" id="regPrimerNombre" placeholder="Tu Primer Nombre" required />
-                  <div class="invalid-feedback"></div>
-                </div>
-              </div>
-    
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="regSegundoNombre" class="form-label">Segundo Nombre</label>
-                  <input type="text" class="form-control" id="regSegundoNombre" placeholder="Tu Segundo Nombre" />
-                  <div class="invalid-feedback"></div>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="regPrimerApellido" class="form-label">Primer Apellido <span class="campo-obligatorio">*</span></label>
-                  <input type="text" class="form-control" id="regPrimerApellido" placeholder="Tu Primer Apellido" required />
-                  <div class="invalid-feedback"></div>
-                </div>
-              </div>
-    
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label for="regSegundoApellido" class="form-label">Segundo Apellido</label>
-                  <input type="text" class="form-control" id="regSegundoApellido" placeholder="Tu Segundo Apellido" />
-                  <div class="invalid-feedback"></div>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label for="regEmail" class="form-label">Correo Electrónico <span class="campo-obligatorio">*</span></label>
-                  <input type="email" class="form-control" id="regEmail" placeholder="ejemplo.venezuela@gmail.com" required />
+                  <label for="regPrimerNombre" class="form-label"
+                    >Primer Nombre <span class="campo-obligatorio">*</span
+                    ></label
+                  >
+                  <!-- MODIFICACIÓN: pattern para solo letras y espacios -->
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="regPrimerNombre"
+                    placeholder="Tu Primer Nombre"
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+"
+                    required
+                  />
                   <div class="invalid-feedback"></div>
                 </div>
               </div>
 
-              <!-- 🔹 Teléfono -->
               <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label for="regTelefono" class="form-label">Teléfono <span class="campo-obligatorio">*</span></label>
-                    <div class="d-flex align-items-center gap-2">
-                      <select class="form-select codigo-area" id="regCodigoArea" style="width: 80px;" required>
-                        <option value="0412">0412</option>
-                        <option value="0422">0422</option>
-                        <option value="0424">0424</option>
-                        <option value="0414">0414</option>
-                        <option value="0416">0416</option>
-                        <option value="0426">0426</option>
-                      </select>
-                      <span class="separador-telefono">-</span>
-                      <input 
-                        type="tel" 
-                        class="form-control numero-telefono" 
-                        id="regNumeroTelefono"
-                        placeholder="1234567" 
-                        pattern="[0-9]{7}" 
-                        title="Debe contener 7 dígitos" 
-                        required
-                        style="flex-grow: 1;"
-                      >
-                      <div class="invalid-feedback"></div>
-                    </div>
-                  </div>
+                <div class="col-md-6 mb-3">
+                  <label for="regSegundoNombre" class="form-label"
+                    >Segundo Nombre</label
+                  >
+                  <!-- MODIFICACIÓN: pattern para solo letras y espacios -->
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="regSegundoNombre"
+                    placeholder="Tu Segundo Nombre"
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*"
+                  />
+                  <div class="invalid-feedback"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="regPrimerApellido" class="form-label"
+                    >Primer Apellido <span class="campo-obligatorio">*</span
+                    ></label
+                  >
+                  <!-- MODIFICACIÓN: pattern para solo letras y espacios -->
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="regPrimerApellido"
+                    placeholder="Tu Primer Apellido"
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+"
+                    required
+                  />
+                  <div class="invalid-feedback"></div>
+                </div>
               </div>
-    
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="regSegundoApellido" class="form-label"
+                    >Segundo Apellido</label
+                  >
+                  <!-- MODIFICACIÓN: pattern para solo letras y espacios -->
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="regSegundoApellido"
+                    placeholder="Tu Segundo Apellido"
+                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*"
+                  />
+                  <div class="invalid-feedback"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="regTelefono" class="form-label"
+                    >Teléfono <span class="campo-obligatorio">*</span></label
+                  >
+                  <div class="d-flex align-items-center gap-2">
+                    <select
+                      class="form-select codigo-area"
+                      id="regCodigoArea"
+                      style="width: 80px;"
+                      required
+                    >
+                      <option value="0412">0412</option>
+                      <option value="0422">0422</option>
+                      <option value="0424">0424</option>
+                      <option value="0414">0414</option>
+                      <option value="0416">0416</option>
+                      <option value="0426">0426</option>
+                    </select>
+                    <span class="separador-telefono">-</span>
+                    <input
+                      type="tel"
+                      class="form-control numero-telefono"
+                      id="regNumeroTelefono"
+                      placeholder="1234567"
+                      pattern="[0-9]{7}"
+                      title="Debe contener 7 dígitos"
+                      required
+                      style="flex-grow: 1;"
+                    />
+                    <div class="invalid-feedback"></div>
+                  </div>
+                </div>
+              </div>
+
               <!-- 🔹 Ubicación -->
               <h6 class="section-title mt-4">Ubicación</h6>
               <div class="row">
                 <div class="col-md-12 mb-3">
-                  <label for="regDireccion" class="form-label">Dirección <span class="campo-obligatorio">*</span></label>
-                  <input type="text" class="form-control" id="regDireccion" placeholder="Ingrese su dirección" required />
+                  <label for="regDireccion" class="form-label"
+                    >Dirección <span class="campo-obligatorio">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="regDireccion"
+                    placeholder="Ingrese su dirección"
+                    required
+                  />
                   <div class="invalid-feedback"></div>
                 </div>
               </div>
-    
+
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label for="regEstado" class="form-label">Estado <span class="campo-obligatorio">*</span></label>
+                  <label for="regEstado" class="form-label"
+                    >Estado <span class="campo-obligatorio">*</span></label
+                  >
                   <select class="form-select" id="regEstado" required>
-                       <option value="" selected disabled>Seleccione un estado</option>
+                    <option value="" selected disabled
+                      >Seleccione un estado</option
+                    >
                   </select>
                   <div class="invalid-feedback"></div>
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label for="regCiudad" class="form-label">Ciudad <span class="campo-obligatorio">*</span></label>
+                  <label for="regCiudad" class="form-label"
+                    >Ciudad <span class="campo-obligatorio">*</span></label
+                  >
                   <select class="form-select" id="regCiudad" required disabled>
-                    <option value="" selected disabled>Primero seleccione un estado</option>
+                    <option value="" selected disabled
+                      >Primero seleccione un estado</option
+                    >
                   </select>
                   <div class="invalid-feedback"></div>
                 </div>
               </div>
-    
-              <!-- 🔹 Credenciales de Acceso -->
-              <h6 class="section-title mt-4">Credenciales de Acceso</h6>
+
+              <!-- 🔹 Credenciales del Usuario -->
+              <h6 class="section-title mt-4">Credenciales del Usuario</h6>
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label for="regPassword" class="form-label">Contraseña <span class="campo-obligatorio">*</span></label>
+                  <label for="regEmail" class="form-label"
+                    >Correo Electrónico <span class="campo-obligatorio">*</span
+                    ></label
+                  >
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="regEmail"
+                    placeholder="ejemplo.venezuela@gmail.com"
+                    required
+                  />
+                  <div class="invalid-feedback"></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="regPassword" class="form-label"
+                    >Contraseña <span class="campo-obligatorio">*</span></label
+                  >
                   <div class="input-group">
-                    <input type="password" class="form-control" id="regPassword" placeholder="Tu Contraseña" required />
-                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="regPassword">
-                        <i class='bx bx-hide'></i>
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="regPassword"
+                      placeholder="Tu Contraseña"
+                      required
+                    />
+                    <button
+                      class="btn btn-outline-secondary toggle-password"
+                      type="button"
+                      data-target="regPassword"
+                    >
+                      <i class="bx bx-hide"></i>
                     </button>
                     <div class="invalid-feedback"></div>
                   </div>
-                  <small id="passwordStrength" class="form-text text-muted"></small>
+                  <small id="passwordStrength" class="form-text text-muted"
+                  ></small>
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label for="regConfirmPassword" class="form-label">Confirmar contraseña <span class="campo-obligatorio">*</span></label>
+                  <label for="regConfirmPassword" class="form-label"
+                    >Confirmar contraseña <span class="campo-obligatorio"
+                      >*</span
+                    ></label
+                  >
                   <div class="input-group">
-                    <input type="password" class="form-control" id="regConfirmPassword" placeholder="Confirma tu Contraseña" required />
-                    <button class="btn btn-outline-secondary toggle-password" type="button" data-target="regConfirmPassword">
-                        <i class='bx bx-hide'></i>
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="regConfirmPassword"
+                      placeholder="Confirma tu Contraseña"
+                      required
+                    />
+                    <button
+                      class="btn btn-outline-secondary toggle-password"
+                      type="button"
+                      data-target="regConfirmPassword"
+                    >
+                      <i class="bx bx-hide"></i>
                     </button>
                     <div class="invalid-feedback"></div>
                   </div>
                 </div>
               </div>
-    
+
               <!-- 🔹 Botones -->
               <div class="d-flex justify-content-between mt-4">
-                <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-primary-custom" id="submitNewRegisterForm">Registrarse</button>
+                <button
+                  type="button"
+                  class="btn btn-secondary-custom"
+                  data-bs-dismiss="modal">Cancelar</button
+                >
+                <button
+                  type="submit"
+                  class="btn btn-primary-custom"
+                  id="submitNewRegisterForm">Registrarse</button
+                >
               </div>
             </form>
           </div>
         </div>
       </div>
     </div>
-    
+
+    <!-- Modal para Alertas Personalizadas (Un solo modal para toda la aplicación) -->
+    <div
+      class="modal fade"
+      id="customAlertModal"
+      tabindex="-1"
+      aria-labelledby="customAlertModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-alert-modal">
+          <div class="modal-body text-center">
+            <p class="mb-3" id="customAlertModalMessage"></p>
+            <button
+              type="button"
+              class="btn btn-primary-custom"
+              data-bs-dismiss="modal">Aceptar</button
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Incluye Bootstrap JS (con Popper) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"></script>
 
     <!-- Tu script JS para la lógica de los modales y el backend -->
     <script type="module">
-        // Variables globales (ajustadas para el nuevo flujo)
-        const loginForm = document.getElementById('loginForm');
-        const formRegistroPrincipal = document.getElementById('formRegistroPrincipal'); // Nuevo ID para el formulario principal de registro
+      // Variables globales (ajustadas para el nuevo flujo)
+      const loginForm = document.getElementById("loginForm");
+      const formRegistroPrincipal = document.getElementById(
+        "formRegistroPrincipal"
+      ); // ID para el formulario principal de registro
 
-        // Elementos del nuevo formulario de registro
-        const regCedulaInput = document.getElementById('regCedula');
-        const regPrimerNombreInput = document.getElementById('regPrimerNombre');
-        const regSegundoNombreInput = document.getElementById('regSegundoNombre');
-        const regPrimerApellidoInput = document.getElementById('regPrimerApellido');
-        const regSegundoApellidoInput = document.getElementById('regSegundoApellido');
-        const regEmailInput = document.getElementById('regEmail');
-        const regDireccionInput = document.getElementById('regDireccion');
-        const regPasswordInput = document.getElementById('regPassword');
-        const regConfirmPasswordInput = document.getElementById('regConfirmPassword');
+      // Elementos del nuevo formulario de registro
+      const regCedulaInput = document.getElementById("regCedula");
+      const regPrimerNombreInput = document.getElementById("regPrimerNombre");
+      const regSegundoNombreInput = document.getElementById("regSegundoNombre");
+      const regPrimerApellidoInput =
+        document.getElementById("regPrimerApellido");
+      const regSegundoApellidoInput =
+        document.getElementById("regSegundoApellido");
+      const regEmailInput = document.getElementById("regEmail");
+      const regDireccionInput = document.getElementById("regDireccion");
+      const regPasswordInput = document.getElementById("regPassword");
+      const regConfirmPasswordInput =
+        document.getElementById("regConfirmPassword");
 
-        const regCodigoAreaSelect = document.getElementById('regCodigoArea');
-        const regNumeroTelefonoInput = document.getElementById('regNumeroTelefono');
-        const regEstadoSelect = document.getElementById('regEstado');
-        const regCiudadSelect = document.getElementById('regCiudad');
-        const submitNewRegisterFormBtn = document.getElementById('submitNewRegisterForm');
-        const passwordStrengthFeedback = document.getElementById('passwordStrength');
+      const regCodigoAreaSelect = document.getElementById("regCodigoArea");
+      const regNumeroTelefonoInput =
+        document.getElementById("regNumeroTelefono");
+      const regEstadoSelect = document.getElementById("regEstado");
+      const regCiudadSelect = document.getElementById("regCiudad");
+      const submitNewRegisterFormBtn = document.getElementById(
+        "submitNewRegisterForm"
+      );
+      const passwordStrengthFeedback =
+        document.getElementById("passwordStrength");
 
+      // Elementos para Recuperar Contraseña
+      const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+      const forgotPasswordModal = new bootstrap.Modal(
+        document.getElementById("forgotPasswordModal")
+      );
+      const forgotPasswordForm = document.getElementById("forgotPasswordForm");
+      const recoveryEmailInput = document.getElementById("recoveryEmail");
 
-        // 🛠 Verificar sesión antes de acceder al dashboard
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Asegura que todos los modales de Bootstrap estén ocultos y sus backdrops eliminados al cargar la página
-            // Esto es crucial para evitar que la interfaz se quede "bloqueada" con un fondo oscuro si un modal
-            // no se cerró correctamente en la navegación o una redirección.
-            document.querySelectorAll('.modal.show').forEach(modalEl => {
-                const modalInstance = bootstrap.Modal.getInstance(modalEl);
-                if (modalInstance) {
-                    modalInstance.hide();
-                }
-            });
-            document.querySelectorAll('.modal-backdrop').forEach(backdropEl => {
-                backdropEl.remove();
-            });
+      const verifyCodeModal = new bootstrap.Modal(
+        document.getElementById("verifyCodeModal")
+      );
+      const verifyCodeForm = document.getElementById("verifyCodeForm");
+      const verificationCodeInput = document.getElementById("verificationCode");
+      const newPasswordInput = document.getElementById("newPassword");
+      const confirmNewPasswordInput =
+        document.getElementById("confirmNewPassword");
 
-            try {
-                // Se realiza una llamada al backend para verificar si el usuario está logueado.
-                // Si la sesión no se borra correctamente en el backend al cerrar sesión,
-                // esta verificación podría detectar una sesión activa y redirigir
-                // al usuario de vuelta al dashboard, creando un bucle.
-                const response = await fetch('http://localhost:3001/usuario', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
+      let currentRecoveryEmail = ""; // Para almacenar el email del usuario durante el flujo de recuperación
 
-                const data = await response.json();
+      // Referencia al modal de alerta personalizado fijo
+      const customAlertModalElement =
+        document.getElementById("customAlertModal");
+      const customAlertModal = new bootstrap.Modal(customAlertModalElement);
+      const customAlertModalMessage = document.getElementById(
+        "customAlertModalMessage"
+      );
 
-                // Si hay un ID de usuario y la ruta actual es la página de bienvenida, redirige al dashboard.
-                if (data.id && (window.location.pathname === "/" || window.location.pathname === "/welcome")) {
-                    if (data.rol === 'admin') {
-                        window.location.href = '/Admin-Control/Admin-home';
-                    } else if (data.rol === 'estudiante') {
-                        window.location.href = '/Students-Control/Students-Control';
-                    } else if (data.rol === 'profesor') {
-                        window.location.href = '/Profesor-Control/Profesor-Control';
-                    } else if (data.rol === 'pendiente') {
-                        // Si el rol es 'pendiente', podría quedarse en la página de bienvenida
-                        // o ser redirigido a una página específica para usuarios pendientes.
-                        // Asegúrate de que esta lógica no cause un bucle.
-                        // Actualmente, te deja en la página de bienvenida, lo cual es correcto si no hay redirección.
-                        console.log('Usuario con rol "pendiente" en la página de bienvenida.');
-                    }
-                }
-                } catch (error) {
-                console.error('❌ Error verificando sesión:', error);
-                // Si hay un error al verificar la sesión (ej. el backend no responde o la sesión no existe),
-                // el usuario permanecerá en la página de bienvenida o será redirigido al login.
-                // Esto es el comportamiento deseado después de un logout exitoso.
-            }
+      // 🛠 Verificar sesión antes de acceder al dashboard
+      document.addEventListener("DOMContentLoaded", async () => {
+        // Asegura que todos los modales de Bootstrap estén ocultos y sus backdrops eliminados al cargar la página
+        // Esto es crucial para evitar que la interfaz se quede "bloqueada" con un fondo oscuro si un modal
+        // no se cerró correctamente en la navegación o una redirección.
+        document.querySelectorAll(".modal.show").forEach((modalEl) => {
+          const modalInstance = bootstrap.Modal.getInstance(modalEl);
+          if (modalInstance) {
+            modalInstance.hide();
+          }
+        });
+        // Asegurarse de que cualquier backdrop persistente se elimine al cargar
+        document.querySelectorAll(".modal-backdrop").forEach((backdropEl) => {
+          backdropEl.remove();
         });
 
-        // Lógica de inicio de sesión
-        loginForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        try {
+          // Se realiza una llamada al backend para verificar si el usuario está logueado.
+          // Si la sesión no se borra correctamente en el backend al cerrar sesión,
+          // esta verificación podría detectar una sesión activa y redirigir
+          // al usuario de vuelta al dashboard, creando un bucle.
+          const response = await fetch("http://localhost:3001/usuario", {
+            method: "GET",
+            credentials: "include",
+          });
 
-            const correoInput = document.getElementById('email');
-            const contrasenaInput = document.getElementById('password');
+          const data = await response.json();
 
-            if (!correoInput || !contrasenaInput) {
-                console.error('❌ Error: No se encontraron los campos de correo o contraseña.');
-                showCustomAlert('Error: No se encontraron los campos de correo o contraseña.');
-                return;
+          // Si hay un ID de usuario y la ruta actual es la página de bienvenida, redirige al dashboard.
+          if (
+            data.id &&
+            (window.location.pathname === "/" ||
+              window.location.pathname === "/welcome")
+          ) {
+            if (data.rol === "admin") {
+              window.location.href = "/Admin-Control/Admin-home";
+            } else if (data.rol === "estudiante") {
+              window.location.href = "/Students-Control/Students-Control";
+            } else if (data.rol === "profesor") {
+              window.location.href = "/Profesor-Control/Profesor-Control";
+            } else if (data.rol === "pendiente") {
+              // Si el rol es 'pendiente', podría quedarse en la página de bienvenida
+              // o ser redirigido a una página específica para usuarios pendientes.
+              // Asegúrate de que esta lógica no cause un bucle.
+              // Actualmente, te deja en la página de bienvenida, lo cual es correcto si no hay redirección.
+              console.log(
+                'Usuario con rol "pendiente" en la página de bienvenida.'
+              );
             }
+          }
+        } catch (error) {
+          console.error("❌ Error verificando sesión:", error);
+          // Si hay un error al verificar la sesión (ej. el backend no responde o la sesión no existe),
+          // el usuario permanecerá en la página de bienvenida o será redirigido al login.
+          // Esto es el comportamiento deseado después de un logout exitoso.
+        }
+      });
 
-            const correo = correoInput.value.trim();
-            const contrasena = contrasenaInput.value.trim();
+      // Lógica de inicio de sesión
+      loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-            if (!correo || !contrasena) {
-                showCustomAlert('Todos los campos son obligatorios.');
-                return;
-            }
+        const correoInput = document.getElementById("email");
+        const contrasenaInput = document.getElementById("password");
 
-
-
-            try {
-                const response = await fetch('http://localhost:3001/login', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ correo, contraseña: contrasena })
-                });
-
-                const data = await response.json();
-                
-
-                if (response.ok) {
-                    if (data.rol === 'pendiente') {
-                        showCustomAlert('Tu cuenta está pendiente de aprobación. Por favor, espera a que un administrador la apruebe.');
-                    } else {
-                    showCustomAlert('Inicio de sesión exitoso.', () => {
-                        localStorage.setItem('currentUserId', data.id); // 'data.id' es el ID de usuario devuelto por tu backend
-                        setTimeout(() => {
-                            if (data.rol === 'admin') {
-                                window.location.href = '/Admin-Control/Admin-home';
-                            } else if (data.rol === 'estudiante') {
-                                window.location.href = '/Students-Control/Students-Control';
-                            } else if (data.rol === 'profesor') {
-                                window.location.href = '/Profesor-Control/Profesor-Control';
-                            }
-                        }, 200);    
-                    });
-                    }
-                } else {
-                    showCustomAlert(data.error);
-                }
-            } catch (error) {
-                showCustomAlert('Error de conexión al servidor.');
-                console.error(error);
-            }
-        });
-
-        // Lógica del nuevo formulario de registro principal (registerModal)
-        // Cargar datos al abrir el modal de registro
-        document.getElementById('registerModal').addEventListener('shown.bs.modal', function() {
-            cargarEstados();
-            // Limpiar el formulario al abrirlo
-            formRegistroPrincipal.reset();
-            limpiarTodosLosErrores(formRegistroPrincipal);
-            regCiudadSelect.innerHTML = '<option value="" selected disabled>Primero seleccione un estado</option>';
-            regCiudadSelect.disabled = true;
-            passwordStrengthFeedback.textContent = ''; // Limpiar mensaje de fortaleza de contraseña
-        });
-
-        // Función para cargar estados
-        async function cargarEstados() {
-            regEstadoSelect.disabled = true;
-            regEstadoSelect.innerHTML = '<option value="" selected disabled>Cargando estados...</option>';
-            
-            try {
-                const response = await fetch('http://localhost:3001/api/estados');
-                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-                
-                const estados = await response.json();
-                
-                regEstadoSelect.innerHTML = '<option value="" selected disabled>Seleccione un estado</option>';
-                estados.forEach(estado => {
-                    const option = document.createElement('option');
-                    option.value = estado.id_estado;
-                    option.textContent = estado.estados;
-                    regEstadoSelect.appendChild(option);
-                });
-                
-                regEstadoSelect.disabled = false;
-            } catch (error) {
-                console.error('Error cargando estados:', error);
-                regEstadoSelect.innerHTML = '<option value="" selected disabled>Error al cargar estados</option>';
-                showCustomAlert('Error al cargar estados. Intente recargar la página.');
-            }
+        if (!correoInput || !contrasenaInput) {
+          console.error(
+            "❌ Error: No se encontraron los campos de correo o contraseña."
+          );
+          showCustomAlert(
+            "Error: No se encontraron los campos de correo o contraseña."
+          );
+          return;
         }
 
-        // Event listeners para los selects
-        regEstadoSelect.addEventListener('change', async function() {
-            const estadoId = this.value;
-            regCiudadSelect.innerHTML = '<option value="" selected disabled>Cargando ciudades...</option>';
-            regCiudadSelect.disabled = true;
-            
-            if (!estadoId) return;
-            
-            try {
-                const response = await fetch(`http://localhost:3001/api/estados/${estadoId}/ciudades`);
-                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-                
-                const ciudades = await response.json();
-                
-                regCiudadSelect.innerHTML = '<option value="" selected disabled>Seleccione una ciudad</option>';
-                ciudades.forEach(ciudad => {
-                    const option = document.createElement('option');
-                    option.value = ciudad.id_ciudad;
-                    option.textContent = ciudad.ciudad;
-                    regCiudadSelect.appendChild(option);
-                });
-                
-                regCiudadSelect.disabled = false;
-            } catch (error) {
-                console.error('Error cargando ciudades:', error);
-                regCiudadSelect.innerHTML = '<option value="" selected disabled>Error al cargar ciudades</option>';
-                showCustomAlert('Error al cargar ciudades. Intente nuevamente.');
-            }
-        });
+        const correo = correoInput.value.trim();
+        const contrasena = contrasenaInput.value.trim();
 
-        // Validar cédula al perder foco (regCedulaInput) y al escribir
-        regCedulaInput.addEventListener('input', function() {
-            // Esta línea asegura que solo se permitan dígitos y recorta el valor a 15 caracteres
-            this.value = this.value.replace(/\D/g, '').slice(0, 15); 
-            const cedula = this.value.trim();
-            // Nueva validación de formato de cédula venezolana (6 a 15 dígitos numéricos)
-            const cedulaRegex = /^\d{6,15}$/;
-            if (!cedulaRegex.test(cedula)) {
-                mostrarError(regCedulaInput, 'Formato de cédula inválido (6-15 dígitos numéricos).');
+        if (!correo || !contrasena) {
+          showCustomAlert("Todos los campos son obligatorios.");
+          return;
+        }
+
+        try {
+          const response = await fetch("http://localhost:3001/login", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ correo, contraseña: contrasena }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            if (data.rol === "pendiente") {
+              showCustomAlert(
+                "Tu cuenta está pendiente de aprobación. Por favor, espera a que un administrador la apruebe."
+              );
             } else {
-                limpiarError(regCedulaInput);
+              showCustomAlert("Inicio de sesión exitoso.", () => {
+                localStorage.setItem("currentUserId", data.id); // 'data.id' es el ID de usuario devuelto por tu backend
+                setTimeout(() => {
+                  if (data.rol === "admin") {
+                    window.location.href = "/Admin-Control/Admin-home";
+                  } else if (data.rol === "estudiante") {
+                    window.location.href = "/Students-Control/Students-Control";
+                  } else if (data.rol === "profesor") {
+                    window.location.href = "/Profesor-Control/Profesor-Control";
+                  }
+                }, 200);
+              });
             }
+          } else {
+            showCustomAlert(data.error);
+          }
+        } catch (error) {
+          showCustomAlert("Error de conexión al servidor.");
+          console.error(error);
+        }
+      });
+
+      // Lógica del nuevo formulario de registro principal (registerModal)
+      // Cargar datos al abrir el modal de registro
+      document
+        .getElementById("registerModal")
+        .addEventListener("shown.bs.modal", function () {
+          cargarEstados();
+          // Limpiar el formulario al abrirlo
+          formRegistroPrincipal.reset();
+          limpiarTodosLosErrores(formRegistroPrincipal);
+          regCiudadSelect.innerHTML =
+            '<option value="" selected disabled>Primero seleccione un estado</option>';
+          regCiudadSelect.disabled = true;
+          passwordStrengthFeedback.textContent = ""; // Limpiar mensaje de fortaleza de contraseña
+
+          // MODIFICACIÓN: Limpiar y revalidar campos de nombre/apellido al abrir
+          regPrimerNombreInput.value = "";
+          limpiarError(regPrimerNombreInput);
+          regSegundoNombreInput.value = "";
+          limpiarError(regSegundoNombreInput);
+          regPrimerApellidoInput.value = "";
+          limpiarError(regPrimerApellidoInput);
+          regSegundoApellidoInput.value = "";
+          limpiarError(regSegundoApellidoInput);
         });
 
-        regCedulaInput.addEventListener('blur', async function() {
-            const cedula = this.value.trim();
-            if (!cedula) {
-                mostrarError(regCedulaInput, 'La cédula es obligatoria.');
-                return;
-            }
-            // Nueva validación de formato de cédula venezolana (6 a 15 dígitos numéricos)
-            const cedulaRegex = /^\d{6,15}$/;
-            if (!cedulaRegex.test(cedula)) {
-                mostrarError(regCedulaInput, 'Formato de cédula inválido (6-15 dígitos numéricos).');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`http://localhost:3001/api/verificar-cedula?cedula=${encodeURIComponent(cedula)}`);
-                if (!response.ok) {
-                    // Si la respuesta no es OK, podría ser un 409 Conflict o similar
-                    const errorData = await response.json();
-                    if (response.status === 409 && errorData.existe) { // Asumiendo que 409 indica conflicto de existencia
-                        mostrarError(regCedulaInput, 'Esta cédula ya está registrada en el sistema.');
-                        return; // Detener la ejecución si la cédula ya existe
-                    }
-                    throw new Error(`Error HTTP: ${response.status} - ${errorData.message || 'Error desconocido'}`); 
-                }
-                
-                const data = await response.json();
-                if (data.existe) { // Asume que tu backend devuelve { existe: true/false }
-                    mostrarError(regCedulaInput, 'Esta cédula ya está registrada en el sistema.');
-                } else {
-                    limpiarError(regCedulaInput);
-                }
-            } catch (error) {
-                console.error('Error verificando cédula:', error);
-                // Si el error es una instancia de Error, usa su mensaje, de lo contrario, un mensaje genérico.
-                mostrarError(regCedulaInput, error.message || 'Error al verificar la cédula.');
-            }
+      // MODIFICACIÓN: Manejar el clic en el botón "¿No tienes cuenta? Regístrate aquí" en el modal de login
+      document
+        .getElementById("openRegisterFromLoginBtn")
+        .addEventListener("click", function (event) {
+          // Ocultar explícitamente el modal de login antes de mostrar el modal de registro
+          const loginModalInstance = bootstrap.Modal.getInstance(
+            document.getElementById("loginModal")
+          );
+          if (loginModalInstance) {
+            loginModalInstance.hide();
+          }
+          // Los atributos data-bs-toggle y data-bs-target se encargarán de mostrar el registerModal
+          // después de que este event listener se complete.
         });
 
+      // Lógica para Recuperar Contraseña
+      forgotPasswordBtn.addEventListener("click", () => {
+        // Ocultar modal de login y mostrar modal de recuperar contraseña
+        const loginModalInstance = bootstrap.Modal.getInstance(
+          document.getElementById("loginModal")
+        );
+        if (loginModalInstance) {
+          loginModalInstance.hide();
+        }
+        forgotPasswordModal.show();
+        forgotPasswordForm.reset(); // Limpiar el formulario al abrir
+        limpiarTodosLosErrores(forgotPasswordForm);
+      });
 
-        // Validar número de teléfono
-        regNumeroTelefonoInput.addEventListener('input', function() {
-            this.value = this.value.replace(/\D/g, '').slice(0, 7);
-            if (this.value.length !== 7) {
-                mostrarError(this, 'Debe contener 7 dígitos.');
-            } else {
-                limpiarError(this);
+      // Enviar código de recuperación
+      forgotPasswordForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const email = recoveryEmailInput.value.trim();
+
+        if (!email) {
+          showCustomAlert("Por favor, ingresa tu correo electrónico.");
+          return;
+        }
+
+        try {
+          // Llama al backend para solicitar el código
+          const response = await fetch(
+            "http://localhost:3001/solicitar-codigo-recuperacion",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ correo: email }),
             }
+          );
+
+          const data = await response.json();
+
+          if (response.ok) {
+            currentRecoveryEmail = email; // Guarda el email para el siguiente paso
+            showCustomAlert(
+              "Código enviado exitosamente a tu correo electrónico.",
+              () => {
+                forgotPasswordModal.hide();
+                verifyCodeModal.show(); // Abre el modal de verificación
+                verifyCodeForm.reset(); // Limpiar formulario
+                limpiarTodosLosErrores(verifyCodeForm);
+              }
+            );
+          } else {
+            showCustomAlert(
+              data.error ||
+                "Error al enviar el código de recuperación. Intenta de nuevo."
+            );
+          }
+        } catch (error) {
+          console.error("Error al solicitar código:", error);
+          showCustomAlert(
+            "Error de conexión al servidor al solicitar el código."
+          );
+        }
+      });
+
+      // Verificar código y restablecer contraseña
+      verifyCodeForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const codigo = verificationCodeInput.value.trim();
+        const newPassword = newPasswordInput.value.trim();
+        const confirmNewPassword = confirmNewPasswordInput.value.trim();
+
+        if (!codigo || !newPassword || !confirmNewPassword) {
+          showCustomAlert("Todos los campos son obligatorios.");
+          return;
+        }
+
+        if (newPassword !== confirmNewPassword) {
+          showCustomAlert("Las contraseñas no coinciden.");
+          return;
+        }
+
+        // Aquí puedes añadir validación de fortaleza de la nueva contraseña si lo deseas
+        if (newPassword.length < 8) {
+          // Ejemplo de validación simple
+          showCustomAlert(
+            "La nueva contraseña debe tener al menos 8 caracteres."
+          );
+          return;
+        }
+
+        try {
+          // Llama al backend para verificar el código y actualizar la contraseña
+          const response = await fetch(
+            "http://localhost:3001/restablecer-contrasena",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                correo: currentRecoveryEmail,
+                codigo,
+                nuevaContrasena: newPassword,
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showCustomAlert(
+              "Contraseña restablecida exitosamente. Ahora puedes iniciar sesión con tu nueva contraseña.",
+              () => {
+                verifyCodeModal.hide();
+                // Opcional: Abrir el modal de login de nuevo
+                new bootstrap.Modal(
+                  document.getElementById("loginModal")
+                ).show();
+              }
+            );
+          } else {
+            showCustomAlert(
+              data.error ||
+                "Error al restablecer la contraseña. Verifica el código."
+            );
+          }
+        } catch (error) {
+          console.error("Error al restablecer contraseña:", error);
+          showCustomAlert(
+            "Error de conexión al servidor al restablecer la contraseña."
+          );
+        }
+      });
+
+      // Función para cargar estados
+      async function cargarEstados() {
+        regEstadoSelect.disabled = true;
+        regEstadoSelect.innerHTML =
+          '<option value="" selected disabled>Cargando estados...</option>';
+
+        try {
+          const response = await fetch("http://localhost:3001/api/estados");
+          if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
+          const estados = await response.json();
+
+          regEstadoSelect.innerHTML =
+            '<option value="" selected disabled>Seleccione un estado</option>';
+          estados.forEach((estado) => {
+            const option = document.createElement("option");
+            option.value = estado.id_estado;
+            option.textContent = estado.estados;
+            regEstadoSelect.appendChild(option);
+          });
+
+          regEstadoSelect.disabled = false;
+        } catch (error) {
+          console.error("Error cargando estados:", error);
+          regEstadoSelect.innerHTML =
+            '<option value="" selected disabled>Error al cargar estados</option>';
+          showCustomAlert(
+            "Error al cargar estados. Intente recargar la página."
+          );
+        }
+      }
+
+      // Event listeners para los selects
+      regEstadoSelect.addEventListener("change", async function () {
+        const estadoId = this.value;
+        regCiudadSelect.innerHTML =
+          '<option value="" selected disabled>Cargando ciudades...</option>';
+        regCiudadSelect.disabled = true;
+
+        if (!estadoId) return;
+
+        try {
+          const response = await fetch(
+            `http://localhost:3001/api/estados/${estadoId}/ciudades`
+          );
+          if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
+          const ciudades = await response.json();
+
+          regCiudadSelect.innerHTML =
+            '<option value="" selected disabled>Seleccione una ciudad</option>';
+          ciudades.forEach((ciudad) => {
+            const option = document.createElement("option");
+            option.value = ciudad.id_ciudad;
+            option.textContent = ciudad.ciudad;
+            regCiudadSelect.appendChild(option);
+          });
+
+          regCiudadSelect.disabled = false;
+        } catch (error) {
+          console.error("Error cargando ciudades:", error);
+          regCiudadSelect.innerHTML =
+            '<option value="" selected disabled>Error al cargar ciudades</option>';
+          showCustomAlert("Error al cargar ciudades. Intente nuevamente.");
+        }
+      });
+
+      // Validar cédula al cambiar el input y al perder el foco
+      regCedulaInput.addEventListener("input", function () {
+        // Esta línea asegura que solo se permitan dígitos y recorta el valor a 15 caracteres
+        this.value = this.value.replace(/\D/g, "").slice(0, 15);
+        const cedula = this.value.trim();
+        // Nueva validación de formato de cédula venezolana (6 a 15 dígitos numéricos)
+        const cedulaRegex = /^\d{6,15}$/;
+        if (!cedulaRegex.test(cedula)) {
+          mostrarError(
+            regCedulaInput,
+            "Formato de cédula inválido (6-15 dígitos numéricos)."
+          );
+        } else {
+          limpiarError(regCedulaInput);
+        }
+      });
+
+      regCedulaInput.addEventListener("blur", async function () {
+        const cedula = this.value.trim();
+        if (!cedula) {
+          mostrarError(regCedulaInput, "La cédula es obligatoria.");
+          return;
+        }
+        // Nueva validación de formato de cédula venezolana (6 a 15 dígitos numéricos)
+        const cedulaRegex = /^\d{6,15}$/;
+        if (!cedulaRegex.test(cedula)) {
+          mostrarError(
+            regCedulaInput,
+            "Formato de cédula inválido (6-15 dígitos numéricos)."
+          );
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `http://localhost:3001/api/verificar-cedula?cedula=${encodeURIComponent(cedula)}`
+          );
+          if (!response.ok) {
+            // Si la respuesta no es OK, podría ser un 409 Conflict o similar
+            const errorData = await response.json();
+            if (response.status === 409 && errorData.existe) {
+              // Asumiendo que 409 indica conflicto de existencia
+              mostrarError(
+                regCedulaInput,
+                "Esta cédula ya está registrada en el sistema."
+              );
+              return; // Detener la ejecución si la cédula ya existe
+            }
+            throw new Error(
+              `Error HTTP: ${response.status} - ${errorData.message || "Error desconocido"}`
+            );
+          }
+
+          const data = await response.json();
+          if (data.existe) {
+            // Asume que tu backend devuelve { existe: true/false }
+            mostrarError(
+              regCedulaInput,
+              "Esta cédula ya está registrada en el sistema."
+            );
+          } else {
+            limpiarError(regCedulaInput);
+          }
+        } catch (error) {
+          console.error("Error verificando cédula:", error);
+          // Si el error es una instancia de Error, usa su mensaje, de lo contrario, un mensaje genérico.
+          mostrarError(
+            regCedulaInput,
+            error.message || "Error al verificar la cédula."
+          );
+        }
+      });
+
+      // MODIFICACIÓN: Función de validación de solo letras
+      function validateTextOnly(inputElement, fieldName) {
+        const value = inputElement.value;
+        // Regex para letras (mayúsculas, minúsculas, acentuadas) y espacios, NO permitiendo números.
+        const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/;
+
+        if (!regex.test(value)) {
+          // Si el valor contiene caracteres no permitidos (ej. números), eliminarlos inmediatamente.
+          inputElement.value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
+          mostrarError(
+            inputElement,
+            `El campo ${fieldName} solo permite letras y espacios.`
+          );
+          return false;
+        } else if (
+          inputElement.hasAttribute("required") &&
+          value.trim() === ""
+        ) {
+          // Esta parte asegura que los campos requeridos no sean solo espacios
+          mostrarError(inputElement, `El campo ${fieldName} es obligatorio.`);
+          return false;
+        } else {
+          limpiarError(inputElement);
+          return true;
+        }
+      }
+
+      // MODIFICACIÓN: Añadir event listeners para validación de nombres y apellidos
+      regPrimerNombreInput.addEventListener("input", () => {
+        regPrimerNombreInput.value = regPrimerNombreInput.value.replace(
+          /[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g,
+          ""
+        ); // Filtrar números inmediatamente
+        validateTextOnly(regPrimerNombreInput, "Primer Nombre");
+      });
+      regSegundoNombreInput.addEventListener("input", () => {
+        regSegundoNombreInput.value = regSegundoNombreInput.value.replace(
+          /[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g,
+          ""
+        ); // Filtrar números inmediatamente
+        validateTextOnly(regSegundoNombreInput, "Segundo Nombre");
+      });
+      regPrimerApellidoInput.addEventListener("input", () => {
+        regPrimerApellidoInput.value = regPrimerApellidoInput.value.replace(
+          /[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g,
+          ""
+        ); // Filtrar números inmediatamente
+        validateTextOnly(regPrimerApellidoInput, "Primer Apellido");
+      });
+      regSegundoApellidoInput.addEventListener("input", () => {
+        regSegundoApellidoInput.value = regSegundoApellidoInput.value.replace(
+          /[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g,
+          ""
+        ); // Filtrar números inmediatamente
+        validateTextOnly(regSegundoApellidoInput, "Segundo Apellido");
+      });
+
+      // Validar número de teléfono
+      regNumeroTelefonoInput.addEventListener("input", function () {
+        this.value = this.value.replace(/\D/g, "").slice(0, 7);
+        if (this.value.length !== 7) {
+          mostrarError(this, "Debe contener 7 dígitos.");
+        } else {
+          limpiarError(this);
+        }
+      });
+
+      // Toggle Password Visibility
+      document.querySelectorAll(".toggle-password").forEach((button) => {
+        button.addEventListener("click", function () {
+          const targetId = this.dataset.target;
+          const passwordInput = document.getElementById(targetId);
+          const icon = this.querySelector("i");
+
+          if (passwordInput.type === "password") {
+            passwordInput.type = "text";
+            icon.classList.remove("bx-hide");
+            icon.classList.add("bx-show");
+          } else {
+            passwordInput.type = "password";
+            icon.classList.remove("bx-show");
+            icon.classList.add("bx-hide");
+          }
+        });
+      });
+
+      // Password Strength Validation
+      regPasswordInput.addEventListener("input", function () {
+        const password = this.value;
+        let strength = 0;
+        let feedback = [];
+
+        if (password.length >= 8) {
+          strength += 1;
+        } else {
+          feedback.push("Al menos 8 caracteres.");
+        }
+        if (/[A-Z]/.test(password)) {
+          strength += 1;
+        } else {
+          feedback.push("Una letra mayúscula.");
+        }
+        if (/[a-z]/.test(password)) {
+          strength += 1;
+        } else {
+          feedback.push("Una letra minúscula.");
+        }
+        if (/[0-9]/.test(password)) {
+          strength += 1;
+        } else {
+          feedback.push("Un número.");
+        }
+        if (/[^A-Za-z0-9]/.test(password)) {
+          strength += 1;
+        } else {
+          feedback.push("Un caracter especial.");
+        }
+
+        if (password.length === 0) {
+          passwordStrengthFeedback.textContent = "";
+          limpiarError(regPasswordInput);
+          return;
+        }
+
+        let strengthText = "";
+        let color = "";
+
+        if (strength === 5) {
+          strengthText = "¡Excelente!";
+          color = "green";
+          limpiarError(regPasswordInput);
+        } else if (strength >= 3) {
+          strengthText = "Buena";
+          color = "orange";
+          limpiarError(regPasswordInput);
+        } else {
+          strengthText = "Débil";
+          color = "red";
+          mostrarError(
+            regPasswordInput,
+            "Contraseña débil: " + feedback.join(", ")
+          );
+        }
+        passwordStrengthFeedback.textContent = `Fortaleza: ${strengthText}`;
+        passwordStrengthFeedback.style.color = color;
+      });
+
+      // Validar coincidencia de contraseñas
+      regConfirmPasswordInput.addEventListener("input", function () {
+        // Cambiado a 'input' para feedback más rápido
+        if (regPasswordInput.value !== regConfirmPasswordInput.value) {
+          mostrarError(
+            regConfirmPasswordInput,
+            "Las contraseñas no coinciden."
+          );
+        } else {
+          limpiarError(regConfirmPasswordInput);
+        }
+      });
+      regPasswordInput.addEventListener("input", function () {
+        // Añadido para que se revalide al cambiar la primera
+        if (regConfirmPasswordInput.value !== "") {
+          // Solo revalida si ya hay algo en confirmar
+          if (regPasswordInput.value !== regConfirmPasswordInput.value) {
+            mostrarError(
+              regConfirmPasswordInput,
+              "Las contraseñas no coinciden."
+            );
+          } else {
+            limpiarError(regConfirmPasswordInput);
+          }
+        }
+      });
+
+      // Validación de unicidad de correo electrónico (Frontend con llamada a la API del Backend)
+      regEmailInput.addEventListener("blur", async function () {
+        const email = this.value.trim();
+        if (!email) {
+          mostrarError(regEmailInput, "El correo electrónico es obligatorio.");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `http://localhost:3001/api/verificar-correo?email=${encodeURIComponent(email)}`
+          );
+          if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
+          const data = await response.json();
+
+          if (data.existe) {
+            mostrarError(
+              regEmailInput,
+              "Este correo electrónico ya está registrado."
+            );
+          } else {
+            limpiarError(regEmailInput);
+          }
+        } catch (error) {
+          console.error("Error al verificar el correo electrónico:", error);
+          mostrarError(
+            regEmailInput,
+            "Error al verificar el correo electrónico. Intente de nuevo."
+          );
+        }
+      });
+
+      // Lógica para limpiar el formulario al hacer clic en "Cancelar"
+      formRegistroPrincipal
+        .querySelector('button[type="button"][data-bs-dismiss="modal"]')
+        .addEventListener("click", function () {
+          formRegistroPrincipal.reset();
+          limpiarTodosLosErrores(formRegistroPrincipal);
+          regCiudadSelect.innerHTML =
+            '<option value="" selected disabled>Primero seleccione un estado</option>';
+          regCiudadSelect.disabled = true;
+          passwordStrengthFeedback.textContent = ""; // Limpiar mensaje de fortaleza de contraseña
         });
 
-        // Toggle Password Visibility
-        document.querySelectorAll('.toggle-password').forEach(button => {
-            button.addEventListener('click', function() {
-                const targetId = this.dataset.target;
-                const passwordInput = document.getElementById(targetId);
-                const icon = this.querySelector('i');
+      // Manejar envío del formulario principal de registro
+      formRegistroPrincipal.addEventListener("submit", async function (e) {
+        e.preventDefault();
 
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    icon.classList.remove('bx-hide');
-                    icon.classList.add('bx-show');
-                } else {
-                    passwordInput.type = 'password';
-                    icon.classList.remove('bx-show');
-                    icon.classList.add('bx-hide');
-                }
-            });
+        // Validar campos obligatorios y reglas de contraseña
+        const camposRequeridos = [
+          { input: regCedulaInput, nombre: "Cédula" },
+          { input: regPrimerNombreInput, nombre: "Primer Nombre" },
+          { input: regPrimerApellidoInput, nombre: "Primer Apellido" },
+          { input: regEmailInput, nombre: "Correo Electrónico" },
+          { input: regDireccionInput, nombre: "Dirección" },
+          { input: regPasswordInput, nombre: "Contraseña" },
+          { input: regConfirmPasswordInput, nombre: "Confirmar contraseña" },
+          { input: regNumeroTelefonoInput, nombre: "Teléfono" },
+          { input: regEstadoSelect, nombre: "Estado" },
+          { input: regCiudadSelect, nombre: "Ciudad" },
+        ];
+
+        let formularioValido = true;
+
+        camposRequeridos.forEach((campo) => {
+          // Revalidar campos obligatorios
+          if (
+            !campo.input.value ||
+            (campo.input.tagName === "SELECT" && campo.input.value === "")
+          ) {
+            mostrarError(
+              campo.input,
+              `El campo ${campo.nombre} es obligatorio.`
+            );
+            formularioValido = false;
+          } else {
+            limpiarError(campo.input);
+          }
         });
 
-        // Password Strength Validation
-        regPasswordInput.addEventListener('input', function() {
-            const password = this.value;
-            let strength = 0;
-            let feedback = [];
+        // Revalidaciones adicionales
+        // Validación de formato de cédula (6 a 15 dígitos numéricos)
+        const cedulaRegex = /^\d{6,15}$/;
+        if (!cedulaRegex.test(regCedulaInput.value.trim())) {
+          mostrarError(
+            regCedulaInput,
+            "Formato de cédula inválido (6-15 dígitos numéricos)."
+          );
+          formularioValido = false;
+        }
 
-            if (password.length >= 8) {
-                strength += 1;
-            } else {
-                feedback.push('Al menos 8 caracteres.');
-            }
-            if (/[A-Z]/.test(password)) {
-                strength += 1;
-            } else {
-                feedback.push('Una letra mayúscula.');
-            }
-            if (/[a-z]/.test(password)) {
-                strength += 1;
-            } else {
-                feedback.push('Una letra minúscula.');
-            }
-            if (/[0-9]/.test(password)) {
-                strength += 1;
-            } else {
-                feedback.push('Un número.');
-            }
-            if (/[^A-Za-z0-9]/.test(password)) {
-                strength += 1;
-            } else {
-                feedback.push('Un caracter especial.');
-            }
+        if (regPasswordInput.value !== regConfirmPasswordInput.value) {
+          mostrarError(
+            regConfirmPasswordInput,
+            "Las contraseñas no coinciden."
+          );
+          formularioValido = false;
+        }
+        if (regNumeroTelefonoInput.value.length !== 7) {
+          mostrarError(
+            regNumeroTelefonoInput,
+            "El teléfono debe contener 7 dígitos."
+          );
+          formularioValido = false;
+        }
+        // MODIFICACIÓN: Revalidar campos de nombre/apellido
+        if (!validateTextOnly(regPrimerNombreInput, "Primer Nombre"))
+          formularioValido = false;
+        if (!validateTextOnly(regSegundoNombreInput, "Segundo Nombre"))
+          formularioValularioValido = false;
+        if (!validateTextOnly(regPrimerApellidoInput, "Primer Apellido"))
+          formularioValido = false;
+        if (!validateTextOnly(regSegundoApellidoInput, "Segundo Apellido"))
+          formularioValido = false;
 
-            if (password.length === 0) {
-                passwordStrengthFeedback.textContent = '';
-                limpiarError(regPasswordInput);
-                return;
-            }
+        // Forzar revalidación de fortaleza de contraseña y email
+        regPasswordInput.dispatchEvent(new Event("input"));
+        regEmailInput.dispatchEvent(new Event("blur"));
+        regCedulaInput.dispatchEvent(new Event("blur")); // Forzar revalidación de cédula
 
-            let strengthText = '';
-            let color = '';
+        // Si hay algún error visible, el formulario no es válido
+        if (formRegistroPrincipal.querySelector(".is-invalid")) {
+          formularioValido = false;
+        }
 
-            if (strength === 5) {
-                strengthText = '¡Excelente!';
-                color = 'green';
-                limpiarError(regPasswordInput);
-            } else if (strength >= 3) {
-                strengthText = 'Buena';
-                color = 'orange';
-                limpiarError(regPasswordInput);
-            } else {
-                strengthText = 'Débil';
-                color = 'red';
-                mostrarError(regPasswordInput, 'Contraseña débil: ' + feedback.join(', '));
-            }
-            passwordStrengthFeedback.textContent = `Fortaleza: ${strengthText}`;
-            passwordStrengthFeedback.style.color = color;
-        });
+        if (!formularioValido) {
+          showCustomAlert(
+            "Por favor, complete todos los campos obligatorios y corrija los errores."
+          );
+          return;
+        }
 
-        // Validar coincidencia de contraseñas
-        regConfirmPasswordInput.addEventListener('input', function() { // Cambiado a 'input' para feedback más rápido
-            if (regPasswordInput.value !== regConfirmPasswordInput.value) {
-                mostrarError(regConfirmPasswordInput, 'Las contraseñas no coinciden.');
-            } else {
-                limpiarError(regConfirmPasswordInput);
-            }
-        });
-        regPasswordInput.addEventListener('input', function() { // Añadido para que se revalide al cambiar la primera
-            if (regConfirmPasswordInput.value !== '') { // Solo revalida si ya hay algo en confirmar
-                 if (regPasswordInput.value !== regConfirmPasswordInput.value) {
-                    mostrarError(regConfirmPasswordInput, 'Las contraseñas no coinciden.');
-                } else {
-                    limpiarError(regConfirmPasswordInput);
-                }
-            }
-        });
-
-
-        // Email Uniqueness Validation (Frontend with Backend API Call)
-        regEmailInput.addEventListener('blur', async function() {
-             const email = this.value.trim();
-             if (!email) {
-                 mostrarError(regEmailInput, 'El correo electrónico es obligatorio.');
-                 return;
-             }
-
-            try {
-                const response = await fetch(`http://localhost:3001/api/verificar-correo?email=${encodeURIComponent(email)}`);
-                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-
-                const data = await response.json();
-
-                if (data.existe) { 
-                mostrarError(regEmailInput, 'Este correo electrónico ya está registrado.');
-                } else {
-                limpiarError(regEmailInput);
-                }
-            } catch (error) {
-                console.error('Error al verificar el correo electrónico:', error);
-                mostrarError(regEmailInput, 'Error al verificar el correo electrónico. Intente de nuevo.');
-            }
-        });
-
-
-
-        // Lógica para limpiar el formulario al hacer clic en "Cancelar"
-        formRegistroPrincipal.querySelector('button[type="button"][data-bs-dismiss="modal"]').addEventListener('click', function() {
-            formRegistroPrincipal.reset();
-            limpiarTodosLosErrores(formRegistroPrincipal);
-            regCiudadSelect.innerHTML = '<option value="" selected disabled>Primero seleccione un estado</option>';
-            regCiudadSelect.disabled = true;
-            passwordStrengthFeedback.textContent = ''; // Limpiar mensaje de fortaleza de contraseña
-        });
-
-
-        // Manejar envío del formulario principal de registro
-        formRegistroPrincipal.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Validar campos obligatorios y reglas de contraseña
-            const camposRequeridos = [
-                { input: regCedulaInput, nombre: 'Cédula' },
-                { input: regPrimerNombreInput, nombre: 'Primer Nombre' },
-                { input: regPrimerApellidoInput, nombre: 'Primer Apellido' },
-                { input: regEmailInput, nombre: 'Correo Electrónico' },
-                { input: regDireccionInput, nombre: 'Dirección' },
-                { input: regPasswordInput, nombre: 'Contraseña' },
-                { input: regConfirmPasswordInput, nombre: 'Confirmar contraseña' },
-                { input: regNumeroTelefonoInput, nombre: 'Teléfono' },
-                { input: regEstadoSelect, nombre: 'Estado' },
-                { input: regCiudadSelect, nombre: 'Ciudad' }
-            ];
-
-            let formularioValido = true;
-            
-            camposRequeridos.forEach(campo => {
-                // Revalidar campos obligatorios
-                if (!campo.input.value || (campo.input.tagName === 'SELECT' && campo.input.value === '')) {
-                    mostrarError(campo.input, `El campo ${campo.nombre} es obligatorio.`);
-                    formularioValido = false;
-                } else {
-                    limpiarError(campo.input);
-                }
-            });
-
-            // Revalidaciones adicionales
-            // Validación de formato de cédula (6 a 15 dígitos numéricos)
-            const cedulaRegex = /^\d{6,15}$/;
-            if (!cedulaRegex.test(regCedulaInput.value.trim())) {
-                mostrarError(regCedulaInput, 'Formato de cédula inválido (6-15 dígitos numéricos).');
-                formularioValido = false;
-            }
-
-            if (regPasswordInput.value !== regConfirmPasswordInput.value) {
-                mostrarError(regConfirmPasswordInput, 'Las contraseñas no coinciden.');
-                formularioValido = false;
-            }
-            if (regNumeroTelefonoInput.value.length !== 7) {
-                mostrarError(regNumeroTelefonoInput, 'El teléfono debe contener 7 dígitos.');
-                formularioValido = false;
-            }
-            // Forzar revalidación de fortaleza de contraseña y email
-            regPasswordInput.dispatchEvent(new Event('input')); 
-            regEmailInput.dispatchEvent(new Event('blur')); 
-            regCedulaInput.dispatchEvent(new Event('blur')); // Forzar revalidación de cédula
-
-            // Si hay algún error visible, el formulario no es válido
-            if (formRegistroPrincipal.querySelector('.is-invalid')) {
-                formularioValido = false;
-            }
-
-            if (!formularioValido) {
-                showCustomAlert('Por favor, complete todos los campos obligatorios y corrija los errores.');
-                return;
-            }
-
-            // Mostrar loading en el botón
-            submitNewRegisterFormBtn.disabled = true;
-            submitNewRegisterFormBtn.innerHTML = `
+        // Mostrar loading en el botón
+        submitNewRegisterFormBtn.disabled = true;
+        submitNewRegisterFormBtn.innerHTML = `
               <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
               Registrando...
             `;
 
-            try {
-                // Obtener valores del formulario
-                const formData = {
-                    cedula: regCedulaInput.value.trim(),
-                    primerNombre: regPrimerNombreInput.value.trim(),
-                    segundoNombre: regSegundoNombreInput.value.trim(),
-                    primerApellido: regPrimerApellidoInput.value.trim(),
-                    segundoApellido: regSegundoApellidoInput.value.trim(),
-                    correo: regEmailInput.value.trim(), // Usar 'correo' para el backend
-                    telefono: `${regCodigoAreaSelect.value}-${regNumeroTelefonoInput.value}`,
-                    direccion: regDireccionInput.value.trim(),
-                    id_estado: regEstadoSelect.value,
-                    id_ciudad: regCiudadSelect.value,
-                    contraseña: regPasswordInput.value.trim(), // Usar 'contraseña' para el backen
-                };
+        try {
+          // Obtener valores del formulario
+          const formData = {
+            cedula: regCedulaInput.value.trim(),
+            primerNombre: regPrimerNombreInput.value.trim(),
+            segundoNombre: regSegundoNombreInput.value.trim(),
+            primerApellido: regPrimerApellidoInput.value.trim(),
+            segundoApellido: regSegundoApellidoInput.value.trim(),
+            correo: regEmailInput.value.trim(), // Usar 'correo' para el backend
+            telefono: `${regCodigoAreaSelect.value}-${regNumeroTelefonoInput.value}`,
+            direccion: regDireccionInput.value.trim(),
+            id_estado: regEstadoSelect.value,
+            id_ciudad: regCiudadSelect.value,
+            contraseña: regPasswordInput.value.trim(), // Usar 'contraseña' para el backen
+          };
 
-                // Enviar datos al servidor
-                const response = await fetch('http://localhost:3001/register', { // Ajusta el endpoint si es necesario
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
+          // Enviar datos al servidor
+          const response = await fetch("http://localhost:3001/register", {
+            // Ajusta el endpoint si es necesario
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          });
 
-                const data = await response.json();
+          const data = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(data.error || 'Error al registrar el usuario.');
-                }
+          if (!response.ok) {
+            throw new Error(data.error || "Error al registrar el usuario.");
+          }
 
-                // Mostrar mensaje de éxito y redirigir o abrir modal de login
-                showCustomAlert('Usuario registrado exitosamente. Espera aprobación del administrador.', () => {
-                    // Cerrar explícitamente el modal de registro si sigue abierto
-                    const registerModal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-                    if (registerModal) {
-                        registerModal.hide();
-                    }
-                    new bootstrap.Modal(document.getElementById('loginModal')).show(); // Abrir modal de login
-                });
-
-            } catch (error) {
-                console.error('Error en el registro:', error);
-                showCustomAlert(error.message);
-            } finally {
-                // Restaurar botón
-                submitNewRegisterFormBtn.disabled = false;
-                submitNewRegisterFormBtn.textContent = 'Registrarse';
+          // Mostrar mensaje de éxito y redirigir o abrir modal de login
+          showCustomAlert(
+            "Usuario registrado exitosamente. Espera aprobación del administrador.",
+            () => {
+              // Cerrar explícitamente el modal de registro si sigue abierto
+              const registerModal = bootstrap.Modal.getInstance(
+                document.getElementById("registerModal")
+              );
+              if (registerModal) {
+                registerModal.hide();
+              }
+              new bootstrap.Modal(document.getElementById("loginModal")).show(); // Abrir modal de login
             }
+          );
+        } catch (error) {
+          console.error("Error en el registro:", error);
+          showCustomAlert(error.message);
+        } finally {
+          // Restaurar botón
+          submitNewRegisterFormBtn.disabled = false;
+          submitNewRegisterFormBtn.textContent = "Registrarse";
+        }
+      });
+
+      // Funciones auxiliares para errores y alertas (adaptadas)
+      function mostrarError(elemento, mensaje) {
+        elemento.classList.add("is-invalid");
+        // Busca el feedback de invalidez directamente después del elemento o dentro de su padre
+        const errorElement = elemento.nextElementSibling;
+        if (
+          errorElement &&
+          errorElement.classList.contains("invalid-feedback")
+        ) {
+          errorElement.textContent = mensaje;
+          errorElement.style.display = "block";
+        } else {
+          const parentErrorElement =
+            elemento.parentNode.querySelector(".invalid-feedback");
+          if (parentErrorElement) {
+            parentErrorElement.textContent = mensaje;
+            parentErrorElement.style.display = "block";
+          }
+        }
+      }
+
+      function limpiarError(elemento) {
+        elemento.classList.remove("is-invalid");
+        const errorElement = elemento.nextElementSibling;
+        if (
+          errorElement &&
+          errorElement.classList.contains("invalid-feedback")
+        ) {
+          errorElement.textContent = "";
+          errorElement.style.display = "none";
+        } else {
+          const parentErrorElement =
+            elemento.parentNode.querySelector(".invalid-feedback");
+          if (parentErrorElement) {
+            parentErrorElement.textContent = "";
+            parentErrorElement.style.display = "none";
+          }
+        }
+      }
+
+      function limpiarTodosLosErrores(form) {
+        form
+          .querySelectorAll(".is-invalid")
+          .forEach((el) => el.classList.remove("is-invalid"));
+        form.querySelectorAll(".invalid-feedback").forEach((el) => {
+          el.textContent = "";
+          el.style.display = "none";
         });
+      }
 
-        // Funciones auxiliares para errores y alertas (adaptadas)
-        function mostrarError(elemento, mensaje) {
-            elemento.classList.add('is-invalid');
-            // Busca el feedback de invalidez directamente después del elemento o dentro de su padre
-            const errorElement = elemento.nextElementSibling; 
-            if (errorElement && errorElement.classList.contains('invalid-feedback')) {
-                errorElement.textContent = mensaje;
-                errorElement.style.display = 'block';
-            } else {
-                const parentErrorElement = elemento.parentNode.querySelector('.invalid-feedback');
-                if (parentErrorElement) {
-                    parentErrorElement.textContent = mensaje;
-                    parentErrorElement.style.display = 'block';
-                }
-            }
+      // MODIFICACIÓN: Función showCustomAlert utiliza un modal preexistente
+      function showCustomAlert(message, callback = () => {}) {
+        customAlertModalMessage.textContent = message;
+        customAlertModal.show();
+
+        // Eliminar listeners previos para evitar múltiples ejecuciones
+        customAlertModalElement.removeEventListener(
+          "hidden.bs.modal",
+          customAlertModalElement._currentCallback
+        );
+
+        // Guardar y añadir el nuevo callback
+        customAlertModalElement._currentCallback = () => {
+          callback();
+          // Limpiar el callback después de su ejecución para evitar su llamada en futuras aperturas no relacionadas
+          customAlertModalElement._currentCallback = null;
+        };
+        customAlertModalElement.addEventListener(
+          "hidden.bs.modal",
+          customAlertModalElement._currentCallback
+        );
+      }
+
+      // --- INSTRUCCIONES PARA EL MANEJO DE CERRAR SESIÓN EN EL DASHBOARD ---
+      // El problema de un bucle o pantalla bloqueada después de "salir" se debe
+      // comúnmente a que el backend no invalida la sesión correctamente,
+      // o la redirección del frontend no es robusta.
+
+      // Aquí se muestra un ejemplo de cómo debería funcionar una función de logout
+      // que debería ser llamada desde el botón "Salir" en tus páginas del dashboard.
+      async function handleLogout() {
+        try {
+          // 1. Realizar una llamada al backend para destruir la sesión.
+          // Asegúrate de que tu endpoint de logout en Node.js invalide
+          // cualquier cookie de sesión o token de autenticación.
+          const response = await fetch("http://localhost:3001/logout", {
+            // Ajusta la URL de tu endpoint de logout
+            method: "POST", // O 'GET' dependiendo de cómo lo tengas configurado en tu backend
+            credentials: "include", // Para enviar cookies de sesión si las usas
+          });
+
+          if (!response.ok) {
+            // Si el backend responde con un error, muéstralo.
+            const errorData = await response.json();
+            throw new Error(
+              errorData.error || "Error al cerrar sesión en el servidor."
+            );
+          }
+
+          // 2. Si el logout es exitoso en el backend, redirige al usuario a la página de bienvenida.
+          // Esta redirección forzará la recarga de la página de bienvenida, y el script
+          // de DOMContentLoaded verificará la sesión limpia (sin data.id) y no redirigirá de nuevo.
+          window.location.href = "/welcome"; // O '/', la ruta de tu página de bienvenida
+        } catch (error) {
+          console.error("❌ Error al cerrar sesión:", error);
+          showCustomAlert(
+            error.message ||
+              "Error al cerrar sesión. Por favor, inténtelo de nuevo."
+          );
         }
+      }
 
-        function limpiarError(elemento) {
-            elemento.classList.remove('is-invalid');
-            const errorElement = elemento.nextElementSibling;
-            if (errorElement && errorElement.classList.contains('invalid-feedback')) {
-                errorElement.textContent = '';
-                errorElement.style.display = 'none';
-            } else {
-                const parentErrorElement = elemento.parentNode.querySelector('.invalid-feedback');
-                if (parentErrorElement) {
-                    parentErrorElement.textContent = '';
-                    parentErrorElement.style.display = 'none';
-                }
-            }
-        }
-
-        function limpiarTodosLosErrores(form) {
-            form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            form.querySelectorAll('.invalid-feedback').forEach(el => {
-                el.textContent = '';
-                el.style.display = 'none';
-            });
-        }
-        
-        function showCustomAlert(message, callback = () => {}) {
-            const alertModalHtml = `
-                <div class="modal fade" id="customAlertModal" tabindex="-1" aria-labelledby="customAlertModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content custom-alert-modal">
-                            <div class="modal-body text-center">
-                                <p class="mb-3">${message}</p>
-                                <button type="button" class="btn btn-primary-custom" data-bs-dismiss="modal">Aceptar</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Eliminar cualquier modal existente para evitar duplicados
-            const existingModal = document.getElementById('customAlertModal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-
-            document.body.insertAdjacentHTML('beforeend', alertModalHtml);
-            const customAlertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
-            customAlertModal.show();
-
-            // Ejecutar callback cuando el modal se cierra
-            document.getElementById('customAlertModal').addEventListener('hidden.bs.modal', callback);
-        }
-
-        // --- INSTRUCCIONES PARA EL MANEJO DE CERRAR SESIÓN EN EL DASHBOARD ---
-        // El problema de un bucle o pantalla bloqueada después de "salir" se debe
-        // comúnmente a que el backend no invalida la sesión correctamente,
-        // o la redirección del frontend no es robusta.
-
-        // Aquí se muestra un ejemplo de cómo debería funcionar una función de logout
-        // que debería ser llamada desde el botón "Salir" en tus páginas del dashboard.
-        async function handleLogout() {
-            try {
-                // 1. Realizar una llamada al backend para destruir la sesión.
-                // Asegúrate de que tu endpoint de logout en Node.js invalide
-                // cualquier cookie de sesión o token de autenticación.
-                const response = await fetch('http://localhost:3001/logout', { // Ajusta la URL de tu endpoint de logout
-                    method: 'POST', // O 'GET' dependiendo de cómo lo tengas configurado en tu backend
-                    credentials: 'include' // Para enviar cookies de sesión si las usas
-                });
-
-                if (!response.ok) {
-                    // Si el backend responde con un error, muéstralo.
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error al cerrar sesión en el servidor.');
-                }
-
-                // 2. Si el logout es exitoso en el backend, redirige al usuario a la página de bienvenida.
-                // Esta redirección forzará la recarga de la página de bienvenida, y el script
-                // de DOMContentLoaded verificará la sesión limpia (sin data.id) y no redirigirá de nuevo.
-                window.location.href = '/welcome'; // O '/', la ruta de tu página de bienvenida
-            } catch (error) {
-                console.error('❌ Error al cerrar sesión:', error);
-                showCustomAlert(error.message || 'Error al cerrar sesión. Por favor, inténtelo de nuevo.');
-            }
-        }
-
-        // EJEMPLO: Si tuvieras un botón de logout en una de tus páginas de dashboard,
-        // su evento 'click' debería llamar a handleLogout.
-        // Por ejemplo (en una página de dashboard, no en welcome.html):
-        // const logoutButton = document.getElementById('logoutButton');
-        // if (logoutButton) {
-        //     logoutButton.addEventListener('click', handleLogout);
-        // }
-        // --- FIN DE INSTRUCCIONES PARA EL MANEJO DE CERRAR SESIÓN EN EL DASHBOARD ---
+      // EJEMPLO: Si tuvieras un botón de logout en una de tus páginas de dashboard,
+      // su evento 'click' debería llamar a handleLogout.
+      // Por ejemplo (en una página de dashboard, no en welcome.html):
+      // const logoutButton = document.getElementById('logoutButton');
+      // if (logoutButton) {
+      //     logoutButton.addEventListener('click', handleLogout);
+      // }
+      // --- FIN DE INSTRUCCIONES PARA EL MANEJO DE CERRAR SESIÓN EN EL DASHBOARD ---\
     </script>
-</body>
+  </body>
 </html>
