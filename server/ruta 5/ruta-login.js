@@ -308,56 +308,47 @@ router.post('/login', async (req, res) => {
   }
 });
 
-  router.get('/usuarios/:id', (req, res) => {
+router.get('/usuarios/:id', (req, res) => {
     const { id } = req.params;
-  
-    // Consulta principal para obtener datos del usuario y su dirección, ciudad, estado
+
+    if (!id) {
+        return res.status(400).json({ error: 'ID de usuario no proporcionado.' });
+    }
+
+    // Consulta principal para obtener datos del usuario y su dirección, ciudad, estado, y ahora el icono de perfil.
     const sql = `
-      SELECT 
-          u.id_usuario, u.cedula, u.primer_nombre, u.segundo_nombre, 
-          u.primer_apellido, u.segundo_apellido, u.telefono, u.correo AS correo_electronico, 
+      SELECT
+          u.id_usuario, u.cedula, u.primer_nombre, u.segundo_nombre,
+          u.primer_apellido, u.segundo_apellido, u.telefono, u.correo AS correo_electronico,
           u.rol, u.estado, u.ultima_conexion,
           d.direccion,
           c.ciudad,
-          e.estados AS estado_residencia
+          e.estados AS estado_residencia,
+          u.profile_icon_class  /* ¡NUEVA COLUMNA AÑADIDA! */
       FROM usuarios u
       LEFT JOIN direccion d ON u.id_direccion = d.id_direccion
       LEFT JOIN ciudades c ON d.id_ciudad = c.id_ciudad
       LEFT JOIN estados e ON d.id_estado = e.id_estado
       WHERE u.id_usuario = ?;
     `;
-  
+
     db.query(sql, [id], (err, results) => {
       if (err) {
         console.error('Error al obtener el perfil del usuario:', err);
         return res.status(500).json({ error: 'Error al obtener el perfil del usuario', detalle: err.message });
       }
-  
+
       if (results.length === 0) {
         return res.status(404).json({ error: 'Usuario no encontrado.' });
       }
-  
+
       const user = results[0];
-  
-      // Obtener cursos asociados al usuario
-      db.query(
-        `SELECT uc.id_curso, cur.curso AS nombre_curso
-         FROM usuario_cursos uc
-         JOIN cursos cur ON uc.id_curso = cur.id_curso
-         WHERE uc.id_usuario = ?`,
-        [id],
-        (errCourses, coursesResult) => {
-          if (errCourses) {
-            console.error('Error al obtener los cursos del usuario:', errCourses);
-            user.cursos = []; // Asegurar que el campo exista aunque haya error
-          } else {
-            user.cursos = coursesResult || [];
-          }
-          res.json(user);
-        }
-      );
+      // Se elimina la lógica de obtener cursos asociados al usuario (`usuario_cursos`)
+      // de esta API de perfil, ya que esta información no es relevante para la visualización del perfil
+      // y se gestiona en otros contextos académicos.
+      res.json(user);
     });
-  });
+});
   
   /**
    * @route PUT /api/usuarios/:id
@@ -366,7 +357,7 @@ router.post('/login', async (req, res) => {
    * @param {number} req.params.id - ID del usuario a actualizar.
    * @returns {json} Mensaje de éxito o error.
    */
-  router.put('/usuarios/:id',isAuthenticated,registrarAccion('Actualización de perfil', 'usuarios'), async (req, res) => {
+router.put('/usuarios/:id',isAuthenticated,registrarAccion('Actualización de perfil', 'usuarios'), async (req, res) => {
     const { id } = req.params;
     const {
       primer_nombre,
@@ -376,12 +367,16 @@ router.post('/login', async (req, res) => {
       correo_electronico,
       direccion,
       old_contrasena, // Contraseña actual proporcionada por el usuario
-      contrasena // Nueva contraseña (si se va a cambiar)
+      contrasena,     // Nueva contraseña (si se va a cambiar)
+      profile_icon_class // Clase del icono de perfil
     } = req.body;
-  
+ 
+    // **IMPORTANTE PARA DEPURACIÓN**: Log del cuerpo de la solicitud
+    console.log('Backend - req.body recibido para PUT /usuarios/:id:', req.body);
+
     try {
       let newHashedPassword = null;
-  
+ 
       // Lógica para cambiar la contraseña
       if (contrasena) { // Si se ha proporcionado una nueva contraseña
         // 1. Obtener la contraseña hasheada actual del usuario desde la BD
@@ -391,16 +386,16 @@ router.post('/login', async (req, res) => {
           return res.status(404).json({ error: 'Usuario no encontrado.' });
         }
         const storedHashedPassword = userRows[0].contraseña;
-  
+ 
         // 2. Verificar si se proporcionó la contraseña actual y si coincide
         if (!old_contrasena || !(await bcrypt.compare(old_contrasena, storedHashedPassword))) {
           return res.status(401).json({ error: 'La contraseña actual es incorrecta. No se pudo actualizar la contraseña.' });
         }
-  
+ 
         // 3. Hashear la nueva contraseña
         newHashedPassword = await bcrypt.hash(contrasena, 10);
       }
-  
+ 
       // Obtener el id_direccion del usuario para actualizar su dirección
       const [addressRows] = await db.promise().query('SELECT id_direccion FROM usuarios WHERE id_usuario = ?', [id]);
       
@@ -409,7 +404,7 @@ router.post('/login', async (req, res) => {
         return res.status(404).json({ error: 'Usuario no encontrado para actualizar dirección.' });
       }
       const id_direccion = addressRows[0].id_direccion;
-  
+ 
       // Actualizar la tabla 'direccion' si se proporcionó la dirección
       if (direccion) {
         await db.promise().query(
@@ -417,7 +412,7 @@ router.post('/login', async (req, res) => {
           [direccion, id_direccion]
         );
       }
-  
+ 
       // Construir la consulta de actualización para la tabla 'usuarios'
       let userUpdateSql = `
         UPDATE usuarios 
@@ -430,32 +425,40 @@ router.post('/login', async (req, res) => {
         segundo_apellido,
         correo_electronico
       ];
-  
+ 
       // Si se generó un nuevo hash de contraseña, añadirlo a la consulta
       if (newHashedPassword) {
         userUpdateSql += `, contraseña = ?`;
         userUpdateParams.push(newHashedPassword);
       }
-  
+
+      // Si se proporcionó profile_icon_class, añadirlo a la consulta
+      if (profile_icon_class) {
+        userUpdateSql += `, profile_icon_class = ?`;
+        userUpdateParams.push(profile_icon_class);
+      }
+ 
       userUpdateSql += ` WHERE id_usuario = ?`;
       userUpdateParams.push(id);
-  
+ 
       const [userUpdateResult] = await db.promise().query(userUpdateSql, userUpdateParams);
-  
+ 
       if (userUpdateResult.affectedRows === 0) {
         // Si affectedRows es 0, podría significar que no hubo cambios o el ID no existe
         return res.status(200).json({ message: 'Perfil actualizado exitosamente (sin cambios en los datos proporcionados).' });
       }
-  
+ 
       res.json({ message: 'Perfil actualizado exitosamente.' });
-  
+ 
     } catch (error) {
       console.error('Error al actualizar perfil:', error);
       // Si el error es por una contraseña incorrecta, ya se maneja con 401.
       // Otros errores (ej. DB, hash) se devolverán como 500.
       res.status(500).json({ error: 'Ocurrió un error al actualizar el perfil.', detalle: error.message });
     }
-  });
+});
+
+
 
 router.post('/solicitar-codigo-recuperacion', async (req, res) => {
     const { correo } = req.body;

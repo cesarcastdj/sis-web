@@ -12,9 +12,11 @@ import "../../style/style-admin/perfil.css";
 
   <section class="content-info-data">
     <section class="data-general-control">
+      <!-- Vista del perfil (initial display) -->
       <div class="profile-card" id="profileView">
         <div class="profile-main-info"> <!-- Contenedor para avatar y nombre/cédula -->
-          <img src="/public/img/foto.jpg" alt="Foto de Perfil" class="profile-avatar">
+          <!-- Aquí se mostrará el icono de perfil guardado -->
+          <i id="userProfileDisplayIcon" class="bx bx-user-circle profile-avatar-icon"></i>
           <div class="profile-text-header">
             <h3 class="profile-name" id="userName">Cargando Nombre...</h3>
             <p class="profile-cedula-display">Cédula: <span id="userCedula">Cargando...</span></p>
@@ -25,18 +27,23 @@ import "../../style/style-admin/perfil.css";
           <p><strong>Ciudad:</strong> <span id="userCiudad">Cargando...</span></p>
           <p><strong>Dirección:</strong> <span id="userDireccion">Cargando...</span></p>
           <p><strong>Correo electrónico:</strong> <span id="userEmail">Cargando...</span></p>
-          <!-- La línea de "Cursos" ha sido eliminada -->
         </div>
         <div class="profile-actions">
-          <a href="#" class="btn btn-primary-custom" id="editProfileBtn">Editar</a>
+          <a href="#" class="btn btn-primary-custom" id="editProfileBtn" >Editar</a>
         </div>
       </div>
 
+      <!-- Formulario de edición del perfil (hidden by default) -->
       <div class="profile-edit-form" id="profileEdit" style="display: none;">
         <div class="profile-header-edit">
-          <img src="/public/img/foto.jpg" alt="Foto de Perfil" class="profile-avatar">
-          <button class="btn btn-secondary-custom">Cambiar Foto de perfil</button>
+          <!-- Icono de perfil actual en la vista de edición -->
+          <div class="current-profile-icon-wrapper">
+            <i id="currentEditProfileIcon" class="bx bx-user-circle profile-display-icon"></i>
+          </div>
+          <!-- Botón para abrir la selección de iconos -->
+          <button class="btn btn-secondary-custom" id="openIconSelectionBtn">Cambiar Icono de perfil</button>
         </div>
+        
         <h3 class="edit-title">Editar Datos</h3>
         <form id="profileEditForm">
           <div class="row">
@@ -45,7 +52,7 @@ import "../../style/style-admin/perfil.css";
               <input type="text" class="form-control" id="primerNombre" autocomplete="given-name">
             </div>
             <div class="col-md-6 mb-3">
-              <label for="segundoNombre" class="form-label">Segundo Nombre</label>
+              <label for="segundoNombre" class="form-label">Segundo Nombre</labe         l>
               <input type="text" class="form-control" id="segundoNombre" autocomplete="additional-name">
             </div>
           </div>
@@ -98,130 +105,256 @@ import "../../style/style-admin/perfil.css";
   </section>
 </section>
 
+<!-- Modal para Seleccionar Icono -->
+<div class="modal fade" id="modalSelectIcon" tabindex="-1" aria-labelledby="modalSelectIconLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-icon-selection">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalSelectIconLabel">Seleccionar Icono de Perfil</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body" style="background-color: aliceblue;">
+        <div class="icon-grid" id="modalIconGrid">
+          <!-- Los iconos se cargarán aquí dinámicamente -->
+          <p class="text-muted text-center">Cargando iconos...</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-primary-custom" id="confirmIconSelectionBtn" style="border-radius: 25px;">Seleccionar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<!-- Asegúrate de tener Boxicons CSS link en tu layout o head principal -->
+<!-- <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'> -->
 
 <script is:inline>
-  const API_BASE_URL = 'http://localhost:3001'; // Ajusta esto a tu URL de backend
+  const API_BASE_URL = 'http://localhost:3001'; // Adjust this to your backend URL
+
+  const availableIcons = [
+    'bx bx-user-circle', 'bx bx-user', 'bx bx-group', 'bx bx-id-card', 'bx bx-badge',
+    'bx bx-book-reader', 'bx bx-pen', 'bx bx-pencil', 'bx bx-bulb', 'bx bx-medal',
+    'bx bx-briefcase', 'bx bx-award', 'bx bx-code-alt', 'bx bx-shield-alt-2', 'bx bx-globe',
+    'bx bxs-face-mask', 'bx bxs-user-account', 'bx bxs-graduation', 'bx bxs-crown',
+    'bx bx-male', 'bx bx-female', 'bx bx-happy', 'bx bx-happy-alt', 'bx bx-wink-smile',
+    'bx bx-cool', 'bx bx-ghost', 'bx bx-bot', 'bx bx-code', 'bx bx-terminal',
+    'bx bx-test-tube', 'bx bx-atom', 'bx bx-chart', 'bx bx-pie-chart-alt', 'bx bx-line-chart',
+    // --- NEW ICONS ADDED FOR CHARACTERS/ROLES that should work ---
+    'bx bxs-mask',          // Mask (filled)
+    'bx bxs-hand',          // Hand (filled)
+    'bx bxs-rocket',        // Rocket (filled)
+    'bx bxs-shield',        // Shield (filled)
+    'bx bxs-magic-wand',    // Magic wand (filled)
+    'bx bxs-meteor',        // Meteor (filled)
+    'bx bxs-game',          // Game controller (filled)
+    'bx bxs-cat',           // Cat (filled)
+    'bx bxs-dog',           // Dog (filled)      // Robot (filled)
+    'bx bxs-castle',        // Castle (filled)        // Dragon (filled)
+    'bx bxs-skull',         // Skull (filled)
+    'bx bxs-zap',           // Lightning bolt (filled)
+    'bx bxs-first-aid',     // First aid cross (filled)
+    'bx bxs-star-half',     // Half star (filled)
+    'bx bx-dizzy',          // Dizzy
+    'bx bx-run',            // Run
+    'bx bx-walk',           // Walk
+    'bx bx-swim',           // Swim
+    'bx bx-injection',      // Injection
+    'bx bx-target-lock',    // Target lock
+    'bx bx-mask',           // Mask (outline)
+    'bx bx-crown',          // Crown (outline)
+    'bx bx-shield-alt',     // Shield (outline)        // Skull (outline)
+    'bx bx-crosshair',      // Crosshair
+    'bx bx-cube',           // Cube
+    'bx bx-cube-alt',       // Alternate cube
+    'bx bx-planet',         // Planet
+    'bx bx-joystick',       // Joystick
+    'bx bx-fingerprint',    // Fingerprint
+    'bx bx-dna',            // DNA
+    'bx bx-brain',          // Brain
+    'bx bx-bug',            // Bug
+    'bx bx-user-pin',       // User pin
+    'bx bx-user-voice',     // User voice
+    'bx bx-user-x',         // User X
+    'bx bxs-user-pin',      // User pin (filled)
+    'bx bxs-user-voice',    // User voice (filled)
+    'bx bxs-user-x'         // User X (filled)
+  ];
+
+  let currentUserId = null;
+  let selectedIconClassForModal = ''; // For selection within the modal
+  let currentSavedIconClass = 'bx bx-user-circle'; // Default icon on load (from DB)
+
+  // Global element declarations to prevent ReferenceError
+  let oldContrasenaInput;
+  let contrasenaInput;
+  let repetirContrasenaInput;
+  let passwordStrengthFeedback;
+
+  function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show fixed-top mx-auto mt-3 w-75`;
+    alertDiv.role = 'alert';
+    alertDiv.style.maxWidth = '400px';
+    document.body.appendChild(alertDiv);
+    alertDiv.textContent = message;
+    setTimeout(() => alertDiv.remove(), 5000);
+  }
+
+  // Auxiliary functions for inline validation errors
+  function mostrarError(elemento, mensaje) {
+      elemento.classList.add('is-invalid');
+      let feedbackElement = elemento.nextElementSibling;
+      if (!feedbackElement || !feedbackElement.classList.contains('invalid-feedback')) {
+          feedbackElement = elemento.closest('.mb-3')?.querySelector('.invalid-feedback');
+      }
+      if (feedbackElement) {
+          feedbackElement.textContent = mensaje;
+          feedbackElement.style.display = 'block';
+      }
+  }
+
+  function limpiarError(elemento) {
+      elemento.classList.remove('is-invalid');
+      let feedbackElement = elemento.nextElementSibling;
+      if (!feedbackElement || !feedbackElement.classList.contains('invalid-feedback')) {
+          feedbackElement = elemento.closest('.mb-3')?.querySelector('.invalid-feedback');
+      }
+      if (feedbackElement) {
+          feedbackElement.textContent = '';
+          feedbackElement.style.display = 'none';
+      }
+  }
+
+  async function fetchUserProfile() {
+    try {
+      const sessionResponse = await fetch(`${API_BASE_URL}/me`, {
+        credentials: 'include'
+      });
+      const sessionData = await sessionResponse.json();
+
+      if (!sessionData.id_usuario) {
+        console.warn("No user ID obtained from session. Using ID 1 as fallback.");
+        currentUserId = '1';
+      } else {
+        currentUserId = sessionData.id_usuario;
+      }
+      
+      console.log("Fetching user profile for ID:", currentUserId);
+
+      const response = await fetch(`${API_BASE_URL}/usuarios/${currentUserId}`, {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Could not load profile information.');
+      }
+
+      const user = await response.json();
+      console.log("User data received:", user);
+
+      // Display data in view mode
+      document.getElementById('userName').textContent = `${user.primer_nombre || ''} ${user.segundo_nombre || ''} ${user.primer_apellido || ''} ${user.segundo_apellido || ''}`.trim();
+      document.getElementById('userCedula').textContent = user.cedula || 'N/A';
+      document.getElementById('userEstado').textContent = user.estado_residencia || 'N/A';
+      document.getElementById('userCiudad').textContent = user.ciudad || 'N/A';
+      document.getElementById('userDireccion').textContent = user.direccion || 'N/A';
+      document.getElementById('userEmail').textContent = user.correo_electronico || 'N/A';
+
+      // **UPDATED**: Update profile display icon
+      const userProfileDisplayIcon = document.getElementById('userProfileDisplayIcon');
+      if (userProfileDisplayIcon && user.profile_icon_class) {
+        userProfileDisplayIcon.className = user.profile_icon_class + ' profile-avatar-icon';
+        currentSavedIconClass = user.profile_icon_class; // Save current icon from DB
+      } else if (userProfileDisplayIcon) {
+        userProfileDisplayIcon.className = 'bx bx-user-circle profile-avatar-icon'; // Default icon
+        currentSavedIconClass = 'bx bx-user-circle';
+      }
+
+      // Fill edit form with a small delay to try to avoid browser autocomplete
+      document.getElementById('primerNombre').value = user.primer_nombre || '';
+      document.getElementById('segundoNombre').value = user.segundo_nombre || '';
+      document.getElementById('primerApellido').value = user.primer_apellido || '';
+      document.getElementById('segundoApellido').value = user.segundo_apellido || '';
+      
+      setTimeout(() => {
+          document.getElementById('correoElectronico').value = user.correo_electronico || '';
+          document.getElementById('direccion').value = user.direccion || '';
+      }, 100); 
+
+      // Update icon in the form's edit view
+      const currentEditProfileIcon = document.getElementById('currentEditProfileIcon');
+      if (currentEditProfileIcon) {
+        currentEditProfileIcon.className = currentSavedIconClass + ' profile-display-icon'; 
+      }
+
+      // Passwords are always cleared on load and when opening the edit form
+      // Ensure elements exist before attempting to access .value or .textContent
+      if (oldContrasenaInput) oldContrasenaInput.value = ''; 
+      if (contrasenaInput) contrasenaInput.value = '';
+      if (repetirContrasenaInput) repetirContrasenaInput.value = '';
+      if (passwordStrengthFeedback) passwordStrengthFeedback.textContent = ''; 
+      if (contrasenaInput) limpiarError(contrasenaInput);
+      if (repetirContrasenaInput) limpiarError(repetirContrasenaInput);
+
+
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      showAlert('Error loading your profile.', 'danger');
+    }
+  }
+
+  // Function to render the icon grid in the modal
+  function renderIconGrid(targetElementId, initialSelectedIcon) {
+    const iconGrid = document.getElementById(targetElementId);
+    if (!iconGrid) return;
+
+    iconGrid.innerHTML = ''; // Clear any existing content
+
+    availableIcons.forEach(iconClass => {
+      const iconWrapper = document.createElement('div');
+      iconWrapper.className = 'icon-item';
+      if (iconClass === initialSelectedIcon) {
+        iconWrapper.classList.add('selected');
+      }
+      iconWrapper.innerHTML = `<i class="${iconClass}"></i>`;
+      iconWrapper.addEventListener('click', () => {
+        const previouslySelected = iconGrid.querySelector('.icon-item.selected');
+        if (previouslySelected) {
+          previouslySelected.classList.remove('selected');
+        }
+        iconWrapper.classList.add('selected');
+        selectedIconClassForModal = iconClass; // Update modal selection
+      });
+      iconGrid.appendChild(iconWrapper);
+    });
+  }
 
   document.addEventListener('DOMContentLoaded', async () => {
     const profileView = document.getElementById('profileView');
     const profileEdit = document.getElementById('profileEdit');
     const editProfileBtn = document.getElementById('editProfileBtn');
     const profileEditForm = document.getElementById('profileEditForm');
+    const openIconSelectionBtn = document.getElementById('openIconSelectionBtn');
+    const modalSelectIcon = new bootstrap.Modal(document.getElementById('modalSelectIcon'));
+    const confirmIconSelectionBtn = document.getElementById('confirmIconSelectionBtn');
 
-    const oldContrasenaInput = document.getElementById('oldContrasena');
-    const contrasenaInput = document.getElementById('contrasena');
-    const repetirContrasenaInput = document.getElementById('repetirContrasena');
-    const passwordStrengthFeedback = document.getElementById('passwordStrength');
+    // Assign elements to global variables within DOMContentLoaded
+    oldContrasenaInput = document.getElementById('oldContrasena');
+    contrasenaInput = document.getElementById('contrasena');
+    repetirContrasenaInput = document.getElementById('repetirContrasena');
+    passwordStrengthFeedback = document.getElementById('passwordStrength');
     const correoElectronicoInput = document.getElementById('correoElectronico');
     const direccionInput = document.getElementById('direccion');
 
 
-    let currentUserId = null;
-
-    function showAlert(message, type) {
-      const alertDiv = document.createElement('div');
-      alertDiv.className = `alert alert-${type} alert-dismissible fade show fixed-top mx-auto mt-3 w-75`;
-      alertDiv.role = 'alert';
-      alertDiv.style.maxWidth = '400px';
-      alertDiv.textContent = message;
-      document.body.appendChild(alertDiv);
-      setTimeout(() => alertDiv.remove(), 5000);
-    }
-
-    // Funciones auxiliares para errores de validación en línea
-    function mostrarError(elemento, mensaje) {
-        elemento.classList.add('is-invalid');
-        let feedbackElement = elemento.nextElementSibling;
-        // Si el siguiente hermano no es el feedback, busca el feedback dentro del mismo div mb-3
-        if (!feedbackElement || !feedbackElement.classList.contains('invalid-feedback')) {
-            feedbackElement = elemento.closest('.mb-3')?.querySelector('.invalid-feedback');
-        }
-        if (feedbackElement) {
-            feedbackElement.textContent = mensaje;
-            feedbackElement.style.display = 'block';
-        }
-    }
-
-    function limpiarError(elemento) {
-        elemento.classList.remove('is-invalid');
-        let feedbackElement = elemento.nextElementSibling;
-        if (!feedbackElement || !feedbackElement.classList.contains('invalid-feedback')) {
-            feedbackElement = elemento.closest('.mb-3')?.querySelector('.invalid-feedback');
-        }
-        if (feedbackElement) {
-            feedbackElement.textContent = '';
-            feedbackElement.style.display = 'none';
-        }
-    }
-
-    async function fetchUserProfile() {
-      try {
-        const sessionResponse = await fetch(`${API_BASE_URL}/me`, {
-          credentials: 'include'
-        });
-        const sessionData = await sessionResponse.json();
-
-        // Si no hay ID de usuario en sesión, usamos el ID 1 como fallback sin alerta.
-        if (!sessionData.id_usuario) {
-          console.warn("No se pudo obtener el ID del usuario de la sesión. Se usará el ID 1 como fallback.");
-          currentUserId = '1';
-        } else {
-          currentUserId = sessionData.id_usuario;
-        }
-        
-        // Log para depuración del objeto user completo
-        console.log("Fetching user profile for ID:", currentUserId);
-
-
-        const response = await fetch(`${API_BASE_URL}/usuarios/${currentUserId}`, {
-          credentials: 'include'
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'No se pudo cargar la información del perfil.');
-        }
-
-        const user = await response.json();
-        console.log("User data received:", user); // Log para ver los datos del usuario, incluida la dirección
-
-        // Mostrar datos en el modo de visualización
-        document.getElementById('userName').textContent = `${user.primer_nombre || ''} ${user.segundo_nombre || ''} ${user.primer_apellido || ''} ${user.segundo_apellido || ''}`.trim();
-        document.getElementById('userCedula').textContent = user.cedula || 'N/A';
-        document.getElementById('userEstado').textContent = user.estado_residencia || 'N/A';
-        document.getElementById('userCiudad').textContent = user.ciudad || 'N/A';
-        document.getElementById('userDireccion').textContent = user.direccion || 'N/A';
-        document.getElementById('userEmail').textContent = user.correo_electronico || 'N/A';
-     
-
-        // Llenar formulario de edición con un pequeño retraso para intentar evadir el autocompletado del navegador
-        // Los campos de nombre/apellido se pueden llenar directamente
-        document.getElementById('primerNombre').value = user.primer_nombre || '';
-        document.getElementById('segundoNombre').value = user.segundo_nombre || '';
-        document.getElementById('primerApellido').value = user.primer_apellido || '';
-        document.getElementById('segundoApellido').value = user.segundo_apellido || '';
-        
-        // Retrasar el llenado de correo y dirección
-        setTimeout(() => {
-            correoElectronicoInput.value = user.correo_electronico || '';
-            direccionInput.value = user.direccion || '';
-        }, 100); // Pequeño retraso de 100ms
-
-        // Las contraseñas se vacían siempre al cargar y al abrir el formulario de edición
-        oldContrasenaInput.value = ''; 
-        contrasenaInput.value = '';
-        repetirContrasenaInput.value = '';
-        passwordStrengthFeedback.textContent = ''; // Limpiar feedback de fortaleza
-        limpiarError(contrasenaInput);
-        limpiarError(repetirContrasenaInput);
-
-
-      } catch (error) {
-        console.error('Error al cargar el perfil:', error);
-        showAlert('Error al cargar tu perfil.', 'danger');
-      }
-    }
+    await fetchUserProfile(); // Initial profile load
 
     editProfileBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -229,103 +362,133 @@ import "../../style/style-admin/perfil.css";
       profileEdit.style.display = 'block';
       document.querySelector('.profile-header-card .welcome-search-data__title').textContent = 'Editar Perfil';
 
-      // Al hacer clic en "Editar", rellenar los campos de texto con los valores actuales
-      // para asegurar que no se pierdan si el usuario edita y luego cancela.
-      // Los campos de contraseña y el correo/dirección se manejan con un retraso para evitar autocompletado.
-      fetchUserProfile(); // Esto recargará los datos y aplicará el retraso
-
-      // Pero forzamos el vaciado de contraseñas de inmediato
-      oldContrasenaInput.value = '';
-      contrasenaInput.value = '';
-      repetirContrasenaInput.value = '';
-      passwordStrengthFeedback.textContent = '';
-      limpiarError(contrasenaInput);
-      limpiarError(repetirContrasenaInput);
+      // **IMPORTANT**: Do not call fetchUserProfile() here.
+      // Fields are already loaded from the initial DOMContentLoaded.
+      // Force clear passwords immediately
+      if (oldContrasenaInput) oldContrasenaInput.value = '';
+      if (contrasenaInput) contrasenaInput.value = '';
+      if (repetirContrasenaInput) repetirContrasenaInput.value = '';
+      if (passwordStrengthFeedback) passwordStrengthFeedback.textContent = '';
+      if (contrasenaInput) limpiarError(contrasenaInput);
+      if (repetirContrasenaInput) limpiarError(repetirContrasenaInput);
     });
 
+    // Event listener for "Change Profile Icon" button
+    if (openIconSelectionBtn) {
+      openIconSelectionBtn.addEventListener('click', () => {
+        // Initialize modal selection with the currently saved icon from DB
+        selectedIconClassForModal = currentSavedIconClass; 
+        renderIconGrid('modalIconGrid', selectedIconClassForModal);
+        modalSelectIcon.show();
+      });
+    }
 
-    // Lógica de validación de fortaleza de contraseña para Nueva Contraseña
-    contrasenaInput.addEventListener('input', function() {
-        const password = this.value;
-        let strength = 0;
-        let feedback = [];
+    // Event listener to confirm icon selection in the modal
+    if (confirmIconSelectionBtn) {
+      confirmIconSelectionBtn.addEventListener('click', async () => {
+        // When selection is confirmed in the modal, only the visible icon in the edit view is updated
+        // and the class is saved for the final form submission.
+        const currentEditProfileIcon = document.getElementById('currentEditProfileIcon');
+        if (currentEditProfileIcon && selectedIconClassForModal) {
+          currentEditProfileIcon.className = selectedIconClassForModal + ' profile-display-icon';
+          currentSavedIconClass = selectedIconClassForModal; // Update the variable that will be sent
+        }
+        modalSelectIcon.hide();
+      });
+    }
+     document.querySelectorAll(".modal-backdrop").forEach((backdropEl) => {
+          backdropEl.remove();
+        });
 
-        if (password.length >= 8) {
-            strength += 1;
-        } else {
-            feedback.push('Al menos 8 caracteres');
-        }
-        if (/[A-Z]/.test(password)) {
-            strength += 1;
-        } else {
-            feedback.push('Una letra mayúscula');
-        }
-        if (/[a-z]/.test(password)) {
-            strength += 1;
-        } else {
-            feedback.push('Una letra minúscula');
-        }
-        if (/[0-9]/.test(password)) {
-            strength += 1;
-        } else {
-            feedback.push('Un número');
-        }
-        if (/[^A-Za-z0-9]/.test(password)) {
-            strength += 1;
-        } else {
-            feedback.push('Un caracter especial');
-        }
+    // Password strength validation logic for New Password
+    if (contrasenaInput) { // Ensure element exists before adding listener
+        contrasenaInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            let feedback = [];
 
-        if (password.length === 0) {
-            passwordStrengthFeedback.textContent = '';
-            limpiarError(contrasenaInput);
-            return;
-        }
+            if (password.length >= 8) {
+                strength += 1;
+            } else {
+                feedback.push('At least 8 characters');
+            }
+            if (/[A-Z]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback.push('One uppercase letter');
+            }
+            if (/[a-z]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback.push('One lowercase letter');
+            }
+            if (/[0-9]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback.push('One number');
+            }
+            if (/[^A-Za-z0-9]/.test(password)) {
+                strength += 1;
+            } else {
+                feedback.push('One special character');
+            }
 
-        let strengthText = '';
-        let color = '';
+            if (password.length === 0) {
+                if (passwordStrengthFeedback) passwordStrengthFeedback.textContent = '';
+                limpiarError(contrasenaInput);
+                return;
+            }
 
-        if (strength === 5) {
-            strengthText = '¡Excelente!';
-            color = 'green';
-            limpiarError(contrasenaInput);
-        } else if (strength >= 3) {
-            strengthText = 'Buena';
-            color = 'orange';
-            limpiarError(contrasenaInput);
-        } else {
-            strengthText = 'Débil';
-            color = 'red';
-            mostrarError(contrasenaInput, 'Contraseña débil: ' + feedback.join(', '));
-        }
-        passwordStrengthFeedback.textContent = `Fortaleza: ${strengthText}`;
-        passwordStrengthFeedback.style.color = color;
-    });
+            let strengthText = '';
+            let color = '';
 
-    // Validar coincidencia de contraseñas
-    repetirContrasenaInput.addEventListener('input', function() {
-        if (contrasenaInput.value !== repetirContrasenaInput.value) {
-            mostrarError(repetirContrasenaInput, 'Las contraseñas no coinciden.');
-        } else {
-            limpiarError(repetirContrasenaInput);
-        }
-    });
+            if (strength === 5) {
+                strengthText = 'Excellent!';
+                color = 'green';
+                limpiarError(contrasenaInput);
+            } else if (strength >= 3) {
+                strengthText = 'Good';
+                color = 'orange';
+                limpiarError(contrasenaInput);
+            } else {
+                strengthText = 'Weak';
+                color = 'red';
+                mostrarError(contrasenaInput, 'Weak password: ' + feedback.join(', '));
+            }
+            if (passwordStrengthFeedback) {
+                passwordStrengthFeedback.textContent = `Strength: ${strengthText}`;
+                passwordStrengthFeedback.style.color = color;
+            }
+        });
+    }
 
-    // Revalidar repetición de contraseña si la nueva contraseña cambia
-    contrasenaInput.addEventListener('input', function() {
-        if (repetirContrasenaInput.value !== '') { // Solo revalida si ya hay algo en confirmar
-             if (contrasenaInput.value !== repetirContrasenaInput.value) {
-                mostrarError(repetirContrasenaInput, 'Las contraseñas no coinciden.');
+    // Validate password match
+    if (repetirContrasenaInput) { // Ensure element exists before adding listener
+        repetirContrasenaInput.addEventListener('input', function() {
+            if (contrasenaInput.value !== repetirContrasenaInput.value) {
+                mostrarError(repetirContrasenaInput, 'Passwords do not match.');
             } else {
                 limpiarError(repetirContrasenaInput);
             }
-        }
-    });
+        });
+    }
 
-    // Validación en tiempo real para evitar números en nombres y apellidos
+    // Revalidate password repeat if new password changes
+    if (contrasenaInput) { // Ensure element exists before adding listener
+        contrasenaInput.addEventListener('input', function() {
+            if (repetirContrasenaInput && repetirContrasenaInput.value !== '') { // Only revalidate if something is already in confirm
+                 if (contrasenaInput.value !== repetirContrasenaInput.value) {
+                    mostrarError(repetirContrasenaInput, 'Passwords do not match.');
+                } else {
+                    limpiarError(repetirContrasenaInput);
+                }
+            }
+        });
+    }
+
+    // Real-time validation to prevent numbers in names and surnames
     function soloLetrasInputHandler(e) {
       const valor = e.target.value;
-      // Permite solo letras, espacios y tildes
       const soloLetras = valor.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g, '');
       if (valor !== soloLetras) {
         e.target.value = soloLetras;
@@ -352,44 +515,41 @@ import "../../style/style-admin/perfil.css";
       const segundoApellido = segundoApellidoInput.value.trim();
       const correoElectronico = correoElectronicoInput.value.trim();
       const direccion = direccionInput.value.trim();
-      const oldContrasena = oldContrasenaInput.value;
-      const contrasena = contrasenaInput.value;
-      const repetirContrasena = repetirContrasenaInput.value;
+      const oldContrasena = oldContrasenaInput ? oldContrasenaInput.value : '';
+      const contrasena = contrasenaInput ? contrasenaInput.value : '';
+      const repetirContrasena = repetirContrasenaInput ? repetirContrasenaInput.value : '';
 
       let valid = true;
-      // Validar que los campos de nombre y apellido no contengan números y no estén vacíos
       const soloLetrasRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
       function validarCampoTexto(input, nombreCampo) {
         if (!input.value.trim()) {
-          mostrarError(input, `El campo ${nombreCampo} es obligatorio.`);
+          mostrarError(input, `The ${nombreCampo} field is required.`);
           valid = false;
         } else if (!soloLetrasRegex.test(input.value.trim())) {
-          mostrarError(input, `El campo ${nombreCampo} solo debe contener letras.`);
+          mostrarError(input, `The ${nombreCampo} field must contain only letters.`);
           valid = false;
         } else {
           limpiarError(input);
         }
       }
-      validarCampoTexto(primerNombreInput, 'Primer Nombre');
-      validarCampoTexto(segundoNombreInput, 'Segundo Nombre');
-      validarCampoTexto(primerApellidoInput, 'Primer Apellido');
-      validarCampoTexto(segundoApellidoInput, 'Segundo Apellido');
-      // Validar que correo y dirección no estén vacíos
+      validarCampoTexto(primerNombreInput, 'First Name');
+      validarCampoTexto(segundoNombreInput, 'Second Name');
+      validarCampoTexto(primerApellidoInput, 'First Last Name');
+      validarCampoTexto(segundoApellidoInput, 'Second Last Name');
       if (!correoElectronico) {
-        mostrarError(correoElectronicoInput, 'El campo Correo Electrónico es obligatorio.');
+        mostrarError(correoElectronicoInput, 'The Email field is required.');
         valid = false;
       } else {
         limpiarError(correoElectronicoInput);
       }
       if (!direccion) {
-        mostrarError(direccionInput, 'El campo Dirección es obligatorio.');
+        mostrarError(direccionInput, 'The Address field is required.');
         valid = false;
       } else {
         limpiarError(direccionInput);
       }
-      // Validar contraseñas (ya está la lógica existente)
       if (!valid) {
-        showAlert('Ningun campo puede estar vacio, por favor llena todos los campos.', 'danger');
+        showAlert('No field can be empty, please fill all fields.', 'danger');
         return;
       }
 
@@ -399,31 +559,35 @@ import "../../style/style-admin/perfil.css";
         primer_apellido: primerApellido,
         segundo_apellido: segundoApellido,
         correo_electronico: correoElectronico,
-        direccion: direccion
+        direccion: direccion,
+        profile_icon_class: currentSavedIconClass // NEW: Add the selected icon
       };
 
-      // Lógica de validación y actualización de contraseña
-      if (oldContrasena || contrasena || repetirContrasena) { // Si el usuario interactuó con algún campo de contraseña
+      // **IMPORTANT FOR DEBUGGING**: Log the data to be sent
+      console.log('Profile data to be sent to backend:', updatedData);
+
+
+      // Password validation and update logic
+      if (oldContrasena || contrasena || repetirContrasena) { 
         if (!oldContrasena) {
-          showAlert('Debes ingresar tu contraseña actual para cambiarla.', 'danger');
+          showAlert('You must enter your current password to change it.', 'danger');
           return;
         }
         if (contrasena !== repetirContrasena) {
-          showAlert('La nueva contraseña y su confirmación no coinciden.', 'danger');
+          showAlert('New password and confirmation do not match.', 'danger');
           return;
         }
         if (!contrasena) {
-             showAlert('Debes ingresar la nueva contraseña si deseas cambiarla.', 'danger');
+             showAlert('You must enter the new password if you want to change it.', 'danger');
              return;
         }
-        // Validar fortaleza de la nueva contraseña solo si se intenta cambiar
-        if (contrasenaInput.classList.contains('is-invalid')) {
-            showAlert('La nueva contraseña es demasiado débil.', 'danger');
+        if (contrasenaInput && contrasenaInput.classList.contains('is-invalid')) {
+            showAlert('The new password is too weak.', 'danger');
             return;
         }
 
         updatedData.old_contrasena = oldContrasena;
-        updatedData.contrasena = contrasena; // Se enviará la nueva contraseña al backend
+        updatedData.contrasena = contrasena; 
       }
 
 
@@ -437,29 +601,29 @@ import "../../style/style-admin/perfil.css";
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Error al actualizar el perfil.');
+          throw new Error(errorData.error || 'Error updating profile.');
         }
 
-        showAlert('Perfil actualizado exitosamente.', 'success');
-        // Limpiar campos de contraseña después de una actualización exitosa
-        oldContrasenaInput.value = '';
-        contrasenaInput.value = '';
-        repetirContrasenaInput.value = '';
-        passwordStrengthFeedback.textContent = ''; // Limpiar feedback de fortaleza
-        limpiarError(contrasenaInput);
-        limpiarError(repetirContrasenaInput);
+        showAlert('Profile updated successfully.', 'success');
+        // Clear password fields after successful update
+        if (oldContrasenaInput) oldContrasenaInput.value = '';
+        if (contrasenaInput) contrasenaInput.value = '';
+        if (repetirContrasenaInput) repetirContrasenaInput.value = '';
+        if (passwordStrengthFeedback) passwordStrengthFeedback.textContent = ''; 
+        if (contrasenaInput) limpiarError(contrasenaInput);
+        if (repetirContrasenaInput) limpiarError(repetirContrasenaInput);
 
 
-        await fetchUserProfile(); // Recargar los datos para la vista de perfil
+        await fetchUserProfile(); // Reload profile data for view
         profileEdit.style.display = 'none';
         profileView.style.display = 'block';
-        document.querySelector('.profile-header-card .welcome-search-data__title').textContent = 'Mi perfil'; // Restore title
+        document.querySelector('.profile-header-card .welcome-search-data__title').textContent = 'My Profile'; 
       } catch (error) {
-        console.error('Error al actualizar perfil:', error);
-        showAlert(error.message || 'Ocurrió un error al actualizar el perfil.', 'danger');
+        console.error('Error updating profile:', error);
+        showAlert(error.message || 'An error occurred while updating the profile.', 'danger');
       }
     });
 
-    fetchUserProfile();
+    // fetchUserProfile(); // Already called at the beginning of DOMContentLoaded
   });
 </script>

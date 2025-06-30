@@ -1,6 +1,6 @@
 ---
 // Importa tus estilos CSS
-import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los estilos para los modales y offcanvas.
+import "../../style/style-students/NavigationBar.css"; // Este CSS ahora incluye los estilos para modales y offcanvas.
 // Si tu logo está en la carpeta 'public' o 'assets', la ruta es correcta.
 ---
 
@@ -49,7 +49,6 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
           <div
             class="offcanvas offcanvas-start"
             data-bs-scroll="true"
-            data-bs-backdrop="false"
             tabindex="-1"
             id="offcanvasNotifications"
             aria-labelledby="offcanvasNotificationsLabel"
@@ -78,16 +77,21 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
 
       </div>
 
-      <!-- Imagen de perfil de usuario con offcanvas -->
-      <img
-        class="Perfil-icons"
-        src="/public/img/foto.jpg"
-        alt="Imagen de perfil de usuario"
+      <!-- Contenedor flexible para la imagen o el icono de perfil en la barra de navegación -->
+      <!-- Ahora es un div con ID para manipularlo desde JS y mostrar imagen O icono -->
+      <div
+        class="Perfil-icons-container"
         data-bs-toggle="offcanvas"
         data-bs-target="#offcanvasWithBothOptions"
         aria-controls="offcanvasWithBothOptions"
-      />
+        id="userProfileNavButton"
+      >
+        <!-- Eliminamos la referencia a default-profile.png directamente en el HTML -->
+        <img id="navProfileImage" src="" alt="Imagen de perfil de usuario" class="profile-nav-img">
+        <i id="navProfileIcon" class="bx bx-user-circle profile-nav-icon active"></i> <!-- Por defecto visible -->
+      </div>
 
+      
       <!-- Offcanvas de perfil de usuario -->
       <div
         class="offcanvas offcanvas-start"
@@ -111,16 +115,14 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
         </div>
         <div class="offcanvas-body-profile">
           <div class="img-perfil-contetner">
-            <img
-              class="img-perfil"
-              src="/public/img/foto.jpg"
-              alt="Imagen de perfil de usuario"
-            />
-            <i class="bx bx-pencil"></i>
+            <!-- Contenedor flexible para la imagen o el icono grande en el offcanvas de perfil -->
+            <!-- Eliminamos la referencia a default-profile.png directamente en el HTML -->
+            <img id="offcanvasProfileImage" src="" alt="Imagen de perfil de usuario" class="img-perfil">
+            <i id="offcanvasProfileIcon" class="bx bx-user-circle img-perfil-icon active"></i> <!-- Por defecto visible -->
           </div>
           <div class="info-person-perfil">
             <h5 id="nombreUsuario" class="title-perfil">Cargando...</h5>
-            <p id="emailUsuario" class="email-person">Cargando...</p>
+            <p id="emailUsuario" class="email-person">Cargando...!</p>
             <span id="rolUsuario" class="type-user">Cargando...</span>
           </div>
           <hr />
@@ -192,6 +194,7 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
 <script type="module">
   // Importa Bootstrap Bundle con Popper para que los offcanvas y modales funcionen
@@ -219,6 +222,7 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
     try {
       await loadBootstrapPromise;
       console.log("Navbar: Bootstrap JS disponible.");
+      
 
       // Definir globalMostrarAlerta aquí
       globalMostrarAlerta = function(mensaje, tipo, duracion = 5000) {
@@ -261,9 +265,9 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
       } else {
           console.warn("Elementos del dropdown de usuario no encontrados o no aplicables para este HTML.");
       }
-      
       // Lógica de Logout (se mantiene intacta, con tu función de toast)
       configurarLogout(); 
+      
 
       // --- Nuevas funcionalidades para notificaciones ---
       const unreadCommentsBadge = document.getElementById('unreadCommentsBadge');
@@ -334,6 +338,7 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
         alert("Error crítico en la navegación. Algunas funciones pueden no estar disponibles. Detalles: " + error.message);
       }
     }
+    
   });
 
   // Función para mostrar un toast de error (Mantenida de tu código)
@@ -350,26 +355,149 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
       console.error("No se encontró el elemento 'toastError' para mostrar el mensaje:", message);
     }
   }
+  const perfilOffcanvas = document.getElementById('offcanvasWithBothOptions');
 
-  // 1) Carga datos del usuario logueado en el offcanvas de perfil (Mantenida de tu código)
+    // Cierra el offcanvas cuando se hace clic fuera (en el backdrop)
+    document.addEventListener('mousedown', (e) => {
+      const isBackdrop = e.target.classList.contains('offcanvas-backdrop');
+      const isOffcanvasShown = perfilOffcanvas.classList.contains('show');
+
+      if (isBackdrop && isOffcanvasShown) {
+        const offcanvasInstance = bootstrap.Offcanvas.getInstance(perfilOffcanvas);
+        if (offcanvasInstance) {
+          offcanvasInstance.hide();
+        }
+      }
+    });
+
+    // Elimina backdrop residual manualmente cuando se oculta
+    perfilOffcanvas.addEventListener('hidden.bs.offcanvas', () => {
+  // En lugar de eliminarlo, solo ocúltalo correctamente
+  const backdrop = document.querySelector('.offcanvas-backdrop');
+  if (backdrop) {
+    backdrop.classList.remove('show');
+    setTimeout(() => backdrop.remove(), 150); // le damos tiempo a la transición
+  }
+});
+
+  // Function to update the displayed profile picture/icon in Navbar and Offcanvas
+  function updateProfileDisplayElements(profileImageUrl, iconClass) {
+    const navProfileImage = document.getElementById('navProfileImage');
+    const navProfileIcon = document.getElementById('navProfileIcon');
+    const offcanvasProfileImage = document.getElementById('offcanvasProfileImage');
+    const offcanvasProfileIcon = document.getElementById('offcanvasProfileIcon');
+
+    // Update Navbar Profile
+    if (profileImageUrl && profileImageUrl !== '') {
+      navProfileImage.src = profileImageUrl;
+      navProfileImage.classList.add('active'); // Show image
+      navProfileIcon.classList.remove('active'); // Hide icon
+    } else if (iconClass && iconClass !== '') {
+      navProfileIcon.className = iconClass + ' profile-nav-icon'; // Set the icon class
+      navProfileIcon.classList.add('active'); // Show icon
+      navProfileImage.classList.remove('active'); // Hide image
+    } else { // Fallback to default user circle icon if neither is provided
+      navProfileIcon.className = 'bx bx-user-circle profile-nav-icon';
+      navProfileIcon.classList.add('active');
+      navProfileImage.classList.remove('active');
+    }
+
+    // Update Offcanvas Profile
+    if (profileImageUrl && profileImageUrl !== '') {
+      offcanvasProfileImage.src = profileImageUrl;
+      offcanvasProfileImage.classList.add('active'); // Show image
+      offcanvasProfileIcon.classList.remove('active'); // Hide icon
+    } else if (iconClass && iconClass !== '') {
+      offcanvasProfileIcon.className = iconClass + ' img-perfil-icon'; // Set the icon class
+      offcanvasProfileIcon.classList.add('active'); // Show icon
+      offcanvasProfileImage.classList.remove('active'); // Hide image
+    } else { // Fallback to default user circle icon if neither is provided
+      offcanvasProfileIcon.className = 'bx bx-user-circle img-perfil-icon';
+      offcanvasProfileIcon.classList.add('active');
+      offcanvasProfileImage.classList.remove('active');
+    }
+  }
+
+
+  // 1) Carga datos del usuario logueado en el offcanvas de perfil (MODIFICADA para mayor robustez)
   async function cargarUsuarioLogueado() {
-    try {
-      const res = await fetch('http://localhost:3001/usuario', { 
-        method: 'GET',
-        credentials: 'include' 
-      });
-      const data = await res.json();
+    let currentUserId = null;
+    let userName = 'Cargando...';
+    let userEmail = 'Cargando...';
+    let userRole = 'Cargando...';
+    let profileImageUrl = '';
+    let profileIconClass = '';
 
-      if (!res.ok || !data.id) {
-        console.warn('No se pudo obtener datos del usuario logueado o el usuario no está autenticado.');
-        return;
+    try {
+      // Paso 1: Obtener la información básica de la sesión para conseguir el ID del usuario
+      const sessionRes = await fetch('http://localhost:3001/usuario', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      const sessionData = await sessionRes.json();
+      console.log('Session Data (from /usuario):', sessionData);
+
+      if (sessionRes.ok && sessionData.id) {
+        // Asegúrate de que el ID sea un número válido y elimina cualquier parte extra
+        currentUserId = parseInt(sessionData.id);
+        if (isNaN(currentUserId)) {
+          console.error("ID de usuario no es un número válido:", sessionData.id);
+          throw new Error("ID de usuario inválido.");
+        }
+
+        // Usar los datos de la sesión para una carga inicial más rápida de la información básica
+        userName = `${sessionData.primer_nombre || ''} ${sessionData.primer_apellido || ''}`;
+        userEmail = sessionData.correo || 'Cargando...'; // Asegúrate de que el campo de email en /usuario sea 'correo'
+        userRole = sessionData.rol || 'Cargando...';
+
+        // Paso 2: Usar el ID para obtener la información COMPLETA del usuario (incluyendo imagen/icono)
+        // Se añade un manejo de errores más específico para la respuesta JSON.
+        const userRes = await fetch(`http://localhost:3001/usuarios/${currentUserId}`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        let userData = null;
+        if (userRes.ok) {
+            try {
+                userData = await userRes.json();
+                console.log('User Data (from /usuarios/{id}):', userData); // ¡Revisa esto en tu consola!
+            } catch (jsonError) {
+                console.error('Error parsing JSON from /usuarios/{id}:', jsonError);
+                console.error('Response text was:', await userRes.text()); // Log the problematic response text
+            }
+        } else {
+            console.warn(`No se pudo obtener la información detallada del usuario para el ID ${currentUserId}. HTTP Status: ${userRes.status}`);
+            console.warn('Response text was:', await userRes.text()); // Log the response for debugging
+        }
+
+        if (userData) { // Si los datos detallados del usuario están disponibles, sobrescribir con ellos
+          userName = `${userData.primer_nombre || ''} ${userData.primer_apellido || ''}`;
+          userEmail = userData.correo_electronico || userData.correo || 'Cargando...'; // Prefiere 'correo_electronico', pero usa 'correo' si no existe
+          userRole = userData.rol || 'Cargando...';
+          profileImageUrl = userData.profile_image_url || '';
+          profileIconClass = userData.profile_icon_class || '';
+        } else {
+          console.warn(`No se pudo obtener la información detallada del usuario o hubo un error al parsear. Se utilizarán los datos básicos de la sesión.`);
+          profileImageUrl = sessionData.profile_image_url || ''; // Fallback a la sesión si existe
+          profileIconClass = sessionData.profile_icon_class || ''; // Fallback a la sesión si existe
+        }
+      } else {
+        console.warn('ID de usuario no encontrado en la sesión o el usuario no está autenticado. Se mostrarán los valores por defecto.');
       }
 
-      document.getElementById('nombreUsuario').textContent = `${data.primer_nombre} ${data.primer_apellido}`;
-      document.getElementById('emailUsuario').textContent = data.correo;
-      document.getElementById('rolUsuario').textContent = data.rol;
     } catch (error) {
-      console.error('❌ Error obteniendo datos del usuario:', error);
+      console.error('❌ Error en cargarUsuarioLogueado (catch principal):', error);
+      userName = 'Error al cargar';
+      userEmail = 'Error al cargar';
+      userRole = 'Error al cargar';
+      profileImageUrl = '';
+      profileIconClass = '';
+    } finally {
+      document.getElementById('nombreUsuario').textContent = userName;
+      document.getElementById('emailUsuario').textContent = userEmail;
+      document.getElementById('rolUsuario').textContent = userRole;
+      updateProfileDisplayElements(profileImageUrl, profileIconClass);
     }
   }
 
@@ -405,7 +533,6 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
         container.innerHTML = `<p class="text-center text-muted p-4">Sin comentarios nuevos.</p>`;
         return;
       }
-
       // Añade los comentarios no leídos dinámicamente
       unreadComentarios.forEach(c => { 
         const card = document.createElement('div');
@@ -502,6 +629,9 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
       console.error("Error al marcar comentarios como leídos en el backend:", error);
     }
   }
+  // Este código debe estar FUERA del DOMContentLoaded para que escuche los clics en todo momento
+
+
 
 
   // 6) Configurar logout (Mantenida de tu código)
@@ -548,6 +678,7 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
   }
 
 </script>
+
 
 <style>
   /* Asegúrate de que estos estilos estén en tu NavigationBar.css o un archivo CSS importado. */
