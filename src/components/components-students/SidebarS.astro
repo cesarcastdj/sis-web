@@ -88,10 +88,246 @@ function isActive(link: string): boolean {
       </div>
     </div>
   </div>
-  <button class="close-sidebar">
+  <button class="close-sidebar" id="minimizeSidebarBtn">
     Minimizar<i class="bx bx-left-arrow-circle"></i>
   </button>
 </section>
+
+<script type="module">
+  // Declara API_BASE_URL dentro del script de módulo si no es una constante global compartida
+  const API_BASE_URL = 'http://localhost:3001/api';
+  let globalMostrarAlerta; // Se declarará y asignará después de cargar Bootstrap
+
+  // `isActive` para el cliente, considera los parámetros de búsqueda
+  function isActive(link) {
+    const currentPathWithSearch = window.location.pathname + window.location.search;
+    // Para coincidencias exactas o si la ruta actual comienza con la ruta base del enlace
+    return currentPathWithSearch === link || (link !== 'javascript:void(0);' && currentPathWithSearch.startsWith(link.split('?')[0]));
+  }
+
+  // Lógica de carga de Bootstrap JS
+  const loadBootstrapPromise = new Promise((resolve, reject) => {
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal && bootstrap.Alert) {
+      console.log("Bootstrap ya cargado en el ámbito global.");
+      resolve();
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js";
+    script.integrity = "sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz";
+    script.crossOrigin = "anonymous";
+    script.onload = () => {
+      console.log("Bootstrap JS cargado dinámicamente.");
+      setTimeout(resolve, 50); // Pequeño retraso para asegurar la inicialización completa
+    };
+    script.onerror = (e) => {
+      console.error("Fallo al cargar el script de Bootstrap JS:", e);
+      reject(new Error("El script de Bootstrap falló en cargar. Verifica la red y la URL del CDN."));
+    };
+    document.head.appendChild(script);
+  });
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOMContentLoaded disparado en el sidebar del estudiante.");
+    try {
+      await loadBootstrapPromise; // Espera a que Bootstrap se cargue e inicialice completamente
+      console.log("Bootstrap JS ahora disponible e inicializado en DOMContentLoaded.");
+
+      // Definir globalMostrarAlerta SÓLO después de que Bootstrap esté cargado
+      globalMostrarAlerta = function(mensaje, tipo, duracion = 5000) {
+        if (typeof bootstrap === 'undefined' || !bootstrap.Alert) {
+            console.error("Bootstrap Alert no está disponible, no se puede mostrar la alerta. Recurriendo a la alerta nativa.");
+            alert(`Alerta: ${mensaje}`); // Fallback
+            return;
+        }
+
+        const alertContainer = document.getElementById('alertContainer') || (() => {
+          const div = document.createElement('div');
+          div.id = 'alertContainer';
+          div.style.position = 'fixed';
+          div.style.top = '20px';
+          div.style.left = '50%';
+          div.style.transform = 'translateX(-50%)';
+          div.style.zIndex = '9999';
+          div.style.width = 'auto';
+          div.style.maxWidth = '90%';
+          document.body.appendChild(div);
+          return div;
+        })();
+
+        const alertElement = document.createElement('div');
+        alertElement.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertElement.role = 'alert';
+        alertElement.textContent = mensaje;
+
+        alertContainer.appendChild(alertElement);
+
+        setTimeout(() => {
+          // Asegúrate de que el elemento aún esté en el DOM antes de intentar disponer de él
+          if (alertElement.parentNode) {
+            const bsAlert = new bootstrap.Alert(alertElement); // Crea una instancia de Bootstrap Alert
+            bsAlert.dispose(); // Cierra y elimina la alerta
+          }
+        }, duracion);
+      };
+
+      // Cargar las materias del estudiante para el sidebar
+      await fetchMateriasSidebarEstudiante();
+
+      // Lógica para el botón de minimizar/maximizar sidebar
+      const closeSidebarBtn = document.querySelector('.close-sidebar');
+      const sidebar = document.querySelector('.bar-home-content');
+      if (closeSidebarBtn && sidebar) {
+        closeSidebarBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('minimized');
+        });
+      }
+
+      // Añadir event listener al enlace de "Notas"
+      const notasListItem = document.querySelector('li[data-label="Notas"]');
+      const toggleLink = notasListItem?.querySelector('.toggle-sublist');
+      if (toggleLink) {
+        toggleLink.addEventListener('click', handleNotasToggle);
+      } else {
+        console.warn("No se encontró el enlace de alternancia para 'Notas'. La funcionalidad de alternancia no se adjuntará.");
+      }
+
+    } catch (error) {
+      console.error("Error durante DOMContentLoaded o carga de Bootstrap:", error);
+      // Fallback de alerta si Bootstrap falla o ocurre un error crítico
+      if (typeof alert !== 'undefined') { // Asegura que `alert` esté disponible
+        alert("Error crítico: No se pudo cargar la librería de Bootstrap o hubo un problema inicial. Algunas funcionalidades podrían no estar disponibles. Detalles: " + error.message);
+      }
+    }
+  });
+
+  /**
+   * @function fetchMateriasSidebarEstudiante
+   * @description Obtiene las materias asignadas al estudiante logueado y las muestra en el submenú "Notas" del sidebar.
+   */
+  async function fetchMateriasSidebarEstudiante() {
+    const materiasSublistContainer = document.getElementById('materias-sublist-container');
+    if (!materiasSublistContainer) {
+      console.error("No se encontró el 'materias-sublist-container' en el DOM.");
+      if (globalMostrarAlerta) {
+        globalMostrarAlerta("Error interno: El contenedor de materias en el sidebar no se encontró.", "danger");
+      }
+      return;
+    }
+
+    materiasSublistContainer.innerHTML = '<p class="sublist-message">Cargando materias...</p>';
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/estudiantes/sidebard`, { // Se mantiene el NEW API ENDPOINT
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => "No response text");
+        console.error('Error HTTP al cargar las materias del estudiante para el sidebar:', res.status, res.statusText, 'Texto de Respuesta:', errorText);
+        let errorMessage = `Error HTTP! Estado: ${res.status}.`;
+        try {
+            const errorData = JSON.parse(errorText);
+            errorMessage += ` Detalles: ${errorData.error || errorText}`;
+        } catch (parseError) {
+            errorMessage += ` Respuesta: ${errorText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const materias = await res.json();
+      console.log("Materias del estudiante para el sidebar recibidas:", materias);
+
+      materiasSublistContainer.innerHTML = '';
+
+      if (materias.length === 0) {
+        materiasSublistContainer.innerHTML = '<p class="sublist-message">No se encontraron materias.</p>';
+        return;
+      }
+
+      const sublistUl = document.createElement('ul');
+      sublistUl.className = 'sublist';
+      
+      materias.forEach((materia) => {
+        const sublistItem = document.createElement('li');
+        // Enlace a la página de notas para esta materia y período específicos
+        const materiaHref = `/Students-Control/Notas?materiaId=${materia.id_materia}&periodoId=${materia.id_periodo}`;
+        const isActiveSub = isActive(materiaHref);
+        
+        sublistItem.className = `sublist-item ${isActiveSub ? "active" : ""}`;
+        sublistItem.innerHTML = `
+            <a href="${materiaHref}" tabindex="0">
+                <i class='bx bx-book-bookmark'></i>
+                <span>${materia.nombre_materia} (${materia.nombre_periodo})</span>
+            </a>
+        `;
+        sublistUl.appendChild(sublistItem);
+      });
+
+      materiasSublistContainer.appendChild(sublistUl);
+
+    } catch (error) {
+      console.error('Error al cargar las materias para el sidebar del estudiante:', error);
+      materiasSublistContainer.innerHTML = '<p class="sublist-message">Error al cargar materias.</p>';
+      if (globalMostrarAlerta) {
+          globalMostrarAlerta(`No se pudieron cargar las materias para el sidebar. Asegúrate de que el backend esté funcionando en ${API_BASE_URL} (Error: ${error.message}).`, 'danger');
+      } else {
+          alert(`No se pudieron cargar las materias para el sidebar. Error: ${error.message}`);
+      }
+    }
+  }
+
+  /**
+   * @function handleNotasToggle
+   * @description Maneja el evento de clic para el desplegable "Notas" en el sidebar.
+   */
+  function handleNotasToggle(e) {
+    e.preventDefault();
+    const listItem = e.currentTarget.closest('.list-item__sub');
+    const targetSublistContainer = listItem?.querySelector('#materias-sublist-container');
+    const targetSublist = targetSublistContainer?.querySelector('.sublist');
+    const toggleIcon = e.currentTarget.querySelector('.toggle-icon');
+
+    if (targetSublist) {
+      targetSublist.classList.toggle('visible');
+      if (toggleIcon) {
+        toggleIcon.classList.toggle('bx-chevron-down');
+        toggleIcon.classList.toggle('bx-chevron-up');
+      }
+      listItem.classList.toggle('expanded');
+    }
+  }
+</script>
+
+<script>
+if (typeof window !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', function () {
+    const btn = document.getElementById('minimizeSidebarBtn');
+    const sidebar = document.querySelector('.bar-home-content');
+    // Buscar el grid-area más cercano
+    const gridArea = sidebar?.closest('.Layout-grid-area');
+    if (btn && sidebar && gridArea) {
+      btn.addEventListener('click', function () {
+        sidebar.classList.toggle('minimized');
+        gridArea.classList.toggle('sidebar-minimized', sidebar.classList.contains('minimized'));
+        // Guardar estado en localStorage para persistencia
+        if (sidebar.classList.contains('minimized')) {
+          localStorage.setItem('sidebarMinimized', 'true');
+        } else {
+          localStorage.removeItem('sidebarMinimized');
+        }
+      });
+      // Restaurar estado al recargar
+      if (localStorage.getItem('sidebarMinimized') === 'true') {
+        sidebar.classList.add('minimized');
+        gridArea.classList.add('sidebar-minimized');
+      }
+    }
+  });
+}
+</script>
 
 <script type="module">
   // Declara API_BASE_URL dentro del script de módulo si no es una constante global compartida
