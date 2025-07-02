@@ -167,7 +167,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         `;
         historialTableBody.appendChild(row);
       });
-      setupPagination(totalPages, currentPage);
+      setupPagination(totalPages);
     }
 
     // Listeners para los campos de búsqueda
@@ -186,7 +186,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       filtrarYRenderizar();
     });
 
-    function setupPagination(totalPages, currentPage) {
+    function setupPagination(totalPages) {
       paginationControls.innerHTML = '';
       if (totalPages <= 1) return;
       const ul = document.createElement('ul');
