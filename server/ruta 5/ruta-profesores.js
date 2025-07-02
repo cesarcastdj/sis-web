@@ -377,30 +377,60 @@ router.put('/profesores/:id', registrarAccion('Actualización de datos de profes
 });
 
 router.get('/profesores/:id/academico', (req, res) => {
-  const { id } = req.params;
-  // Trae todas las relaciones cruzadas del profesor
-  const sql = `
-    SELECT
-      p.periodo AS nombre_periodo,
-      c.curso AS nombre_curso,
-      m.materia AS nombre_materia,
-      s.seccion AS nombre_seccion
-    FROM usuario_materias um
-    JOIN materias m ON um.id_materia = m.id_materia
-    LEFT JOIN cursos c ON m.id_curso = c.id_curso
-    LEFT JOIN materias_periodo mp ON m.id_materia = mp.id_materia
-    LEFT JOIN periodo p ON mp.id_periodo = p.id_periodo
-    LEFT JOIN materias_seccion ms ON m.id_materia = ms.id_materia
-    LEFT JOIN seccion s ON ms.id_seccion = s.id_seccion
-    WHERE um.id_usuario = ?;
-  `;
-  db.query(sql, [id], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error al obtener información académica del profesor', detalle: err.message });
-    }
-    res.json({ academico: results });
-  });
+    const { id } = req.params;
+    // Trae todas las relaciones académicas cruzadas del profesor,
+    // asegurando que cada asignación de materia por período sea única.
+    const sql = `
+        SELECT
+            um.id_usuario,
+            um.id_materia,
+            um.id_periodo,
+            mp.id_materia_periodo, -- Incluir para mayor claridad si es necesario
+            p.periodo AS nombre_periodo,
+            c.curso AS nombre_curso,
+            m.materia AS nombre_materia,
+            s.seccion AS nombre_seccion
+        FROM
+            usuario_materias um
+        JOIN
+            materias_periodo mp ON um.id_materia = mp.id_materia AND um.id_periodo = mp.id_periodo
+        JOIN
+            materias m ON um.id_materia = m.id_materia
+        JOIN
+            periodo p ON um.id_periodo = p.id_periodo
+        LEFT JOIN
+            cursos c ON m.id_curso = c.id_curso -- Asumiendo que materia tiene id_curso
+        LEFT JOIN
+            materias_seccion ms ON um.id_materia = ms.id_materia -- Corrección aquí: la relación es solo por id_materia
+        LEFT JOIN
+            seccion s ON ms.id_seccion = s.id_seccion
+        WHERE
+            um.id_usuario = ?;
+    `;
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error('Error al obtener información académica del profesor:', err);
+            return res.status(500).json({ error: 'Error al obtener información académica del profesor', detalle: err.message });
+        }
+        // Opcional: Si aún hay duplicados por alguna razón, puedes agruparlos en el backend
+         const academicData = {};
+        results.forEach(row => {
+            const key = `${row.id_materia}-${row.id_periodo}`;
+            if (!academicData[key]) {
+                academicData[key] = {
+                    nombre_periodo: row.nombre_periodo,
+                    nombre_curso: row.nombre_curso,
+                    nombre_materia: row.nombre_materia,
+                    nombre_seccion: row.nombre_seccion
+                };
+            }
+        });
+        res.json({ academico: Object.values(academicData) });
+
+    });
 });
+
+
 
 
 
@@ -530,6 +560,162 @@ router.get('/profesor/sidebard', /*isAuthenticated,*/ async (req, res) => {
     }
 });
 
+
+const queryPromise = (sql, values) => {
+    return new Promise((resolve, reject) => {
+        db.query(sql, values, (err, result) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(result);
+        });
+    });
+};
+
+
+router.post('/profesores/register', registrarAccion('Registrar Profesor', 'profesores'), async (req, res) => {
+    try {
+        const {
+            cedula, primerNombre, segundoNombre = null,
+            primerApellido, segundoApellido = null,
+            correo = null, telefono = null, direccion,
+            id_estado, id_ciudad, contraseña,
+            secciones = [], cursos = [], materias = [], periodos = [] // Datos académicos recibidos del frontend
+        } = req.body;
+
+        // 📌 Validar campos obligatorios para el registro de profesor
+        if (!cedula || !primerNombre || !primerApellido || !direccion || !id_estado || !id_ciudad || !contraseña) {
+            return res.status(400).json({ error: 'Faltan campos obligatorios para el registro del profesor.' });
+        }
+
+        // 📌 Validar que no exista esa cédula en la tabla de usuarios
+        const existingUser = await queryPromise('SELECT id_usuario FROM usuarios WHERE cedula = ?', [cedula]);
+        if (existingUser.length > 0) {
+            return res.status(400).json({ error: 'La cédula ya se encuentra registrada en el sistema.' });
+        }
+
+        // 📌 Insertar dirección antes de registrar el usuario
+        const dirResult = await queryPromise('INSERT INTO direccion (direccion, id_ciudad, id_estado) VALUES (?, ?, ?)',
+            [direccion, id_ciudad, id_estado]);
+        const id_direccion = dirResult.insertId;
+        const hashed = await hashPassword(contraseña); // Hashear la contraseña
+
+        const rol = 'profesor';
+        const id_nivel = 3; // Asumiendo que 3 es el ID de nivel para 'profesor'
+        const ultima_conexion = null; // O puedes usar new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+        const sql = `
+            INSERT INTO usuarios (
+                cedula, primer_nombre, segundo_nombre,
+                primer_apellido, segundo_apellido, telefono,
+                correo, contraseña, rol, id_direccion, id_nivel, ultima_conexion
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        const values = [
+            cedula, primerNombre, segundoNombre,
+            primerApellido, segundoApellido, telefono,
+            correo, hashed, rol, id_direccion, id_nivel, ultima_conexion
+        ];
+
+        const userResult = await queryPromise(sql, values);
+        const id_usuario = userResult.insertId; // Obtener el ID del usuario recién insertado
+
+        // 📌 Insertar el nuevo usuario en la tabla específica de 'profesores'
+        await queryPromise('INSERT INTO profesores (id_usuario) VALUES (?)', [id_usuario]);
+
+        // --- Lógica para asignar secciones, cursos y períodos (estas se mantienen como inserciones directas) ---
+        const assignments = [];
+
+        // Asignar secciones al usuario
+        if (secciones && secciones.length > 0) {
+            console.log('Asignando secciones:', secciones);
+            const seccionValues = secciones.map(id_sec => [id_usuario, id_sec]);
+            assignments.push(queryPromise('INSERT INTO usuario_seccion (id_usuario, id_seccion) VALUES ?', [seccionValues]));
+        } else {
+            console.log('No hay secciones para asignar.');
+        }
+
+        // Asignar cursos al usuario
+        if (cursos && cursos.length > 0) {
+            console.log('Asignando cursos:', cursos);
+            const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+            const cursoValues = cursos.map(id_cur => [id_usuario, id_cur, currentDateTime]);
+            assignments.push(queryPromise('INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES ?', [cursoValues]));
+        } else {
+            console.log('No hay cursos para asignar.');
+        }
+
+        // Asignar periodos al usuario
+        if (periodos && periodos.length > 0) {
+            console.log('Asignando periodos:', periodos);
+            const periodoValues = periodos.map(id_per => [id_usuario, id_per]);
+            assignments.push(queryPromise('INSERT INTO usuario_periodo (id_usuario, id_periodo) VALUES ?', [periodoValues]));
+        } else {
+            console.log('No hay periodos para asignar.');
+        }
+
+        // MODIFICACIÓN CLAVE: Usar la API de asignar-profesor para las materias
+        if (materias && materias.length > 0) {
+            console.log('Intentando asignar materias a través de la API de asignación de profesor. id_materia_periodo recibidos:', materias);
+            for (const id_materia_periodo of materias) {
+                // Primero, obtener id_materia y id_periodo de la tabla materias_periodo
+                const mpDetails = await queryPromise('SELECT id_materia, id_periodo FROM materias_periodo WHERE id_materia_periodo = ?', [id_materia_periodo]);
+                if (mpDetails.length === 0) {
+                    console.warn(`No se encontraron detalles de materia/periodo para id_materia_periodo: ${id_materia_periodo}. Saltando asignación.`);
+                    continue; // Saltar esta asignación si no se encuentran los detalles
+                }
+                const { id_materia, id_periodo } = mpDetails[0];
+
+                // Realizar una llamada interna a la API de asignación de profesor
+                // Esto simula una solicitud HTTP interna. En un entorno de Node.js,
+                // si la lógica de `asignar-profesor` está modularizada, podrías
+                // importar y llamar directamente a esa función para evitar la sobrecarga HTTP.
+                const assignResponse = await fetch(`http://localhost:3001/api/materias-academicas/${id_materia}/asignar-profesor`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        profesores: [id_usuario], // El ID del nuevo profesor
+                        id_periodo: id_periodo // El ID del período asociado a la materia
+                    })
+                });
+
+                const assignData = await assignResponse.json();
+
+                if (!assignResponse.ok) {
+                    console.error(`Error al asignar profesor a materia ${id_materia} (periodo ${id_periodo}) a través de la API:`, assignData.error || assignData.detalle);
+                    // Si falla la asignación de una materia, se lanza un error para que la transacción general falle
+                    throw new Error(`Error al asignar profesor a materia ${id_materia} (periodo ${id_periodo}): ${assignData.error || assignData.detalle}`);
+                }
+                console.log(`Profesor ${id_usuario} asignado a materia ${id_materia} (periodo ${id_periodo}) exitosamente.`);
+            }
+        } else {
+            console.log('No hay materias para asignar al profesor.');
+        }
+
+        // Esperar a que todas las asignaciones opcionales (secciones, cursos, periodos) se completen.
+        // Las asignaciones de materias se manejan de forma síncrona dentro del bucle `for...of`.
+        await Promise.all(assignments);
+
+        const responseData = {
+            success: true,
+            message: 'Profesor registrado correctamente y asignaciones completadas.',
+            usuario: {
+                id_usuario: id_usuario,
+                cedula: cedula,
+                rol: rol
+            }
+        };
+        return res.status(201).json(responseData);
+
+    } catch (error) {
+        console.error('❌ ERROR en /profesores/register (catch principal):', error);
+        // Aquí podrías añadir lógica para revertir el registro del usuario y profesor
+        // si alguna de las asignaciones falla, lo que requeriría una transacción
+        // que envuelva todo el proceso de registro y asignación.
+        return res.status(500).json({ error: 'Error interno del servidor al registrar profesor.', detalle: error.message });
+    }
+});
 
 
 export default router;

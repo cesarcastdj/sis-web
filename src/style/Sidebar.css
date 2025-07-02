@@ -185,6 +185,7 @@
 
 .bar-home-content .close-sidebar>i {
     font-size: 1.5rem;
+    transition: transform 0.3s;
 }
 
 .bar-home-content .close-sidebar:hover {
@@ -197,4 +198,40 @@
     display: block;
     /* Muestra las sublistas cuando el padre tiene la clase "expanded" */
     max-height: 500px;
+}
+
+/* --- SIDEBAR MINIMIZADO --- */
+.bar-home-content.minimized {
+    width: 70px !important;
+    min-width: 70px !important;
+    max-width: 70px !important;
+    transition: width 0.3s;
+    overflow-x: hidden;
+}
+
+.bar-home-content.minimized .list-bar span {
+    display: none;
+}
+
+.bar-home-content.minimized .list-bar li > a {
+    justify-content: center;
+}
+
+.bar-home-content.minimized .close-sidebar {
+    justify-content: center;
+    font-size: 0;
+    padding: 0.5rem 0;
+}
+
+.bar-home-content.minimized .close-sidebar i {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.bar-home-content.minimized .close-sidebar::before {
+    content: '';
+}
+
+.bar-home-content.minimized .close-sidebar > i {
+    transform: rotate(180deg);
 }
