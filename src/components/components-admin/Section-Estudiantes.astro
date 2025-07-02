@@ -514,7 +514,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
             periodos.forEach(periodo => {
                 const option = document.createElement('option');
                 option.value = periodo.id_periodo;
-                option.textContent = periodo.nombre_periodo; // Cambiado de 'periodo' a 'nombre_periodo'
+                option.textContent = periodo.periodo; // Cambiado de 'periodo' a 'nombre_periodo'
                 targetSelect.appendChild(option);
             });
 
@@ -615,7 +615,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         periods.forEach(period => {
           const option = document.createElement('option');
           option.value = period.id_periodo;
-          option.textContent = period.nombre_periodo; // Asumo 'nombre_periodo' es el campo a mostrar
+          option.textContent = period.periodo; // Asumo 'nombre_periodo' es el campo a mostrar
           addPeriodoAcademico.appendChild(option);
         });
         addPeriodoAcademico.disabled = false;

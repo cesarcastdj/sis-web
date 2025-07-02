@@ -429,10 +429,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
     const editCodigoAreaSelect = document.querySelector('#modalEditarProfesor .codigo-area-edit'); // Selector actualizado
     const editNumeroTelefonoInput = document.querySelector('#modalEditarProfesor .numero-telefono-edit'); // Selector actualizado
     const editDireccion = document.getElementById('editDireccion');
-    const editPeriodoAcademico = document.getElementById('editPeriodoAcademico'); 
-    const editCurso = document.getElementById('editCurso');
-    const editMaterias = document.getElementById('editMaterias');
-    const editSeccion = document.getElementById('editSeccion');
+    
     const btnGuardarEdicion = document.getElementById('btnGuardarEdicion');
 
     // Elementos del NUEVO Modal Agregar Profesor
@@ -492,7 +489,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
 
     // Función para cargar periodos académicos (adaptada para ambos modales)
     async function cargarPeriodos(prefix = '') {
-        const targetSelect = prefix === 'edit' ? editPeriodoAcademico : addPeriodoAcademico;
+        const targetSelect = prefix ===  addPeriodoAcademico;
         if (!targetSelect) return;
 
         try {
@@ -515,7 +512,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
             periodos.forEach(periodo => {
                 const option = document.createElement('option');
                 option.value = periodo.id_periodo;
-                option.textContent = periodo.nombre_periodo; 
+                option.textContent = periodo.periodo; 
                 targetSelect.appendChild(option);
             });
 
@@ -615,7 +612,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         periods.forEach(period => {
           const option = document.createElement('option');
           option.value = period.id_periodo;
-          option.textContent = period.nombre_periodo; 
+          option.textContent = period.periodo; 
           addPeriodoAcademico.appendChild(option);
         });
         addPeriodoAcademico.disabled = false;

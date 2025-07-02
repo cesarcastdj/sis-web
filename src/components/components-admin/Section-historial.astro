@@ -107,7 +107,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         });
         if (!response.ok) {
           if (response.status === 401) {
-            window.location.href = '/login';
+            window.location.href = '/';
             return;
           }
           throw new Error(`Error HTTP: ${response.status}`);
