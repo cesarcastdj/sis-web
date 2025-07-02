@@ -2,10 +2,10 @@
 import AdminDashboard from "../../layouts/Admin/AdminDashboard.astro";
 import Sidebar from "../../components/Sidebar.astro";
 import NavigationBar from "../../components/NavigationBar.astro";
-import SectionPapelera from "../../components/components-admin/Section-papelera.astro";
+import SectionInactivos from "../../components/components-admin/Section-inactivos.astro";
 ---
 
-<AdminDashboard title="Papelera">
+<AdminDashboard title="Inactivos">
   <NavigationBar />
   <!-- Crear dos comnunas para ambos -->
   <div class="Layout-grid-area">
@@ -13,7 +13,7 @@ import SectionPapelera from "../../components/components-admin/Section-papelera.
       <Sidebar />
     </div>
     <div class="Layout-grid-area--content">
-      <SectionPapelera />
+      <SectionInactivos />
     </div>
   </div>
 

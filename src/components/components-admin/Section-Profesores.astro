@@ -32,6 +32,11 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
             <span class="summary-count" id="inactiveProfesoresCount">0</span>
             <span class="summary-label">Inactivos</span>
           </div>
+          <div class="btn-accion-control">
+            <button class="btn-card" data-bs-toggle="modal" data-bs-target="#modalAgregarProfesor">
+              <i class="bx bx-plus"></i> Agregar Profesor
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -116,10 +121,12 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
             <div class="col-md-6 mb-3">
               <label for="editCedula" class="form-label">Cédula</label>
               <input type="text" class="form-control" id="editCedula" placeholder="Ingrese su cédula" readonly />
+              <div class="invalid-feedback"></div>
             </div>
             <div class="col-md-6 mb-3">
               <label for="editCorreo" class="form-label">Correo</label>
               <input type="email" class="form-control" id="editCorreo" placeholder="Ingrese su correo electrónico" />
+              <div class="invalid-feedback"></div>
             </div>
           </div>
 
@@ -127,10 +134,12 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
             <div class="col-md-6 mb-3">
               <label for="editPrimerNombre" class="form-label">Primer Nombre</label>
               <input type="text" class="form-control" id="editPrimerNombre" placeholder="Ingrese su primer nombre" />
+              <div class="invalid-feedback"></div>
             </div>
             <div class="col-md-6 mb-3">
               <label for="editSegundoNombre" class="form-label">Segundo Nombre</label>
               <input type="text" class="form-control" id="editSegundoNombre" placeholder="Ingrese su segundo nombre" />
+              <div class="invalid-feedback"></div>
             </div>
           </div>
 
@@ -138,10 +147,12 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
             <div class="col-md-6 mb-3">
               <label for="editPrimerApellido" class="form-label">Primer Apellido</label>
               <input type="text" class="form-control" id="editPrimerApellido" placeholder="Ingrese su primer apellido" />
+              <div class="invalid-feedback"></div>
             </div>
             <div class="col-md-6 mb-3">
               <label for="editSegundoApellido" class="form-label">Segundo Apellido</label>
               <input type="text" class="form-control" id="editSegundoApellido" placeholder="Ingrese su segundo apellido" />
+              <div class="invalid-feedback"></div>
             </div>
           </div>
           <div class="row">
@@ -164,6 +175,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
                     pattern="[0-9]{7}"
                     title="Debe contener 7 dígitos"
                   >
+                  <div class="invalid-feedback"></div>
               </div>
             </div>
           </div>
@@ -173,12 +185,196 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
             <div class="col-md-12 mb-3">
               <label for="editDireccion" class="form-label">Dirección</label>
               <input type="text" class="form-control" id="editDireccion" placeholder="Ingrese su dirección" />
+              <div class="invalid-feedback"></div>
             </div>
           </div>
 
-          <div class="d-flex justify-content-between mt-4">
-            <button type="reset" class="btn btn-secondary">Limpiar</button>
+          <div class="d-flex justify-content-end mt-4 gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             <button type="submit" class="btn btn-primary" id="btnGuardarEdicion">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para Agregar Profesor (NUEVO) -->
+<div class="modal fade" id="modalAgregarProfesor" tabindex="-1" aria-labelledby="modalAgregarProfesorLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAgregarProfesorLabel">Agregar Nuevo Profesor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formAgregarProfesor">
+          <!-- Información Personal -->
+          <h6 class="section-title">Información Personal</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="addCedula" class="form-label">Cédula <span class="campo-obligatorio">*</span></label>
+              <input type="tel" class="form-control" id="addCedula" placeholder="Ejemplo: 123456789" pattern="[0-9]{6,15}" maxlength="15" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="addPrimerNombre" class="form-label">Primer Nombre <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="addPrimerNombre" placeholder="Primer Nombre" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+" required />
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="addSegundoNombre" class="form-label">Segundo Nombre</label>
+              <input type="text" class="form-control" id="addSegundoNombre" placeholder="Segundo Nombre" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*" />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="addPrimerApellido" class="form-label">Primer Apellido <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="addPrimerApellido" placeholder="Primer Apellido" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+" required />
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="addSegundoApellido" class="form-label">Segundo Apellido</label>
+              <input type="text" class="form-control" id="addSegundoApellido" placeholder="Segundo Apellido" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*" />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="addTelefono" class="form-label">Teléfono <span class="campo-obligatorio">*</span></label>
+              <div class="d-flex align-items-center gap-2">
+                <select class="form-select codigo-area" id="addCodigoArea" style="width: 80px;" required>
+                  <option value="0412">0412</option>
+                  <option value="0422">0422</option>
+                  <option value="0424">0424</option>
+                  <option value="0414">0414</option>
+                  <option value="0416">0416</option>
+                  <option value="0426">0426</option>
+                </select>
+                <span class="separador-telefono">-</span>
+                <input
+                  type="tel"
+                  class="form-control numero-telefono"
+                  id="addNumeroTelefono"
+                  placeholder="1234567"
+                  pattern="[0-9]{7}"
+                  title="Debe contener 7 dígitos"
+                  required
+                  style="flex-grow: 1;"
+                />
+              </div>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          
+          <!-- Ubicación -->
+          <h6 class="section-title mt-4">Ubicación</h6>
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label for="addDireccion" class="form-label">Dirección <span class="campo-obligatorio">*</span></label>
+              <input type="text" class="form-control" id="addDireccion" placeholder="Ingrese su dirección" required />
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="addEstado" class="form-label">Estado <span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="addEstado" required>
+                <option value="" selected disabled>Seleccione un estado</option>
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="addCiudad" class="form-label">Ciudad <span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="addCiudad" required disabled>
+                <option value="" selected disabled>Primero seleccione un estado</option>
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+
+          <!-- Información Académica -->
+          <h6 class="section-title mt-4">Información Académica</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="addPeriodoAcademico" class="form-label">Período Académico <span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="addPeriodoAcademico" required>
+                <option value="" selected disabled>Selecciona un período</option>
+                <!-- Opciones de período se cargarán aquí dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="addCurso" class="form-label">Curso <span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="addCurso" required disabled>
+                <option value="" selected disabled>Selecciona un curso</option>
+                <!-- Opciones de curso se cargarán aquí dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="addMateria" class="form-label">Materia <span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="addMateria" required disabled>
+                <option value="" selected disabled>Selecciona una materia</option>
+                <!-- Opciones de materia se cargarán aquí dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="addSeccion" class="form-label">Sección <span class="campo-obligatorio">*</span></label>
+              <select class="form-select" id="addSeccion" required disabled>
+                <option value="" selected disabled>Selecciona una sección</option>
+                <!-- Opciones de sección se cargarán aquí dinámicamente -->
+              </select>
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+
+
+          <!-- Credenciales del Usuario -->
+          <h6 class="section-title mt-4">Credenciales del Usuario</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="addEmail" class="form-label">Correo Electrónico <span class="campo-obligatorio">*</span></label>
+              <input type="email" class="form-control" id="addEmail" placeholder="ejemplo.venezuela@gmail.com" required />
+              <div class="invalid-feedback"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="addPassword" class="form-label">Contraseña <span class="campo-obligatorio">*</span></label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="addPassword" placeholder="Tu Contraseña" required />
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="addPassword">
+                  <i class="bx bx-hide"></i>
+                </button>
+              </div>
+              <!-- CAMBIO CRÍTICO: invalid-feedback para la contraseña FUERA del input-group -->
+              <div class="invalid-feedback"></div>
+              <!-- small para la fortaleza de contraseña FUERA del input-group -->
+              <small id="addPasswordStrength" class="form-text text-muted"></small>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="addConfirmPassword" class="form-label">Confirmar contraseña <span class="campo-obligatorio">*</span></label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="addConfirmPassword" placeholder="Confirma tu Contraseña" required />
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="addConfirmPassword">
+                  <i class="bx bx-hide"></i>
+                </button>
+              </div>
+              <!-- CAMBIO CRÍTICO: invalid-feedback para confirmar contraseña FUERA del input-group -->
+              <div class="invalid-feedback"></div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-4 gap-2">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardarNuevoProfesor">Agregar Profesor</button>
           </div>
         </form>
       </div>
@@ -202,7 +398,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
     const ProfesoresActivos = document.getElementById('activeProfesoresCount');
     const ProfesoresInactivos = document.getElementById('inactiveProfesoresCount');
 
-    // Elemento del campo de búsqueda (NUEVO)
+    // Elemento del campo de búsqueda
     const searchProfesorInput = document.getElementById('searchProfesorInput');
 
 
@@ -239,6 +435,30 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
     const editSeccion = document.getElementById('editSeccion');
     const btnGuardarEdicion = document.getElementById('btnGuardarEdicion');
 
+    // Elementos del NUEVO Modal Agregar Profesor
+    const modalAgregarProfesor = new bootstrap.Modal(document.getElementById('modalAgregarProfesor'));
+    const formAgregarProfesor = document.getElementById('formAgregarProfesor');
+    const addCedula = document.getElementById('addCedula');
+    const addPrimerNombre = document.getElementById('addPrimerNombre');
+    const addSegundoNombre = document.getElementById('addSegundoNombre');
+    const addPrimerApellido = document.getElementById('addPrimerApellido');
+    const addSegundoApellido = document.getElementById('addSegundoApellido');
+    const addCodigoArea = document.getElementById('addCodigoArea');
+    const addNumeroTelefono = document.getElementById('addNumeroTelefono');
+    const addDireccion = document.getElementById('addDireccion');
+    const addEstado = document.getElementById('addEstado');
+    const addCiudad = document.getElementById('addCiudad');
+    const addPeriodoAcademico = document.getElementById('addPeriodoAcademico'); 
+    const addCurso = document.getElementById('addCurso'); 
+    const addMateria = document.getElementById('addMateria'); 
+    const addSeccion = document.getElementById('addSeccion'); 
+    const addEmail = document.getElementById('addEmail');
+    const addPassword = document.getElementById('addPassword');
+    const addConfirmPassword = document.getElementById('addConfirmPassword');
+    const addPasswordStrength = document.getElementById('addPasswordStrength');
+    const btnGuardarNuevoProfesor = document.getElementById('btnGuardarNuevoProfesor');
+
+
     // Cargar datos al abrir el modal de Editar Profesores
     modalEditarProfesor._element.addEventListener('shown.bs.modal', async function() {
       console.log("DEBUG: Modal de edición de profesor abierto. Cargando dropdowns...");
@@ -251,99 +471,267 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
       // await cargarSecciones('edit'); 
     });
 
-    // Función para cargar periodos académicos (mantenida si se usa en otros modals o en el futuro)
+    // Cargar datos al abrir el NUEVO modal de Agregar Profesor
+    modalAgregarProfesor._element.addEventListener('shown.bs.modal', async function() {
+        formAgregarProfesor.reset(); // Limpiar el formulario al abrir
+        limpiarTodosLosErrores(formAgregarProfesor);
+        addCiudad.innerHTML = '<option value="" selected disabled>Primero seleccione un estado</option>';
+        addCiudad.disabled = true;
+        addCurso.innerHTML = '<option value="" selected disabled>Primero seleccione un periodo</option>';
+        addCurso.disabled = true;
+        addMateria.innerHTML = '<option value="" selected disabled>Primero seleccione un curso</option>';
+        addMateria.disabled = true;
+        addSeccion.innerHTML = '<option value="" selected disabled>Primero seleccione una materia</option>';
+        addSeccion.disabled = true;
+        addPasswordStrength.textContent = ''; // Limpiar mensaje de fortaleza de contraseña
+        
+        await loadAcademicPeriods(); // Cargar periodos para el modal de agregar
+        await cargarEstados('add'); // Cargar estados para el modal de agregar
+    });
+
+
+    // Función para cargar periodos académicos (adaptada para ambos modales)
     async function cargarPeriodos(prefix = '') {
-      const targetPeriodoSelect = prefix === 'edit' ? editPeriodoAcademico : null; 
-      if (!targetPeriodoSelect) return; 
+        const targetSelect = prefix === 'edit' ? editPeriodoAcademico : addPeriodoAcademico;
+        if (!targetSelect) return;
 
-      targetPeriodoSelect.disabled = true;
-      targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Cargando periodos...</option>';
-      try {
-        console.log("DEBUG: Fetching periods for dropdown...");
-        const response = await fetch('http://localhost:3001/api/periodos');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const periodos = await response.json();
-        console.log("DEBUG: Periods received:", periodos);
-        targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Seleccione un periodo</option>';
-        periodos.forEach(periodo => {
-          const option = document.createElement('option');
-          option.value = periodo.id_periodo;
-          option.textContent = periodo.periodo; 
-          targetPeriodoSelect.appendChild(option);
-        });
-        targetPeriodoSelect.disabled = false;
-        console.log("DEBUG: Periods dropdown loaded.");
-      } catch (error) {
-        console.error('❌ Error cargando periodos:', error);
-        targetPeriodoSelect.innerHTML = '<option value="" selected disabled>Error al cargar periodos</option>';
-        mostrarErrorAlUsuario('Error al cargar periodos académicos. Intente recargar la página.');
-      }
-    }
+        try {
+            const response = await fetch('http://localhost:3001/api/periodos');
+            if (!response.ok) throw new Error('Error al cargar períodos');
+            const periodos = await response.json();
 
+            // Guardar el valor actual antes de limpiar (solo relevante para edición)
+            const currentValue = targetSelect.value;
 
-    // Función para cargar cursos (mantenida si se usa en otros modals o en el futuro)
-    async function cargarCursos(prefix = '') {
-      const targetCursoSelect = prefix === 'edit' ? editCurso : null; 
-      if (!targetCursoSelect) return; 
+            // Limpiar y reconstruir opciones
+            targetSelect.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = `Seleccione un periodo`;
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            targetSelect.appendChild(defaultOption);
 
-      targetCursoSelect.disabled = true; 
-      targetCursoSelect.innerHTML = '<option value="" selected disabled>Cargando cursos...</option>';
-      try {
-        console.log("DEBUG: Fetching courses for dropdown...");
-        const response = await fetch('http://localhost:3001/api/cursos');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const cursos = await response.json();
-        console.log("DEBUG: Courses received:", cursos);
-        targetCursoSelect.innerHTML = '<option value="" selected disabled>Seleccione un curso</option>';
-        cursos.forEach(curso => {
-          const option = document.createElement('option');
-          option.value = curso.id_curso;
-          option.textContent = curso.curso;
-          targetCursoSelect.appendChild(option);
-        });
-        targetCursoSelect.disabled = false; 
-        console.log("DEBUG: Courses dropdown loaded.");
-      }
-      catch (error) {
-        console.error('❌ Error cargando cursos:', error);
-        targetCursoSelect.innerHTML = '<option value="" selected disabled>Error al cargar cursos</option>';
-        mostrarErrorAlUsuario('Error al cargar cursos. Intente recargar la página.');
-      }
-    }
+            periodos.forEach(periodo => {
+                const option = document.createElement('option');
+                option.value = periodo.id_periodo;
+                option.textContent = periodo.nombre_periodo; 
+                targetSelect.appendChild(option);
+            });
 
-    // Función para cargar secciones (mantenida si se usa en otros modals o en el futuro)
-    async function cargarSecciones(prefix = '') {
-      const targetSeccionSelect = prefix === 'edit' ? editSeccion : null; 
-      if (!targetSeccionSelect) return; 
-
-      targetSeccionSelect.innerHTML = '<option value="" selected disabled>Cargando secciones...</option>';
-      targetSeccionSelect.disabled = true;
-      try {
-        console.log("DEBUG: Fetching sections for dropdown...");
-        const response = await fetch('http://localhost:3001/api/secciones');
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-        const secciones = await response.json();
-        console.log("DEBUG: Sections received:", secciones);
-        targetSeccionSelect.innerHTML = '<option value="" selected disabled>Seleccione una sección</option>';
-        if (secciones.length === 0) {
-          targetSeccionSelect.innerHTML = '<option value="" disabled>No hay secciones disponibles</option>';
-        } else {
-          secciones.forEach(seccion => {
-            const option = document.createElement('option');
-            option.value = seccion.id_seccion;
-            option.textContent = seccion.seccion;
-            targetSeccionSelect.appendChild(option);
-          });
-          targetSeccionSelect.disabled = false;
+            // Restaurar el valor si existe (solo relevante para edición)
+            if (prefix === 'edit' && currentValue && periodos.some(p => p.id_periodo.toString() === currentValue)) {
+                targetSelect.value = currentValue;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            targetSelect.innerHTML = '<option value="">Error cargando períodos</option>';
+            mostrarErrorAlUsuario("Error al cargar períodos. Intente recargar la página.");
         }
-        console.log("DEBUG: Sections dropdown loaded.");
-      }
-      catch (error) {
-        console.error('❌ Error cargando secciones:', error);
-        targetSeccionSelect.innerHTML = '<option value="" selected disabled>Error al cargar secciones</option>';
-        mostrarErrorAlUsuario('Error al cargar secciones. Intente nuevamente.');
+    }
+
+    // Función para cargar estados (adaptada para ambos modales)
+    async function cargarEstados(prefix = '') {
+        const targetSelect = prefix === 'edit' ? null : addEstado; // Solo para el modal de agregar
+        if (!targetSelect) return;
+
+        targetSelect.disabled = true;
+        targetSelect.innerHTML = '<option value="" selected disabled>Cargando estados...</option>';
+
+        try {
+            const response = await fetch("http://localhost:3001/api/estados");
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
+            const estados = await response.json();
+
+            targetSelect.innerHTML = '<option value="" selected disabled>Seleccione un estado</option>';
+            estados.forEach((estado) => {
+                const option = document.createElement("option");
+                option.value = estado.id_estado;
+                option.textContent = estado.estados;
+                targetSelect.appendChild(option);
+            });
+
+            targetSelect.disabled = false;
+        } catch (error) {
+            console.error("Error cargando estados:", error);
+            targetSelect.innerHTML = '<option value="" selected disabled>Error al cargar estados</option>';
+            mostrarErrorAlUsuario("Error al cargar estados. Intente recargar la página.");
+        }
+    }
+
+    // Event listener para el select de Estado en el modal de agregar
+    addEstado.addEventListener("change", async function () {
+        const estadoId = this.value;
+        addCiudad.innerHTML = '<option value="" selected disabled>Cargando ciudades...</option>';
+        addCiudad.disabled = true;
+
+        if (!estadoId) return;
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/estados/${estadoId}/ciudades`);
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
+            const ciudades = await response.json();
+
+            addCiudad.innerHTML = '<option value="" selected disabled>Seleccione una ciudad</option>';
+            ciudades.forEach((ciudad) => {
+                const option = document.createElement("option");
+                option.value = ciudad.id_ciudad;
+                option.textContent = ciudad.ciudad;
+                addCiudad.appendChild(option);
+            });
+
+            addCiudad.disabled = false;
+        } catch (error) {
+            console.error("Error cargando ciudades:", error);
+            addCiudad.innerHTML = '<option value="" selected disabled>Error al cargar ciudades</option>';
+            mostrarErrorAlUsuario("Error al cargar ciudades. Intente nuevamente.");
+        }
+    });
+
+    // --- Funciones para cargar Períodos, Cursos, Materias y Secciones (Lógica en cascada) ---
+    const API_BASE_URL = 'http://localhost:3001/api';
+
+    let selectedPeriodId = null;
+    let selectedCourseId = null;
+    let selectedMateriaPeriodoId = null; 
+    let selectedSectionId = null;
+
+    // Función para limpiar y deshabilitar un select
+    function clearAndDisableSelect(selectElement, defaultOptionText) {
+      selectElement.innerHTML = `<option value="">${defaultOptionText}</option>`;
+      selectElement.disabled = true;
+    }
+
+    // --- 1. Cargar Períodos Académicos al inicio ---
+    async function loadAcademicPeriods() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/periodos`);
+        if (!response.ok) throw new Error('Error al cargar períodos.');
+        const periods = await response.json();
+
+        clearAndDisableSelect(addPeriodoAcademico, 'Selecciona un período');
+        periods.forEach(period => {
+          const option = document.createElement('option');
+          option.value = period.id_periodo;
+          option.textContent = period.nombre_periodo; 
+          addPeriodoAcademico.appendChild(option);
+        });
+        addPeriodoAcademico.disabled = false;
+      } catch (error) {
+        console.error('Error al cargar períodos académicos:', error);
+        mostrarErrorAlUsuario("Error al cargar períodos académicos. Intente recargar la página.");
       }
     }
+
+    // --- 2. Cargar Cursos basados en el Período seleccionado ---
+    async function loadCoursesByPeriod(periodId) {
+      clearAndDisableSelect(addCurso, 'Selecciona un curso');
+      clearAndDisableSelect(addMateria, 'Selecciona una materia');
+      clearAndDisableSelect(addSeccion, 'Selecciona una sección');
+
+      if (!periodId) return;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/periodos/${periodId}/cursos`); 
+        if (!response.ok) throw new Error('Error al cargar cursos.');
+        const courses = await response.json();
+
+        courses.forEach(course => {
+          const option = document.createElement('option');
+          option.value = course.id_curso;
+          option.textContent = course.nombre_curso; 
+          addCurso.appendChild(option);
+        });
+        addCurso.disabled = false;
+      } catch (error) {
+        console.error('Error al cargar cursos:', error);
+        mostrarErrorAlUsuario("Error al cargar cursos. Intente nuevamente.");
+      }
+    }
+
+    // --- 3. Cargar Materias basadas en el Período y Curso seleccionados ---
+    async function loadSubjectsByPeriodAndCourse(periodId, courseId) {
+      clearAndDisableSelect(addMateria, 'Selecciona una materia');
+      clearAndDisableSelect(addSeccion, 'Selecciona una sección');
+
+      if (!periodId || !courseId) return;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/materias/filter?periodoId=${periodId}&cursoId=${courseId}`);
+        if (!response.ok) throw new Error('Error al cargar materias.');
+        const subjects = await response.json();
+
+        subjects.forEach(subject => {
+          const option = document.createElement('option');
+          option.value = subject.id_materia_periodo; 
+          option.textContent = subject.nombre_materia; 
+          addMateria.appendChild(option);
+        });
+        addMateria.disabled = false;
+      }
+      catch (error) {
+        console.error('Error al cargar materias:', error);
+        mostrarErrorAlUsuario("Error al cargar materias. Intente nuevamente.");
+      }
+    }
+
+    // --- 4. Cargar Secciones basadas en la Materia seleccionada ---
+    async function loadSectionsBySubject(materiaId) {
+      clearAndDisableSelect(addSeccion, 'Selecciona una sección');
+
+      if (!materiaId) return;
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/materias/${materiaId}/secciones`);
+        if (!response.ok) throw new Error('Error al cargar secciones.');
+        const sections = await response.json();
+
+        sections.forEach(section => {
+          const option = document.createElement('option');
+          option.value = section.id_seccion;
+          option.textContent = section.nombre_seccion; 
+          addSeccion.appendChild(option);
+        });
+        addSeccion.disabled = false;
+      } catch (error) {
+        console.error('Error al cargar secciones:', error);
+        mostrarErrorAlUsuario("Error al cargar secciones. Intente nuevamente.");
+      }
+    }
+
+
+    // Event listener para el select de Periodo Académico en el modal de agregar
+    addPeriodoAcademico.addEventListener("change", () => {
+        selectedPeriodId = addPeriodoAcademico.value;
+        selectedCourseId = null;
+        selectedMateriaPeriodoId = null;
+        selectedSectionId = null;
+        loadCoursesByPeriod(selectedPeriodId);
+    });
+
+    // Event listener para el select de Curso en el modal de agregar
+    addCurso.addEventListener("change", () => {
+        selectedCourseId = addCurso.value;
+        selectedMateriaPeriodoId = null;
+        selectedSectionId = null;
+        loadSubjectsByPeriodAndCourse(selectedPeriodId, selectedCourseId);
+    });
+
+    // Event listener para el select de Materia en el modal de agregar
+    addMateria.addEventListener("change", () => {
+        selectedMateriaPeriodoId = addMateria.value; 
+        selectedSectionId = null;
+        loadSectionsBySubject(selectedMateriaPeriodoId); 
+    });
+
+    // Event listener para el select de Sección en el modal de agregar
+    addSeccion.addEventListener("change", () => {
+        selectedSectionId = addSeccion.value;
+        console.log('ID de Sección seleccionado:', selectedSectionId);
+    });
+
 
     // Validar número de teléfono para edición
     editNumeroTelefonoInput.addEventListener('input', function() {
@@ -355,10 +743,222 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
       }
     });
 
+    // Validar número de teléfono para agregar
+    addNumeroTelefono.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 7);
+        if (this.value.length !== 7) {
+            mostrarError(this, 'Debe contener 7 dígitos.');
+        } else {
+            limpiarError(this);
+        }
+    });
+
+
+    // Validación de nombres y apellidos: no aceptar números y no permitir campos vacíos
+    function validateTextOnly(inputElement, fieldName) {
+        const value = inputElement.value;
+        const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/;
+        
+        if (!regex.test(value)) {
+            inputElement.value = value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
+            mostrarError(inputElement, `El campo ${fieldName} solo permite letras y espacios.`);
+            return false;
+        } else if (inputElement.hasAttribute("required") && value.trim() === "") {
+            mostrarError(inputElement, `El campo ${fieldName} es obligatorio.`);
+            return false;
+        } else {
+            limpiarError(inputElement);
+            return true;
+        }
+    }
+
+    // Aplicar validación de solo letras a los campos de nombres y apellidos en ambos modales
+    [editPrimerNombre, editSegundoNombre, editPrimerApellido, editSegundoApellido,
+     addPrimerNombre, addSegundoNombre, addPrimerApellido, addSegundoApellido].forEach(input => {
+      if (input) {
+        input.addEventListener('input', function() {
+          validateTextOnly(this, this.placeholder || this.labels[0].textContent.replace('*', '').trim());
+        });
+      }
+    });
+
+    // Toggle Password Visibility (para ambos modales)
+    document.querySelectorAll(".toggle-password").forEach((button) => {
+        button.addEventListener("click", function () {
+            const targetId = this.dataset.target;
+            const passwordInput = document.getElementById(targetId);
+            const icon = this.querySelector("i");
+
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                icon.classList.remove("bx-hide");
+                icon.classList.add("bx-show");
+            } else {
+                passwordInput.type = "password";
+                icon.classList.remove("bx-show");
+                icon.classList.add("bx-hide");
+            }
+        });
+    });
+
+    // Password Strength Validation (para el modal de agregar)
+    if (addPassword) { 
+      addPassword.addEventListener("input", function () {
+          const password = this.value;
+          let strength = 0;
+          let feedback = [];
+
+          const { feedback: passwordErrorElement, strength: strengthFeedbackElement } = getFeedbackElements(this);
+
+          if (password.length >= 8) { strength += 1; } else { feedback.push("Al menos 8 caracteres."); }
+          if (/[A-Z]/.test(password)) { strength += 1; } else { feedback.push("Una letra mayúscula."); }
+          if (/[a-z]/.test(password)) { strength += 1; } else { feedback.push("Una letra minúscula."); }
+          if (/[0-9]/.test(password)) { strength += 1; } else { feedback.push("Un número."); }
+          if (/[^A-Za-z0-9]/.test(password)) { strength += 1; } else { feedback.push("Un caracter especial."); }
+
+          if (password.length === 0) {
+              if (strengthFeedbackElement) strengthFeedbackElement.textContent = "";
+              limpiarError(this); 
+              return;
+          }
+
+          let strengthText = "";
+          let color = "";
+
+          if (strength === 5) {
+              strengthText = "¡Excelente!";
+              color = "green";
+              limpiarError(this); 
+          } else if (strength >= 3) {
+              strengthText = "Buena";
+              color = "orange";
+              limpiarError(this); 
+          } else {
+              strengthText = "Débil";
+              color = "red";
+              mostrarError(
+                  this,
+                  "Contraseña débil: " + feedback.join(", ")
+              );
+          }
+          if (strengthFeedbackElement) {
+            strengthFeedbackElement.textContent = `Fortaleza: ${strengthText}`;
+            strengthFeedbackElement.style.color = color;
+          }
+      });
+    }
+
+
+    // Validar coincidencia de contraseñas (para el modal de agregar)
+    if (addConfirmPassword && addPassword) { 
+      addConfirmPassword.addEventListener("input", function () {
+          if (addPassword.value !== addConfirmPassword.value) {
+              mostrarError(addConfirmPassword, "Las contraseñas no coinciden.");
+          } else {
+              limpiarError(addConfirmPassword);
+          }
+      });
+      addPassword.addEventListener("input", function () {
+          if (addConfirmPassword.value !== "") { 
+              if (addPassword.value !== addConfirmPassword.value) {
+                  mostrarError(addConfirmPassword, "Las contraseñas no coinciden.");
+              } else {
+                  limpiarError(addConfirmPassword);
+              }
+          }
+      });
+    }
+
+    // Validación de unicidad de correo electrónico (Frontend con llamada a la API del Backend) para agregar
+    addEmail.addEventListener("blur", async function () {
+        const email = this.value.trim();
+        if (!email) {
+            mostrarError(addEmail, "El correo electrónico es obligatorio.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/verificar-correo?email=${encodeURIComponent(email)}`);
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
+            const data = await response.json();
+
+            if (data.existe) {
+                mostrarError(addEmail, "Este correo electrónico ya está registrado.");
+            } else {
+                limpiarError(addEmail);
+            }
+        } catch (error) {
+            console.error("Error al verificar el correo electrónico:", error);
+            mostrarError(addEmail, "Error al verificar el correo electrónico. Intente de nuevo.");
+        }
+    });
+
+    // Validación de unicidad de cédula (Frontend con llamada a la API del Backend) para agregar
+    addCedula.addEventListener("input", function () {
+        this.value = this.value.replace(/\D/g, "").slice(0, 15);
+        const cedula = this.value.trim();
+        const cedulaRegex = /^\d{6,15}$/;
+        if (!cedulaRegex.test(cedula)) {
+            mostrarError(addCedula, "Formato de cédula inválido (6-15 dígitos numéricos).");
+        } else {
+            limpiarError(addCedula);
+        }
+    });
+
+    addCedula.addEventListener("blur", async function () {
+        const cedula = this.value.trim();
+        if (!cedula) {
+            mostrarError(addCedula, "La cédula es obligatoria.");
+            return;
+        }
+        const cedulaRegex = /^\d{6,15}$/;
+        if (!cedulaRegex.test(cedula)) {
+            mostrarError(addCedula, "Formato de cédula inválido (6-15 dígitos numéricos).");
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3001/api/verificar-cedula?cedula=${encodeURIComponent(cedula)}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                if (response.status === 409 && errorData.existe) {
+                    mostrarError(addCedula, "Esta cédula ya está registrada en el sistema.");
+                    return;
+                }
+                throw new Error(`Error HTTP: ${response.status} - ${errorData.message || "Error desconocido"}`);
+            }
+
+            const data = await response.json();
+            if (data.existe) {
+                mostrarError(addCedula, "Esta cédula ya está registrada en el sistema.");
+            } else {
+                limpiarError(addCedula);
+            }
+        } catch (error) {
+            console.error("Error verificando cédula:", error);
+            mostrarError(addCedula, error.message || "Error al verificar la cédula.");
+        }
+    });
+
+
     // Manejar envío del formulario de Edición de Profesor
     formEditarProfesor.addEventListener('submit', async function(e) {
       e.preventDefault();
       console.log("DEBUG: Formulario de edición de profesor enviado.");
+
+      // Validar que los campos no estén vacíos y no contengan números
+      const campos = [editPrimerNombre, editSegundoNombre, editPrimerApellido, editSegundoApellido];
+      let hayError = false;
+      campos.forEach(input => {
+        if (!validateTextOnly(input, input.labels[0].textContent.replace('*', '').trim())) {
+            hayError = true;
+        }
+      });
+      if (hayError) {
+        mostrarErrorAlUsuario('Los nombres y apellidos no pueden estar vacíos ni contener números.');
+        return;
+      }
 
       const confirmResult = await mostrarConfirmacion(
             `¿Estás seguro de guardar los cambios para este profesor?`
@@ -432,6 +1032,187 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         btnGuardarEdicion.textContent = 'Guardar Cambios';
         console.log("DEBUG: Proceso de edición finalizado.");
       }
+    });
+
+    // Manejar envío del formulario de AGREGAR Nuevo Profesor (NUEVO)
+    formAgregarProfesor.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Validar campos obligatorios y reglas de contraseña
+        const camposRequeridos = [
+            { input: addCedula, nombre: "Cédula" },
+            { input: addPrimerNombre, nombre: "Primer Nombre" },
+            { input: addPrimerApellido, nombre: "Primer Apellido" },
+            { input: addEmail, nombre: "Correo Electrónico" },
+            { input: addDireccion, nombre: "Dirección" },
+            { input: addPassword, nombre: "Contraseña" },
+            { input: addConfirmPassword, nombre: "Confirmar contraseña" },
+            { input: addNumeroTelefono, nombre: "Teléfono" },
+            { input: addEstado, nombre: "Estado" },
+            { input: addCiudad, nombre: "Ciudad" },
+            { input: addPeriodoAcademico, nombre: "Periodo Académico" },
+            { input: addCurso, nombre: "Curso" },
+            { input: addMateria, nombre: "Materia" },
+            { input: addSeccion, nombre: "Sección" },
+        ];
+
+        let formularioValido = true;
+
+        camposRequeridos.forEach((campo) => {
+            // Para selects, verificar que el valor no sea vacío y no sea el disabled por defecto
+            if (campo.input.tagName === "SELECT") {
+                if (!campo.input.value || campo.input.value === "") {
+                    mostrarError(campo.input, `El campo ${campo.nombre} es obligatorio.`);
+                    formularioValido = false;
+                } else {
+                    limpiarError(campo.input);
+                }
+            } else { // Para inputs de texto, etc.
+                if (!campo.input.value.trim()) {
+                    mostrarError(campo.input, `El campo ${campo.nombre} es obligatorio.`);
+                    formularioValido = false;
+                } else {
+                    limpiarError(campo.input);
+                }
+            }
+        });
+
+        // Revalidaciones adicionales
+        const cedulaRegex = /^\d{6,15}$/;
+        if (!cedulaRegex.test(addCedula.value.trim())) {
+            mostrarError(addCedula, "Formato de cédula inválido (6-15 dígitos numéricos).");
+            formularioValido = false;
+        }
+
+        if (addPassword.value !== addConfirmPassword.value) {
+            mostrarError(addConfirmPassword, "Las contraseñas no coinciden.");
+            formularioValido = false;
+        }
+        // Asegurarse de que la validación de fortaleza de contraseña se ejecute y afecte formularioValido
+        addPassword.dispatchEvent(new Event("input")); 
+        const { feedback: passwordErrorFeedback } = getFeedbackElements(addPassword);
+        if (passwordErrorFeedback && passwordErrorFeedback.style.display !== 'none' && passwordErrorFeedback.textContent.trim() !== '') {
+            formularioValido = false;
+        }
+
+
+        if (addNumeroTelefono.value.length !== 7) {
+            mostrarError(addNumeroTelefono, "El teléfono debe contener 7 dígitos.");
+            formularioValido = false;
+        }
+        
+        // Revalidar campos de nombre/apellido
+        if (!validateTextOnly(addPrimerNombre, "Primer Nombre")) formularioValido = false;
+        if (!validateTextOnly(addSegundoNombre, "Segundo Nombre")) formularioValido = false;
+        if (!validateTextOnly(addPrimerApellido, "Primer Apellido")) formularioValido = false;
+        if (!validateTextOnly(addSegundoApellido, "Segundo Apellido")) formularioValido = false;
+
+        // Forzar revalidación de email y cédula
+        addEmail.dispatchEvent(new Event("blur"));
+        addCedula.dispatchEvent(new Event("blur"));
+
+        // Si hay algún error visible, el formulario no es válido
+        if (formAgregarProfesor.querySelector(".is-invalid")) {
+            formularioValido = false;
+        }
+
+        if (!formularioValido) {
+            mostrarErrorAlUsuario("Por favor, complete todos los campos obligatorios y corrija los errores.");
+            return;
+        }
+
+        // Mostrar loading en el botón
+        btnGuardarNuevoProfesor.disabled = true;
+        btnGuardarNuevoProfesor.innerHTML = `
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Agregando...
+        `;
+
+        try {
+            const formData = {
+                cedula: addCedula.value.trim(),
+                primerNombre: addPrimerNombre.value.trim(),
+                segundoNombre: addSegundoNombre.value.trim(),
+                primerApellido: addPrimerApellido.value.trim(),
+                segundoApellido: addSegundoApellido.value.trim(),
+                correo: addEmail.value.trim(),
+                telefono: `${addCodigoArea.value}-${addNumeroTelefono.value}`,
+                direccion: addDireccion.value.trim(),
+                id_estado: addEstado.value,
+                id_ciudad: addCiudad.value,
+                contraseña: addPassword.value.trim(),
+                periodos: [addPeriodoAcademico.value], 
+                cursos: [addCurso.value], 
+                materias: [addMateria.value], 
+                secciones: [addSeccion.value], 
+            };
+
+            const response = await fetch(`http://localhost:3001/api/profesores/register`, { // Endpoint para agregar profesores
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al agregar el profesor.');
+            }
+
+            mostrarMensajeExito('Profesor agregado exitosamente.');
+            
+            // Oculta el modal inmediatamente
+            modalAgregarProfesor.hide();
+
+            // Usar un setTimeout para dar tiempo a Bootstrap para que inicie su animación de cierre
+            // y luego forzar la eliminación del backdrop y la clase modal-open
+            setTimeout(() => {
+                const modalBackdrop = document.querySelector('.modal-backdrop');
+                if (modalBackdrop) {
+                    modalBackdrop.remove();
+                    console.log('Forced removal of modal-backdrop.');
+                }
+                if (document.body.classList.contains('modal-open')) {
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = ''; // Restaura el scroll del body
+                    console.log('Forced removal of modal-open class and overflow reset.');
+                }
+                // Recargar la página después de que el modal esté completamente cerrado
+                window.location.reload(); 
+            }, 500); 
+
+            // Opcional: Mantener el listener 'hidden.bs.modal' como redundancia,
+            // aunque el setTimeout debería ser más efectivo si hay problemas de timing.
+            // Asegurarse de que no se añadan múltiples listeners.
+            const modalElement = modalAgregarProfesor._element;
+            const existingHandler = modalElement.__backdrop_cleanup_handler;
+            if (existingHandler) {
+                modalElement.removeEventListener('hidden.bs.modal', existingHandler);
+            }
+            const newHandler = function() {
+                const modalBackdrop = document.querySelector('.modal-backdrop');
+                if (modalBackdrop) {
+                    modalBackdrop.remove();
+                    console.log('Fallback: Removed modal-backdrop via hidden.bs.modal event.');
+                }
+                if (document.body.classList.contains('modal-open')) {
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    console.log('Fallback: Removed modal-open via hidden.bs.modal event.');
+                }
+                modalElement.removeEventListener('hidden.bs.modal', newHandler); // Remove self
+                modalElement.__backdrop_cleanup_handler = null; // Clear reference
+            };
+            modalElement.addEventListener('hidden.bs.modal', newHandler);
+            modalElement.__backdrop_cleanup_handler = newHandler; // Store reference
+
+        } catch (error) {
+            console.error('Error al agregar profesor:', error);
+            mostrarErrorAlUsuario(error.message);
+        } finally {
+            btnGuardarNuevoProfesor.disabled = false;
+            btnGuardarNuevoProfesor.textContent = 'Agregar Profesor';
+        }
     });
 
 
@@ -553,6 +1334,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
           row.dataset.id = profesor.id_usuario;
           row.dataset.profesorData = profesorDataAttribute; 
 
+
           row.innerHTML = `
             <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td>${Array.isArray(profesor.periodoAcademicoNames) ? profesor.periodoAcademicoNames.join(', ') : 'N/A'}</td>
@@ -645,9 +1427,6 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
         if (!tablaAcademica) {
           tablaAcademica = document.createElement('div');
           tablaAcademica.id = 'tablaAcademicaProfesor';
-          // Asegúrate de dónde quieres insertar esta tabla en tu HTML.
-          // Aquí la inserto después del detalleMaterias.parentElement (un <p> que contiene detalleMaterias).
-          // Es mejor si hay un contenedor específico en el HTML para esto.
           const parentOfDetails = document.querySelector('#modalVerMasInformacionProfesor .modal-body');
           if(parentOfDetails) {
             parentOfDetails.appendChild(tablaAcademica);
@@ -842,7 +1621,7 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
 
     loadProfesores(1); // Carga inicial de profesores
 
-    // Event listener para el campo de búsqueda de profesores (NUEVO)
+    // Event listener para el campo de búsqueda de profesores
     if (searchProfesorInput) {
         searchProfesorInput.addEventListener('input', () => {
             currentPage = 1; // Reiniciar a la primera página en cada búsqueda
@@ -852,24 +1631,55 @@ import "../../style/style-admin/profesores.css"; /* Asegúrate de que esta ruta 
 
 
     // Funciones auxiliares
+    // Función para obtener los elementos de feedback (invalid-feedback y small)
+    function getFeedbackElements(inputElement) {
+      // Encuentra el contenedor padre (col-md-6 mb-3) del input o del input-group
+      const parentCol = inputElement.closest('.col-md-6.mb-3');
+      if (!parentCol) return { feedback: null, strength: null };
+
+      // Busca el .invalid-feedback y el small.form-text dentro de ese contenedor padre
+      const invalidFeedback = parentCol.querySelector('.invalid-feedback');
+      const strengthFeedback = parentCol.querySelector('small.form-text');
+      
+      return { feedback: invalidFeedback, strength: strengthFeedback };
+    }
+
     function mostrarError(elemento, mensaje) {
       elemento.classList.add('is-invalid');
-      const errorElement = elemento.nextElementSibling || elemento.parentNode.querySelector('.invalid-feedback');
-      if (errorElement) {
-        errorElement.textContent = mensaje;
-        errorElement.style.display = 'block';
+      const { feedback } = getFeedbackElements(elemento); 
+      if (feedback) {
+          feedback.textContent = mensaje;
+          feedback.style.display = 'block';
+      } else {
+          console.warn('No se encontró un elemento de feedback para:', elemento);
       }
       console.log(`DEBUG: Error mostrado para ${elemento.id}: ${mensaje}`);
     }
 
     function limpiarError(elemento) {
       elemento.classList.remove('is-invalid');
-      const errorElement = elemento.nextElementSibling || elemento.parentNode.querySelector('.invalid-feedback');
-      if (errorElement) {
-        errorElement.style.display = 'none';
+      const { feedback } = getFeedbackElements(elemento); 
+      if (feedback) {
+          feedback.style.display = 'none';
+          feedback.textContent = ''; 
       }
       console.log(`DEBUG: Error limpiado para ${elemento.id}.`);
     }
+
+    function limpiarTodosLosErrores(form) {
+        form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        form.querySelectorAll('.invalid-feedback').forEach(el => {
+            el.textContent = '';
+            el.style.display = 'none';
+        });
+        // También limpiar el feedback de fortaleza de contraseña si existe
+        const passwordStrengthEl = form.querySelector('[id$="PasswordStrength"]');
+        if (passwordStrengthEl) {
+            passwordStrengthEl.textContent = '';
+            passwordStrengthEl.style.color = ''; // Reset color
+        }
+    }
+
 
     function mostrarMensajeExito(mensaje) {
       const alerta = document.createElement('div');
