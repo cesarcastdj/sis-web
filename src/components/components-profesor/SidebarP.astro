@@ -91,7 +91,7 @@ const sidebarMenu: MenuItem[] = [
       </div>
     </div>
   </div>
-  <button class="close-sidebar" id="minimizeSidebarBtn">
+  <button class="close-sidebar">
     Minimizar<i class="bx bx-left-arrow-circle"></i>
   </button>
 </section>
@@ -310,32 +310,4 @@ const sidebarMenu: MenuItem[] = [
   // The complete `cargarNombreUsuario` function is not included in this Canvas
   // because it is assumed to exist elsewhere, such as in `proff.txt` that you provided earlier.
   // If you need it, you should integrate it in a way that avoids duplicates.
-</script>
-
-<script>
-if (typeof window !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('minimizeSidebarBtn');
-    const sidebar = document.querySelector('.bar-home-content');
-    // Buscar el grid-area más cercano
-    const gridArea = sidebar?.closest('.Layout-grid-area');
-    if (btn && sidebar && gridArea) {
-      btn.addEventListener('click', function () {
-        sidebar.classList.toggle('minimized');
-        gridArea.classList.toggle('sidebar-minimized', sidebar.classList.contains('minimized'));
-        // Guardar estado en localStorage para persistencia
-        if (sidebar.classList.contains('minimized')) {
-          localStorage.setItem('sidebarMinimized', 'true');
-        } else {
-          localStorage.removeItem('sidebarMinimized');
-        }
-      });
-      // Restaurar estado al recargar
-      if (localStorage.getItem('sidebarMinimized') === 'true') {
-        sidebar.classList.add('minimized');
-        gridArea.classList.add('sidebar-minimized');
-      }
-    }
-  });
-}
 </script>

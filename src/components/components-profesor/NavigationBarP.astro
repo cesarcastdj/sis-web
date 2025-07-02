@@ -90,7 +90,6 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
       <div
         class="offcanvas offcanvas-start"
         data-bs-scroll="true"
-        data-bs-backdrop="false"
         tabindex="-1"
         id="offcanvasWithBothOptions"
         aria-labelledby="offcanvasWithBothOptionsLabel"
@@ -246,7 +245,6 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
     cargarNotificaciones();
     configurarLogout();
     configurarAsignacion();
-    configurarOffcanvasPerfil(); // Nueva función para manejar el offcanvas del perfil
     const editProfileNavButton = document.getElementById('editProfileNavButton');
     if (editProfileNavButton) {
       editProfileNavButton.addEventListener('click', () => {
@@ -492,39 +490,6 @@ import "../../style/NavigationBar.css"; // Este archivo CSS ahora incluye los es
       } catch (error) {
         console.error('Error de red o del servidor al cerrar sesión:', error);
         mostrarToastError('No se pudo conectar con el servidor para cerrar la sesión.');
-      }
-    });
-  }
-
-  // 7) Configurar offcanvas del perfil para manejar clics fuera del área
-  function configurarOffcanvasPerfil() {
-    const offcanvasPerfil = document.getElementById('offcanvasWithBothOptions');
-    if (!offcanvasPerfil) {
-      console.warn('El offcanvas del perfil no fue encontrado en el DOM.');
-      return;
-    }
-
-    // Event listener para detectar clics fuera del offcanvas
-    document.addEventListener('click', (event) => {
-      const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasPerfil);
-      
-      // Si el offcanvas está abierto
-      if (offcanvasInstance && offcanvasPerfil.classList.contains('show')) {
-        // Verificar si el clic fue fuera del offcanvas
-        if (!offcanvasPerfil.contains(event.target) && 
-            !event.target.closest('.Perfil-icons')) {
-          // Cerrar el offcanvas
-          offcanvasInstance.hide();
-        }
-      }
-    });
-
-    // Event listener para el evento 'hidden.bs.offcanvas' para limpiar cualquier estado residual
-    offcanvasPerfil.addEventListener('hidden.bs.offcanvas', () => {
-      // Asegurar que no haya backdrop residual
-      const backdrop = document.querySelector('.offcanvas-backdrop');
-      if (backdrop) {
-        backdrop.remove();
       }
     });
   }

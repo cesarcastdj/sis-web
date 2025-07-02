@@ -107,7 +107,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         });
         if (!response.ok) {
           if (response.status === 401) {
-            window.location.href = '/';
+            window.location.href = '/login';
             return;
           }
           throw new Error(`Error HTTP: ${response.status}`);
@@ -167,7 +167,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
         `;
         historialTableBody.appendChild(row);
       });
-      setupPagination(totalPages);
+      setupPagination(totalPages, currentPage);
     }
 
     // Listeners para los campos de búsqueda
@@ -186,7 +186,7 @@ import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.tx
       filtrarYRenderizar();
     });
 
-    function setupPagination(totalPages) {
+    function setupPagination(totalPages, currentPage) {
       paginationControls.innerHTML = '';
       if (totalPages <= 1) return;
       const ul = document.createElement('ul');

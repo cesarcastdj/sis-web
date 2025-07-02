@@ -96,7 +96,6 @@ import "../../style/style-students/NavigationBar.css"; // Este CSS ahora incluye
       <div
         class="offcanvas offcanvas-start"
         data-bs-scroll="true"
-        data-bs-backdrop="false"
         tabindex="-1"
         id="offcanvasWithBothOptions"
         aria-labelledby="offcanvasWithBothOptionsLabel"
@@ -163,7 +162,7 @@ import "../../style/style-students/NavigationBar.css"; // Este CSS ahora incluye
   </div>
 </div>
 
-<!-- Toast "Listo" (confirmación de éxito) - se mantiene intacto -->
+<!-- Toast “Listo” (confirmación de éxito) - se mantiene intacto -->
 <div class="toast-container position-fixed top-0 end-0 p-3">
   <div id="toastConfirmacion"
        class="toast align-items-center text-white bg-success border-0"
@@ -204,21 +203,6 @@ import "../../style/style-students/NavigationBar.css"; // Este CSS ahora incluye
   // Base URL for your API, make sure it is correct.
   const API_BASE_URL = 'http://localhost:3001/api';
 
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM completamente cargado. Inicializando funciones de navegación.');
-    cargarUsuarioLogueado();
-    cargarComentariosEstudiante(); // Cambiado de cargarNotificaciones a cargarComentariosEstudiante
-    configurarLogout();
-    configurarOffcanvasPerfil(); // Nueva función para manejar el offcanvas del perfil
-    // NOTA: Las funciones relacionadas con el modal de asignación de usuario (para admin)
-    // han sido removidas de este archivo navEst.txt ya que no corresponden al rol de estudiante.
-    const editProfileNavButton = document.getElementById('editProfileNavButton');
-    if (editProfileNavButton) {
-      editProfileNavButton.addEventListener('click', () => {
-        // Redirige a la página de perfil al hacer clic en el botón
-        window.location.href = '/Students-Control/Editar-perfil'; 
-      });
-    }
   // Define la función para mostrar alertas (debería ser la misma que en tu sidebar y otras páginas)
   let globalMostrarAlerta;
 
@@ -685,44 +669,11 @@ import "../../style/style-students/NavigationBar.css"; // Este CSS ahora incluye
     });
   }
 
-  // --- LAS SIGUIENTES FUNCIONES HAN SIDO ELIMINADAS/COMENTADAS ---
-  // Las funciones `abrirModalAsignacion`, `cargarSelect` y `configurarAsignacion`
-  // son para la gestión de usuarios (admin) y no son parte de la funcionalidad
-  // del menú de navegación de un estudiante. Para mantener el código limpio y
-  // enfocado al rol del archivo, se asume que esta lógica se encuentra
-  // en los archivos correspondientes al panel de administración.
-  // Si las necesitas en otro contexto, deberás gestionarlas allí.
-
-  // 7) Configurar offcanvas del perfil para manejar clics fuera del área
-  function configurarOffcanvasPerfil() {
-    const offcanvasPerfil = document.getElementById('offcanvasWithBothOptions');
-    if (!offcanvasPerfil) {
-      console.warn('El offcanvas del perfil no fue encontrado en el DOM.');
-      return;
-    }
-
-    // Event listener para detectar clics fuera del offcanvas
-    document.addEventListener('click', (event) => {
-      const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasPerfil);
-      
-      // Si el offcanvas está abierto
-      if (offcanvasInstance && offcanvasPerfil.classList.contains('show')) {
-        // Verificar si el clic fue fuera del offcanvas
-        if (!offcanvasPerfil.contains(event.target) && 
-            !event.target.closest('.Perfil-icons')) {
-          // Cerrar el offcanvas
-          offcanvasInstance.hide();
-        }
-      }
-    });
-
-    // Event listener para el evento 'hidden.bs.offcanvas' para limpiar cualquier estado residual
-    offcanvasPerfil.addEventListener('hidden.bs.offcanvas', () => {
-      // Asegurar que no haya backdrop residual
-      const backdrop = document.querySelector('.offcanvas-backdrop');
-      if (backdrop) {
-        backdrop.remove();
-      }
+  // Se mantiene tu lógica de redirección para editar perfil
+  const editProfileNavButton = document.getElementById('editProfileNavButton');
+  if (editProfileNavButton) {
+    editProfileNavButton.addEventListener('click', () => {
+      window.location.href = '/Students-Control/Editar-perfil'; 
     });
   }
 

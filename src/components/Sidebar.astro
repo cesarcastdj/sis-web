@@ -29,17 +29,23 @@ const sidebarMenu: MenuItem[] = [
     icon: "bx bx-user",
     href: "/Admin-Control/Profesores",
   },
-  
   {
+    label: "Cursos",
+    icon: "bx bx-book",
+    href: "#",
+    subitems: [
+      {
         label: "Cursos",
         icon: "bx bxs-folder",
         href: "/Admin-Control/Cursos",
       },
-  {
+      {
         label: "Materias",
-        icon: "bx bxs-book",
+        icon: "bx bxs-folder",
         href: "/Admin-Control/Materias",
       },
+    ],
+  },
   {
     label: "Periodo",
     icon: "bx bx-calendar",
@@ -52,13 +58,13 @@ const sidebarMenu: MenuItem[] = [
   },
   {
     label: "Historial",
-    icon: "bx bx-history",
+    icon: "bx bx-calendar",
     href: "/Admin-Control/Historial",
   },
   {
-    label: "Inactivos",
+    label: "Papelera",
     icon: "bx bx-trash",
-    href: "/Admin-Control/Inactivos",
+    href: "/Admin-Control/Papelera",
   },
 ];
 
@@ -166,35 +172,7 @@ function isActive(link: string): boolean {
       </div>
     </div>
   </div>
-  <button class="close-sidebar" id="minimizeSidebarBtn">
+  <button class="close-sidebar">
     Minimizar<i class="bx bx-left-arrow-circle"></i>
   </button>
 </section>
-
-<script>
-if (typeof window !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('minimizeSidebarBtn');
-    const sidebar = document.querySelector('.bar-home-content');
-    // Buscar el grid-area más cercano
-    const gridArea = sidebar?.closest('.Layout-grid-area');
-    if (btn && sidebar && gridArea) {
-      btn.addEventListener('click', function () {
-        sidebar.classList.toggle('minimized');
-        gridArea.classList.toggle('sidebar-minimized', sidebar.classList.contains('minimized'));
-        // Guardar estado en localStorage para persistencia
-        if (sidebar.classList.contains('minimized')) {
-          localStorage.setItem('sidebarMinimized', 'true');
-        } else {
-          localStorage.removeItem('sidebarMinimized');
-        }
-      });
-      // Restaurar estado al recargar
-      if (localStorage.getItem('sidebarMinimized') === 'true') {
-        sidebar.classList.add('minimized');
-        gridArea.classList.add('sidebar-minimized');
-      }
-    }
-  });
-}
-</script>

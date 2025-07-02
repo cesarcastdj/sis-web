@@ -396,15 +396,7 @@ import "../../style/style-admin/secciones.css";
         secciones.forEach((seccion, index) => {
           const seccionDataAttribute = JSON.stringify(seccion);
           const estadoSeccion = seccion.estado === 1 ? 'Activa' : 'Inactiva';
-          let cursosAsociadosDisplay = 'N/A';
-          if (seccion.cursos_asociados) {
-            const cursosArray = seccion.cursos_asociados.split(',').map(curso => curso.trim()).filter(Boolean);
-            if (cursosArray.length > 3) {
-              cursosAsociadosDisplay = cursosArray.slice(0, 3).join(', ') + '...';
-            } else if (cursosArray.length > 0) {
-              cursosAsociadosDisplay = cursosArray.join(', ');
-            }
-          }
+          const cursosAsociados = seccion.cursos_asociados || 'N/A';
           const totalEstudiantes = seccion.total_estudiantes || 0;
 
           const row = document.createElement('tr');
@@ -414,7 +406,7 @@ import "../../style/style-admin/secciones.css";
           row.innerHTML = `
             <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
             <td>${seccion.seccion || ''}</td>
-            <td>${cursosAsociadosDisplay}</td>
+            <td>${cursosAsociados}</td>
             <td>${totalEstudiantes}</td>
             <td>${estadoSeccion}</td>
             <td>
