@@ -702,6 +702,209 @@ router.get('/estudiantes/sidebard', /*isAuthenticated,*/ async (req, res) => {
 });
 
 
+router.post('/estudiantes/register', registrarAccion('Registro de nuevo estudiante', 'estudiantes'), async (req, res) => {
+    try {
+        const {
+            cedula, primerNombre, segundoNombre = null,
+            primerApellido, segundoApellido = null,
+            correo = null, telefono = null, direccion,
+            id_estado, id_ciudad, contraseña,
+            secciones = [], cursos = [], materias = [], periodos = [] // Añadidos aquí
+        } = req.body;
+
+        // 📌 Validar campos obligatorios para el registro de estudiante
+        if (!cedula || !primerNombre || !primerApellido || !direccion || !id_estado || !id_ciudad || !contraseña) {
+            return res.status(400).json({ error: 'Faltan campos obligatorios para el registro del estudiante.' });
+        }
+
+        // 📌 Validar que no exista esa cédula en la tabla de usuarios
+        db.query('SELECT id_usuario FROM usuarios WHERE cedula = ?', [cedula], (err, rows) => {
+            if (err) {
+                console.error('Error al verificar cédula:', err);
+                return res.status(500).json({ error: 'Error al verificar cédula en la base de datos.' });
+            }
+            if (rows.length > 0) {
+                return res.status(400).json({ error: 'La cédula ya se encuentra registrada en el sistema.' });
+            }
+
+            // 📌 Insertar dirección antes de registrar el usuario
+            db.query('INSERT INTO direccion (direccion, id_ciudad, id_estado) VALUES (?, ?, ?)',
+                [direccion, id_ciudad, id_estado], async (err, dirResult) => {
+                    if (err) {
+                        console.error('Error al insertar dirección:', err);
+                        return res.status(500).json({ error: 'Error al insertar la dirección del estudiante.' });
+                    }
+
+                    const id_direccion = dirResult.insertId;
+                    const hashed = await hashPassword(contraseña); // La contraseña es obligatoria aquí
+
+                    // 📌 Asignar valores fijos para el rol de estudiante
+                    const rol = 'estudiante';
+                    const id_nivel = 1; // ID de nivel para 'estudiante'
+                    const ultima_conexion = null; // O puedes usar new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+                    const sql = `
+                        INSERT INTO usuarios (
+                            cedula, primer_nombre, segundo_nombre,
+                            primer_apellido, segundo_apellido, telefono,
+                            correo, contraseña, rol, id_direccion, id_nivel, ultima_conexion
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    `;
+
+                    const values = [
+                        cedula, primerNombre, segundoNombre,
+                        primerApellido, segundoApellido, telefono,
+                        correo, hashed, rol, id_direccion, id_nivel, ultima_conexion
+                    ];
+
+                    db.query(sql, values, (err, userResult) => {
+                        if (err) {
+                            console.error('Error insertando usuario:', err);
+                            return res.status(500).json({ error: 'Error al registrar el usuario estudiante.' });
+                        }
+
+                        const id_usuario = userResult.insertId;
+
+                        // 📌 Insertar el nuevo usuario en la tabla específica de 'estudiantes'
+                        db.query('INSERT INTO estudiantes (id_usuario) VALUES (?)', [id_usuario], (err) => {
+                            if (err) {
+                                console.error('Error insertando en la tabla de estudiantes:', err);
+                                // Considera un rollback aquí si la inserción en 'estudiantes' es crítica
+                                return res.status(500).json({ error: 'Error al finalizar el registro del estudiante.' });
+                            }
+
+                            // --- Lógica para asignar secciones, cursos, materias y períodos ---
+                            const assignments = [];
+
+                            // Asignar secciones al usuario
+                            if (secciones && secciones.length > 0) {
+                                console.log('Asignando secciones:', secciones);
+                                const seccionValues = secciones.map(id_sec => [id_usuario, id_sec]);
+                                assignments.push(new Promise((resolve, reject) => {
+                                    db.query('INSERT INTO usuario_seccion (id_usuario, id_seccion) VALUES ?', [seccionValues], (err) => {
+                                        if (err) {
+                                            console.error('Error insertando usuario_seccion:', err);
+                                            return reject(new Error('Error al asignar secciones.'));
+                                        }
+                                        console.log('Secciones asignadas correctamente.');
+                                        resolve();
+                                    });
+                                }));
+                            } else {
+                                console.log('No hay secciones para asignar.');
+                            }
+
+                            // Asignar materias al usuario
+                            // Se asume que 'materias' en el frontend es un array de id_materia_periodo
+                            // Y tu tabla 'usuario_materias' es (id_usuario, id_materia, id_periodo)
+                            if (materias && materias.length > 0) {
+                                console.log('Intentando asignar materias. id_materia_periodo recibidos:', materias);
+                                assignments.push(new Promise((resolve, reject) => {
+                                    // Primero, obtenemos los id_materia y id_periodo de la tabla materias_periodo
+                                    const materiaPeriodoIds = materias; // Array de id_materia_periodo del frontend
+                                    db.query('SELECT id_materia, id_periodo FROM materias_periodo WHERE id_materia_periodo IN (?)', [materiaPeriodoIds], (err, mpResults) => {
+                                        if (err) {
+                                            console.error('Error al obtener detalles de materias y periodos desde materias_periodo:', err);
+                                            return reject(new Error('Error al obtener detalles de materias y periodos para la asignación.'));
+                                        }
+
+                                        console.log('Resultados de materias_periodo para IDs:', materiaPeriodoIds, '->', mpResults);
+
+                                        if (mpResults.length === 0) {
+                                            console.warn('No se encontraron id_materia y id_periodo en materias_periodo para los id_materia_periodo proporcionados. No se insertará en usuario_materias.');
+                                            return resolve(); // Resuelve sin insertar nada para materias
+                                        }
+
+                                        // Preparamos los valores para la inserción en usuario_materias (id_usuario, id_materia, id_periodo)
+                                        const materiaValuesToInsert = mpResults.map(mp => [id_usuario, mp.id_materia, mp.id_periodo]);
+                                        console.log('Valores a insertar en usuario_materias:', materiaValuesToInsert);
+
+                                        // Ahora insertamos en usuario_materias
+                                        db.query('INSERT INTO usuario_materias (id_usuario, id_materia, id_periodo) VALUES ?', [materiaValuesToInsert], (err) => {
+                                            if (err) {
+                                                console.error('Error insertando usuario_materias:', err);
+                                                return reject(new Error('Error al asignar materias.'));
+                                            }
+                                            console.log('Materias asignadas correctamente.');
+                                            resolve();
+                                        });
+                                    });
+                                }));
+                            } else {
+                                console.log('No hay materias para asignar.');
+                            }
+
+
+                            // Asignar cursos al usuario
+                            if (cursos && cursos.length > 0) {
+                                console.log('Asignando cursos:', cursos);
+                                const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                                const cursoValues = cursos.map(id_cur => [id_usuario, id_cur, currentDateTime]);
+                                assignments.push(new Promise((resolve, reject) => {
+                                    db.query('INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES ?', [cursoValues], (err) => {
+                                        if (err) {
+                                            console.error('Error insertando usuario_cursos:', err);
+                                            return reject(new Error('Error al asignar cursos.'));
+                                        }
+                                        console.log('Cursos asignados correctamente.');
+                                        resolve();
+                                    });
+                                }));
+                            } else {
+                                console.log('No hay cursos para asignar.');
+                            }
+
+                            // Asignar periodos al usuario
+                            if (periodos && periodos.length > 0) {
+                                console.log('Asignando periodos:', periodos);
+                                const periodoValues = periodos.map(id_per => [id_usuario, id_per]);
+                                assignments.push(new Promise((resolve, reject) => {
+                                    db.query('INSERT INTO usuario_periodo (id_usuario, id_periodo) VALUES ?', [periodoValues], (err) => {
+                                        if (err) {
+                                            console.error('Error insertando usuario_periodo:', err);
+                                            return reject(new Error('Error al asignar periodos.'));
+                                        }
+                                        console.log('Periodos asignados correctamente.');
+                                        resolve();
+                                    });
+                                }));
+                            } else {
+                                console.log('No hay periodos para asignar.');
+                            }
+
+                            // Esperar a que todas las asignaciones opcionales se completen
+                            Promise.all(assignments)
+                                .then(() => {
+                                    const responseData = {
+                                        success: true,
+                                        message: 'Estudiante registrado correctamente.',
+                                        usuario: {
+                                            id_usuario: id_usuario,
+                                            cedula: cedula,
+                                            rol: rol
+                                        }
+                                    };
+                                    return res.status(201).json(responseData); // 201 Created para una nueva creación
+                                })
+                                .catch(assignmentError => {
+                                    console.error('Error en una de las asignaciones adicionales:', assignmentError);
+                                    // Si alguna asignación falla, se podría considerar revertir el registro del usuario principal
+                                    // o simplemente informar que el registro principal fue exitoso pero las asignaciones fallaron.
+                                    // Por ahora, retornamos un error 500 para indicar un problema en el proceso completo.
+                                    return res.status(500).json({ error: 'Estudiante registrado, pero hubo un error en la asignación de datos adicionales.', detalle: assignmentError.message });
+                                });
+                        });
+                    });
+                }
+            );
+        });
+    } catch (error) {
+        console.error('Catch /estudiantes/register:', error);
+        return res.status(500).json({ error: 'Error interno del servidor al registrar estudiante.' });
+    }
+});
+
+
 
 
 export default router;
