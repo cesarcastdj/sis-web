@@ -63,7 +63,7 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
   <div class="modal-dialog modal-dialog-custom-width">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalAnadirPeriodoLabel">Añadir Nuevo Periodo Académico</h5>
+        <h5 class="modal-title" id="modalAnadirPeriodoLabel" style="font-size: 2.3rem;">Añadir Nuevo Periodo Académico</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal">
           <i class='bx bx-x'></i>
         </button>
@@ -73,11 +73,17 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
           <h6 class="section-title">Información del Nuevo Periodo</h6>
           <div class="row">
             <div class="col-md-12 mb-3">
-              <label for="anadirNombrePeriodoParte1" class="form-label">Nombre del Periodo</label>
-              <div class="input-group" style="width: 250px;"> <!-- Added style for fixed width for the input group -->
-                <input type="text" class="form-control text-center" id="anadirNombrePeriodoParte1" placeholder="2024" maxlength="4" required pattern="[0-9]{4}" title="Ingrese 4 dígitos para el año de inicio (Ej. 2024)" style="width: 80px;" /> <!-- Adjusted width and placeholder -->
-                <span class="input-group-text" style="background-color: #495057; border-color: #495057; color: #dee2e6;">-</span> <!-- Adjusted background, border and text color for consistency -->
-                <input type="text" class="form-control text-center" id="anadirNombrePeriodoParte2" placeholder="2025" maxlength="4" required pattern="[0-9]{4}" title="Ingrese 4 dígitos para el año de fin (Ej. 2025)" style="width: 80px;" /> <!-- Adjusted width and placeholder -->
+              <label class="form-label">Nombre del Periodo</label>
+              <div class="input-group" style="width: 250px; display: flex; align-items: center;">
+                <div style="display: flex; flex-direction: column; align-items: center; width: 80px;">
+                  <span style="font-size: 0.75em; color: #bbb; margin-bottom: 2px;">Inicio</span>
+                  <input type="text" class="form-control text-center" id="anadirNombrePeriodoParte1" placeholder="2024" maxlength="4" required pattern="[0-9]{4}" title="Ingrese 4 dígitos para el año de inicio (Ej. 2024)" style="width: 100%; opacity: 0.7;"/>
+                </div>
+                <span class="input-group-text" style="background-color: #191919; border-color: #e75480; color: #dee2e6; height: 38px; display: flex; align-items: center; justify-content: center; margin-top: 15px;">-</span>
+                <div style="display: flex; flex-direction: column; align-items: center; width: 80px;">
+                  <span style="font-size: 0.75em; color: #bbb; margin-bottom: 2px;">Fin</span>
+                  <input type="text" class="form-control text-center" id="anadirNombrePeriodoParte2" placeholder="2025" maxlength="4" required pattern="[0-9]{4}" title="Ingrese 4 dígitos para el año de fin (Ej. 2025)" style="width: 100%; opacity: 0.7;"/>
+                </div>
               </div>
               <div class="invalid-feedback" id="anadirNombrePeriodoFeedback"></div>
             </div>
@@ -316,7 +322,18 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
         mostrarError(anadirFechaInicio, 'La fecha de inicio es obligatoria.');
         valid = false;
       } else {
-        limpiarError(anadirFechaInicio);
+        // Validación: Fecha de inicio no puede ser anterior al día de hoy
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Establecer la hora a 00:00:00 para comparar solo la fecha
+        const startDate = new Date(anadirFechaInicio.value);
+        startDate.setHours(0, 0, 0, 0); // Establecer la hora a 00:00:00 para comparar solo la fecha
+
+        if (startDate < today) {
+            mostrarError(anadirFechaInicio, 'La fecha de inicio no puede ser anterior al día de hoy.');
+            valid = false;
+        } else {
+            limpiarError(anadirFechaInicio);
+        }
       }
 
       // Validación de la fecha de fin
@@ -324,7 +341,17 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
         mostrarError(anadirFechaFin, 'La fecha de fin es obligatoria.');
         valid = false;
       } else {
-        limpiarError(anadirFechaFin);
+        const startDate = new Date(anadirFechaInicio.value);
+        const endDate = new Date(anadirFechaFin.value);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+
+        if (endDate < startDate) {
+            mostrarError(anadirFechaFin, 'La fecha de fin no puede ser anterior a la fecha de inicio.');
+            valid = false;
+        } else {
+            limpiarError(anadirFechaFin);
+        }
       }
 
       if (!valid) {

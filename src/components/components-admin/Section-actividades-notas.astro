@@ -154,24 +154,25 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
   <!-- Sección de Notas -->
   <div id="notasSection">
     <h3 class="mt-4 mb-3 text-center">Gestión de Notas</h3>
-    <div class="display-table mt-4" id="tableNotas">
-      <div class="d-flex justify-content-end mb-3">
-        <!-- El botón "Añadir Nota" principal ahora está en el nuevo card -->
-      </div>
-      <div class="tabla-info-person">
-        <table class="table table-dark table-hover table-striped tabla-notas-admin">
-          <thead id="notasTableHeader">
-            <!-- Headers dinámicos de las notas y actividades -->
-          </thead>
-          <tbody id="notasTableBody">
-            <tr>
-              <td colspan="3" class="text-center">Cargando notas...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div id="paginationControlsNotas" class="pagination text-center mt-3"></div>
+    <div class="d-flex justify-content-end mb-3">
+        <!-- Botón para descargar notas -->
+        <button class="btn btn-info btn-sm" id="btnDownloadNotesAdmin">
+            <i class='bx bxs-download me-2'></i> Descargar Reporte de Notas
+        </button>
     </div>
+    <div class="tabla-info-person">
+      <table class="table table-dark table-hover table-striped tabla-notas-admin">
+        <thead id="notasTableHeader">
+          <!-- Headers dinámicos de las notas y actividades -->
+        </thead>
+        <tbody id="notasTableBody">
+          <tr>
+            <td colspan="3" class="text-center">Cargando notas...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="paginationControlsNotas" class="pagination text-center mt-3"></div>
   </div>
 </section>
 
@@ -468,6 +469,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="../../../public/js/lib/jspdf.umd.min.js"></script>
+<script src="../../../public/js/lib/jspdf.plugin.autotable.min.js"></script>
 <script is:inline>
   const API_BASE_URL = 'http://localhost:3001/api';
   let currentMateriaId = null;
@@ -481,6 +484,19 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
   // Variables para gestionar el estado de los modales de asignación
   let estudiantesEnMateriaCache = []; // Contiene los IDs de los estudiantes actualmente en la materia
   let profesorEnMateriaCache = null; // Contiene el ID del profesor actualmente asignado
+
+  // Nuevas variables globales para almacenar datos de contexto para la descarga
+  let currentCursoNombre = 'N/A';
+  let currentPeriodoNombreParaDescarga = 'N/A';
+  let currentSeccionNombre = 'N/A';
+  let currentProfesorNombreParaDescarga = 'N/A';
+
+  let allStudentsForDownload = [];
+  let allActivitiesForDownload = [];
+  let allNotesForDownload = [];
+
+  let jspdfLoaded = false;
+  let autotableLoaded = false;
 
   // Función robusta para mostrar alertas
   function mostrarAlerta(mensaje, tipo, duracion = 5000) {
@@ -579,12 +595,58 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
     });
   }
 
+  // Función para habilitar el botón de descarga
+  function enableDownloadButton() {
+    const downloadButton = document.getElementById('btnDownloadNotesAdmin');
+    if (downloadButton) {
+      downloadButton.removeAttribute('disabled');
+      downloadButton.innerHTML = '<i class="bx bxs-download me-2"></i> Descargar Reporte de Notas';
+    }
+  }
+
+  // Cargar jsPDF primero
+  const scriptJSPDF = document.createElement('script');
+  scriptJSPDF.src = '/js/lib/jspdf.umd.min.js';
+  scriptJSPDF.onload = () => {
+    jspdfLoaded = true;
+    console.log('jsPDF cargado correctamente.');
+
+    const scriptAutoTable = document.createElement('script');
+    scriptAutoTable.src = '/js/lib/jspdf.plugin.autotable.min.js';
+    scriptAutoTable.onload = () => {
+      autotableLoaded = true;
+      console.log('jsPDF-AutoTable cargado correctamente.');
+      // Ensure jspdf and AutoTable are accessible globally or via window object
+      window.jspdf = window.jspdf || {};
+      window.jspdf.jsPDF = window.jspdf.jsPDF || window.jsPDF;
+      window.jspdf.AutoTable = window.jspdf.AutoTable || window.jspdf?.jsPDF?.API?.autoTable || window.jsPDF?.API?.autoTable;
+      enableDownloadButton();
+    };
+    scriptAutoTable.onerror = () => {
+      console.error('Error al cargar jsPDF-AutoTable desde la ruta relativa.');
+      mostrarAlerta('Error al cargar la librería de tablas (jsPDF-AutoTable). Verifica la ruta relativa.', 'danger');
+    };
+    document.head.appendChild(scriptAutoTable);
+  };
+  scriptJSPDF.onerror = () => {
+    console.error('Error al cargar jsPDF desde la ruta relativa.');
+    mostrarAlerta('Error al cargar la librería base de PDF (jsPDF). Verifica la ruta relativa.', 'danger');
+  };
+  document.head.appendChild(scriptJSPDF);
+
 
   document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentMateriaId = urlParams.get('materiaId');
     currentPeriodoId = urlParams.get('periodoId'); // NUEVO: Para almacenar el ID del período de la URL
     currentMateriaNombre = urlParams.get('nombreMateria') || 'Materia'; // Asumo que el nombre se pasa por URL también
+
+    // Deshabilitar el botón de descarga inicialmente y mostrar spinner
+    const downloadButton = document.getElementById('btnDownloadNotesAdmin');
+    if (downloadButton) {
+      downloadButton.setAttribute('disabled', 'true');
+      downloadButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Cargando librerías...';
+    }
 
     if (!currentMateriaId || !currentPeriodoId) { // Validar también currentPeriodoId
       mostrarAlerta('ID de materia o período no especificado en la URL.', 'danger');
@@ -721,6 +783,9 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
         });
     }
     // === FIN DE LA LÓGICA PARA EL CAMPO DE BÚSQUEDA DE ACTIVIDADES ===
+
+    // Listener para el botón "Descargar Reporte de Notas"
+    document.getElementById('btnDownloadNotesAdmin').addEventListener('click', handleDownloadNotesAdmin);
   });
 
   async function fetchMateriaDetails(id) {
@@ -731,6 +796,10 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       }
       const data = await response.json();
       currentMateriaNombre = data.nombre_materia;
+      currentCursoNombre = data.nombre_curso || 'N/A';      
+      currentPeriodoNombreParaDescarga = data.nombre_periodo || 'N/A'; 
+      currentSeccionNombre = data.nombre_seccion || 'N/A';  
+
       document.getElementById('materiaTitulo').textContent = `Gestión de la materia "${data.nombre_materia || 'Materia Desconocida'}" (${data.nombre_periodo || 'Periodo Desconocido'})`;
       
       // Update the name of the assigned professor for THIS PERIOD
@@ -742,7 +811,8 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       const profesorNombre = profesorAsignado ? profesorAsignado.nombre_completo : 'Sin asignar';
       document.getElementById('profesorAsignadoNombre').textContent = profesorNombre;
       profesorEnMateriaCache = profesorAsignado ? String(profesorAsignado.id_usuario) : null;
-      
+      currentProfesorNombreParaDescarga = profesorNombre; // Store for download
+
       // Students in this subject and period (assuming that data.estudiantes_info already comes filtered by period)
       estudiantesEnMateriaCache = data.estudiantes_info ? data.estudiantes_info.map(e => String(e.id_usuario)) : [];
       
@@ -867,6 +937,11 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
       const activities = allActivitiesData.actividades || [];
       const notes = allNotesData.notas || [];
+
+      // Store data for download functionality
+      allStudentsForDownload = allStudents;
+      allActivitiesForDownload = activities;
+      allNotesForDownload = notes;
 
       console.log("DEBUG: --- INICIO loadNotasFiltradas ---");
       console.log("DEBUG: Estudiantes obtenidos:", allStudents.map(s => ({ id: s.id_usuario, nombre: `${s.primer_nombre} ${s.primer_apellido}` })));
@@ -1986,6 +2061,7 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
 
       await fetchMateriaDetails(currentMateriaId); // Update caches and UI
       await fetchActividadesSummary(currentMateriaId, currentPeriodoId); // To update student count
+      await loadNotasFiltradas(currentMateriaId, currentPeriodoId, currentPageNotas); // Reload notes table to reflect student changes
 
     } catch (error) {
       console.error('Error al guardar asignación de estudiantes:', error);
@@ -2056,5 +2132,166 @@ import "../../style/style-admin/actividades.css"; // Estilos para actividades
       nombre_completo: `${prof.primer_nombre} ${prof.primer_apellido} (${prof.cedula})` // Added (cedula)
     }));
   }
+
+async function handleDownloadNotesAdmin() {
+    if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined' || typeof window.jspdf.AutoTable === 'undefined') {
+      mostrarAlerta('Las librerías necesarias aún no están cargadas. Por favor, espera un momento e inténtalo de nuevo.', 'warning', 5000);
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const svgUrl = '/SVG/Logo-1.svg'; // Asegúrate de que esta ruta sea correcta
+    const img = new Image();
+    img.src = svgUrl;
+
+    await new Promise((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = reject;
+    });
+
+    // Dimensiones deseadas para el logo en el PDF (más pequeño)
+    const finalLogoWidth = 60; // Ancho final del logo en el PDF (reducido)
+    const finalLogoHeight = 30; // Alto final del logo en el PDF (reducido)
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Centrar el logo horizontalmente
+    const logoX = (pageWidth - finalLogoWidth) / 2;
+    const logoY = 15; // Un poco más de margen superior para el logo
+
+    // Para asegurar una mejor calidad al dibujar el SVG en el canvas,
+    // creamos un canvas con una resolución más alta (ej. 4 veces el tamaño final)
+    const canvasResolutionMultiplier = 4; // Multiplicador para la resolución del canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = finalLogoWidth * canvasResolutionMultiplier;
+    canvas.height = finalLogoHeight * canvasResolutionMultiplier;
+    const ctx = canvas.getContext('2d');
+
+    // === CAMBIO CLAVE PARA ELIMINAR EL FONDO NEGRO: Rellenar el canvas con blanco ===
+    // Esta línea asegura que el fondo del canvas sea blanco antes de dibujar el SVG.
+    // Si el problema persiste, es probable que la "R" tenga un fondo negro inherente en el SVG.
+    ctx.fillStyle = '#FFFFFF'; // Establecer el color de relleno a blanco
+    ctx.fillRect(0, 0, canvas.width, canvas.height); // Rellenar todo el canvas con blanco
+
+    // Dibujar el SVG en el canvas de alta resolución
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const imgData = canvas.toDataURL('image/png'); // Obtener la imagen PNG de alta resolución
+
+    // Añadir la imagen al PDF, escalándola a las dimensiones finales deseadas
+    doc.addImage(imgData, 'PNG', logoX, logoY, finalLogoWidth, finalLogoHeight);
+
+    // Ajustar el yOffset inicial después del logo
+    let yOffset = logoY + finalLogoHeight + 12; // Más espacio después del logo
+    const lineHeight = 7;
+    doc.setFontSize(16);
+    doc.text('Reporte de Notas de la Materia', pageWidth / 2, yOffset, { align: 'center' });
+    yOffset += 12;
+
+    doc.setFontSize(12);
+    doc.text(`Materia: ${currentMateriaNombre}` + `  Curso: ${currentCursoNombre}`, pageWidth / 2, yOffset, { align: 'center' });
+    yOffset += 7;
+    doc.text(`Período: ${currentPeriodoNombreParaDescarga}` + ` Sección: ${currentSeccionNombre}`,  pageWidth / 2, yOffset, { align: 'center' });
+    yOffset += 7;
+    doc.text(`Profesor Asignado: ${currentProfesorNombreParaDescarga}`, pageWidth / 2, yOffset, { align: 'center' });
+    yOffset += 12;
+
+    const tableHeaders = ['Nº', 'Estudiante'];
+    // Ordenar actividades para un orden de columnas consistente en el PDF
+    const sortedActivities = [...allActivitiesForDownload].sort((a, b) => a.nombre_actividad.localeCompare(b.nombre_actividad));
+    sortedActivities.forEach(activity => {
+        tableHeaders.push(`${activity.nombre_actividad} (${activity.ponderacion.toFixed(0)}%)`);
+    });
+    tableHeaders.push('Nota Definitiva');
+
+    const tableRows = [];
+
+    // Crear un mapa para una búsqueda rápida de notas: { studentId: { activityId: noteObject } }
+    const studentActivityNotesMap = new Map();
+    allNotesForDownload.forEach(note => {
+        const studentId = Number(note.id_estudiante);
+        const activityId = Number(note.id_actividad);
+        if (!studentActivityNotesMap.has(studentId)) {
+            studentActivityNotesMap.set(studentId, new Map());
+        }
+        studentActivityNotesMap.get(studentId).set(activityId, note);
+    });
+
+    allStudentsForDownload.forEach((student, index) => {
+        const rowData = [index + 1, `${student.primer_nombre} ${student.primer_apellido} (${student.cedula})`];
+        let sumOfWeightedNotes = 0;
+        const studentNotes = studentActivityNotesMap.get(Number(student.id_usuario)) || new Map();
+
+        sortedActivities.forEach(activity => {
+            const note = studentNotes.get(Number(activity.id_actividad));
+            let noteValueForCalculation = 0;
+            let cellDisplayContent = 'N/A';
+
+            if (note && note.nota !== null && note.nota !== undefined) {
+                const parsedNote = parseFloat(note.nota);
+                if (!isNaN(parsedNote)) {
+                    noteValueForCalculation = parsedNote;
+                    cellDisplayContent = parsedNote.toFixed(2);
+                }
+            }
+            sumOfWeightedNotes += (noteValueForCalculation * (activity.ponderacion / 100));
+            rowData.push(cellDisplayContent);
+        });
+        rowData.push(sumOfWeightedNotes.toFixed(2)); // Nota Definitiva
+        tableRows.push(rowData);
+    });
+
+    // Calcular el ancho de la tabla para centrarla manualmente
+    // Esta es una solución común cuando 'horizontal: auto' no funciona como se espera.
+    // Necesitamos estimar el ancho total de las columnas.
+    // La unidad predeterminada en jsPDF es 'mm'. El ancho de página suele ser 210 mm para A4.
+    const defaultColumnWidth = 20; // Ancho promedio para columnas dinámicas
+    const fixedColumnWidths = 10 + 40 + 25; // Nº (10) + Estudiante (40) + Nota Definitiva (25)
+    const dynamicColumnWidths = sortedActivities.length * defaultColumnWidth;
+    const estimatedTableWidth = fixedColumnWidths + dynamicColumnWidths;
+
+    // Calcular el margen izquierdo para centrar la tabla
+    const marginLeft = (pageWidth - estimatedTableWidth) / 2;
+    // Asegurarse de que marginLeft no sea negativo
+    const finalMarginLeft = Math.max(10, marginLeft); // Margen mínimo de 10mm
+
+    doc.autoTable({
+      startY: yOffset,
+      head: [tableHeaders],
+      body: tableRows,
+      theme: 'striped',
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        overflow: 'linebreak',
+      },
+      headStyles: {
+        fillColor: [164, 33, 189],
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      columnStyles: {
+        0: { cellWidth: 10 }, // Nº
+        1: { cellWidth: 40 }, // Estudiante
+        // Anchos dinámicos para actividades
+        ...Object.fromEntries(sortedActivities.map((_, i) => [i + 2, { cellWidth: defaultColumnWidth }])), 
+        [tableHeaders.length - 1]: { cellWidth: 25 } // Nota Definitiva
+      },
+      // === CAMBIO CLAVE PARA CENTRAR LA TABLA: Usar el margen izquierdo calculado ===
+      margin: { top: yOffset, left: finalMarginLeft, right: finalMarginLeft }, 
+      didDrawPage: function (data) {
+        // Pie de página (opcional)
+        doc.setFontSize(8);
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.text(`Página ${data.pageNumber} de ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    const filename = `reporte_notas_${currentMateriaNombre.replace(/ /g, '_')}_${currentPeriodoNombreParaDescarga.replace(/ /g, '_')}.pdf`;
+    doc.save(filename);
+
+    mostrarAlerta('Reporte de notas descargado exitosamente.', 'success', 3000);
+}
+
 
 </script>

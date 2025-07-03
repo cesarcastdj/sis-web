@@ -1788,13 +1788,16 @@ router.get('/materias-academicas/:id', /*isAuthenticated,*/ async (req, res) => 
         const materiaQuery = `
             SELECT
                 m.id_materia,
-                m.materia AS nombre_materia,
+                m.materia AS nombre_materia, -- Renombrado para el frontend
                 m.activo AS estado,
                 m.id_curso,
                 c.curso AS nombre_curso,
                 mp.id_periodo,
                 p.periodo AS nombre_periodo,
-                GROUP_CONCAT(DISTINCT s.seccion ORDER BY s.seccion SEPARATOR ', ') AS nombre_seccion
+                -- Subconsulta para obtener un solo id_seccion asociado a la materia
+                (SELECT ms_sub.id_seccion FROM materias_seccion ms_sub WHERE ms_sub.id_materia = m.id_materia LIMIT 1) AS id_seccion,
+                -- Para propósitos de visualización, concatenar todas las secciones
+                GROUP_CONCAT(DISTINCT s.seccion ORDER BY s.seccion SEPARATOR ', ') AS nombre_seccion_display -- Renombrado para evitar conflicto
             FROM materias m
             JOIN cursos c ON m.id_curso = c.id_curso
             JOIN materias_periodo mp ON m.id_materia = mp.id_materia AND mp.id_periodo = ?
@@ -2236,6 +2239,85 @@ router.post('/materias-academicas/:id/asignar-profesor', registrarAccion('Asigna
         } else { // No se necesita el error de "No se encontró periodo asociado" aquí, ya que el frontend lo envía
             res.status(500).json({ error: 'Error interno del servidor al asignar profesor a la materia', detalle: error.message });
         }
+    }
+});
+
+router.put('/materias-academicas/:id/periodo/:oldIdPeriodo', registrarAccion('Actualizar materia', 'materias'), async (req, res) => {
+    const { id: idMateria, oldIdPeriodo } = req.params; // ID de la materia y el ID del período ORIGINAL (de la URL)
+    const { materia, id_curso, id_periodo: newIdPeriodo, id_seccion: newIdSeccion } = req.body; // Nuevos valores del formulario (id_periodo y id_seccion son los nuevos)
+
+    if (!materia || !id_curso || !newIdPeriodo || !newIdSeccion) {
+        return res.status(400).json({ error: 'Faltan campos obligatorios para actualizar la materia.' });
+    }
+
+    try {
+        // Iniciar transacción
+        await beginTransactionPromise();
+
+        // 1. Actualizar la tabla 'materias' (solo materia y id_curso)
+        const updateMateriaSql = `
+            UPDATE materias
+            SET materia = ?, id_curso = ? 
+            WHERE id_materia = ?;
+        `;
+        await queryPromise(updateMateriaSql, [materia, id_curso, idMateria]);
+
+        // 2. Actualizar la tabla 'materias_periodo'
+        // Si el período asociado a esta materia ha cambiado, actualizamos la entrada existente.
+        // Asumimos que (id_materia, id_periodo) es una clave única en materias_periodo.
+        if (Number(oldIdPeriodo) !== Number(newIdPeriodo)) {
+            const updateMateriasPeriodoSql = `
+                UPDATE materias_periodo
+                SET id_periodo = ?
+                WHERE id_materia = ? AND id_periodo = ?;
+            `;
+            const result = await queryPromise(updateMateriasPeriodoSql, [newIdPeriodo, idMateria, oldIdPeriodo]);
+
+            // Si no se actualizó ninguna fila, podría ser que la entrada antigua no existía,
+            // en cuyo caso intentamos insertar la nueva.
+            if (result.affectedRows === 0) {
+                const insertMateriasPeriodoSql = `
+                    INSERT INTO materias_periodo (id_materia, id_periodo)
+                    VALUES (?, ?);
+                `;
+                await queryPromise(insertMateriasPeriodoSql, [idMateria, newIdPeriodo]);
+            }
+        }
+        // Si el período no ha cambiado, no se necesita acción en materias_periodo.
+
+        // 3. Actualizar la tabla 'materias_seccion'
+        // Asumimos que una materia tiene una única entrada de sección en materias_seccion
+        // (es decir, (id_materia) es único o se actualiza la primera encontrada).
+        const updateMateriasSeccionSql = `
+            UPDATE materias_seccion
+            SET id_seccion = ?
+            WHERE id_materia = ?;
+        `;
+        const result = await queryPromise(updateMateriasSeccionSql, [newIdSeccion, idMateria]);
+
+        // Si no se actualizó ninguna fila (es decir, no existía una entrada para esta materia),
+        // entonces insertamos una nueva.
+        if (result.affectedRows === 0) {
+            const insertMateriasSeccionSql = `
+                INSERT INTO materias_seccion (id_materia, id_seccion)
+                VALUES (?, ?);
+            `;
+            await queryPromise(insertMateriasSeccionSql, [idMateria, newIdSeccion]);
+        }
+
+        // Confirmar transacción
+        await commitPromise();
+
+        res.json({ message: 'Materia actualizada exitosamente.' });
+    } catch (error) {
+        // Revertir transacción en caso de error
+        await rollbackPromise();
+        console.error('Error al actualizar la materia:', error);
+        // Verificar si es un error de entrada duplicada para materias_periodo o materias_seccion (si se inserta una combinación ya existente)
+        if (error.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ error: 'La combinación de materia, período o sección ya existe.', detalle: error.message });
+        }
+        res.status(500).json({ error: 'Error interno del servidor al actualizar la materia.', detalle: error.message });
     }
 });
 

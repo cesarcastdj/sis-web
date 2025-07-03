@@ -490,23 +490,33 @@ import "../../style/style-admin/actividades.css"; // Mantén tus estilos CSS
       img.onerror = reject;
     });
 
-    const logoWidth = 80;
-    const logoHeight = 40;
+    // Dimensiones del logo (puedes ajustarlas si quieres que sea más grande o más pequeño)
+    const logoWidth = 60; // Ancho del logo
+    const logoHeight = 30; // Alto del logo
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    const logoX = (pageWidth - logoWidth) / 1.5;
-    const logoY = 10;
+    // Centrar el logo horizontalmente
+    const logoX = (pageWidth - logoWidth) / 2; // Calcula el margen izquierdo para centrar
+    const logoY = 10; // Posición Y del logo
 
+    // Para asegurar una mejor calidad al dibujar el SVG en el canvas,
+    // creamos un canvas con una resolución más alta (ej. 4 veces el tamaño final)
+    const canvasResolutionMultiplier = 4; // Multiplicador para la resolución del canvas
     const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
+    canvas.width = logoWidth * canvasResolutionMultiplier;
+    canvas.height = logoHeight * canvasResolutionMultiplier;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, logoWidth, logoHeight);
+
+    // Rellenar el canvas con blanco para asegurar un fondo transparente si el SVG lo permite
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     const imgData = canvas.toDataURL('image/png');
 
     doc.addImage(imgData, 'PNG', logoX, logoY, logoWidth, logoHeight);
 
-    let yOffset = logoY + logoHeight + 8;
+    let yOffset = logoY + logoHeight + 12; // Espacio después del logo
     const lineHeight = 7;
     doc.setFontSize(16);
     doc.text('Reporte de Notas del Estudiante', pageWidth / 2, yOffset, { align: 'center' });
@@ -530,7 +540,7 @@ import "../../style/style-admin/actividades.css"; // Mantén tus estilos CSS
 
       if (notaEncontrada) {
         notaValor = parseFloat(notaEncontrada.nota).toFixed(2);
-        comentarios = notaEncontrada.comentarios || 'Sin comentarios'; 
+        comentarios = notaEncontrada.comentarios || 'Sin comentarios';
         fechaRegistro = notaEncontrada.fecha_registro ? new Date(notaEncontrada.fecha_registro).toLocaleDateString() : 'N/A';
 
         if (activity.ponderacion > 0 && !isNaN(parseFloat(notaEncontrada.nota))) {
@@ -558,6 +568,16 @@ import "../../style/style-admin/actividades.css"; // Mantén tus estilos CSS
       'Fecha Registro'
     ];
 
+    // Calcular el ancho total de las columnas de la tabla para centrarla
+    // Suma de los anchos de columna definidos en columnStyles
+    const columnWidths = [10, 40, 25, 20, 45, 25]; // Anchos de columna en mm
+    const estimatedTableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
+
+    // Calcular el margen izquierdo para centrar la tabla
+    const marginLeft = (pageWidth - estimatedTableWidth) / 2;
+    // Asegurarse de que el margen izquierdo no sea negativo y tenga un mínimo de 10mm
+    const finalMarginLeft = Math.max(10, marginLeft);
+
     doc.autoTable({
       startY: yOffset,
       head: [tableHeaders],
@@ -581,16 +601,22 @@ import "../../style/style-admin/actividades.css"; // Mantén tus estilos CSS
         4: { cellWidth: 45 },
         5: { cellWidth: 25 }
       },
-      margin: { left: 10, right: 10 },
+      // === CAMBIO CLAVE PARA CENTRAR LA TABLA ===
+      margin: { top: yOffset, left: finalMarginLeft, right: finalMarginLeft },
       didDrawPage: function (data) {
+        // Pie de página (opcional)
+        doc.setFontSize(8);
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.text(`Página ${data.pageNumber} de ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
       }
     });
 
     yOffset = doc.autoTable.previous.finalY + lineHeight * 2;
 
+    // Si la nota definitiva se sale de la página actual, añadir una nueva página
     if (yOffset > doc.internal.pageSize.height - 30) {
       doc.addPage();
-      yOffset = 40;
+      yOffset = 40; // Reiniciar yOffset para la nueva página
     }
 
     doc.setFontSize(12);
@@ -600,6 +626,7 @@ import "../../style/style-admin/actividades.css"; // Mantén tus estilos CSS
     doc.save(filename);
 
     mostrarAlerta('Reporte de notas descargado exitosamente.', 'success', 3000);
-  }
+}
+
 
 </script>

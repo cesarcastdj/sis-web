@@ -207,6 +207,7 @@ import "../../style/style-admin/cursos.css";
         <p><strong>Nombre del Curso:</strong> <span id="detalleCursoNombre"></span></p>
         <p><strong>Período Académico:</strong> <span id="detalleCursoPeriodo"></span></p>
         <p><strong>Sección:</strong> <span id="detalleCursoSeccion"></span></p>
+        <p><strong>Estado del Curso:</strong> <span id="detalleCursoEstado"></span></p> <!-- Added this line -->
         <h6 class="section-title mt-4">Materias del Curso</h6>
         <div id="tablaMateriasCurso"></div>
 
@@ -425,19 +426,38 @@ import "../../style/style-admin/cursos.css";
 
       const response = await fetch(url);
       if (!response.ok) {
+        if (response.status === 404) {
+          tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No se encontraron cursos.</td></tr>`;
+          totalCursosCount.textContent = '0';
+          activeCursosCount.textContent = '0';
+          totalEstudiantesInscritosCount.textContent = '0';
+          totalProfesoresAsignadosCount.textContent = '0';
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
       const data = await response.json();
+      const cursos = data.cursos;
+      const totalPages = data.totalPages;
+      currentPage = data.currentPage;
 
-      tableBody.innerHTML = ''; // Limpiar el mensaje de carga
 
-      if (!data.cursos || data.cursos.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="9" class="text-center">No se encontraron cursos que coincidan con "${searchTerm}".</td></tr>`;
+      // Actualizar contadores
+      totalCursosCount.textContent = data.totalCount || '0';
+      activeCursosCount.textContent = data.activeCount || '0';
+      totalEstudiantesInscritosCount.textContent = data.totalEstudiantesInscritos || '0';
+      totalProfesoresAsignadosCount.textContent = data.totalProfesoresAsignados || '0';
+
+      tableBody.innerHTML = ''; 
+
+      if (!cursos || cursos.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No se encontraron cursos que coincidan con "${searchTerm}".</td></tr>`;
         setupPagination(0, 1, paginationCursos, 'curso'); // Reiniciar paginación si no hay resultados
         return;
       }
 
-      data.cursos.forEach((curso, index) => {
+      cursos.forEach((curso, index) => {
         // Mostrar cantidad de estudiantes y profesores si existen los arrays
         const totalEstudiantes = Array.isArray(curso.estudiantes_info) ? curso.estudiantes_info.length : (curso.total_estudiantes_curso || 0);
         const totalProfesores = Array.isArray(curso.profesores_info) ? curso.profesores_info.length : (curso.total_profesores_curso || 0);
@@ -474,7 +494,7 @@ import "../../style/style-admin/cursos.css";
         `;
       });
 
-      setupPagination(data.totalPages, page, paginationCursos, 'curso', searchTerm); // Pasa searchTerm a setupPagination
+      setupPagination(totalPages, page, paginationCursos, 'curso', searchTerm); // Pasa searchTerm a setupPagination
       attachTableEventListeners(); // Attach event listeners after content is loaded
 
     } catch (error) {
@@ -701,6 +721,12 @@ import "../../style/style-admin/cursos.css";
         document.getElementById('detalleCursoNombre').textContent = curso.nombre_curso || 'N/A';
         document.getElementById('detalleCursoPeriodo').textContent = curso.nombre_periodo || 'N/A';
         document.getElementById('detalleCursoSeccion').textContent = curso.nombre_seccion || 'N/A';
+        // Populate course status
+        const detalleCursoEstado = document.getElementById('detalleCursoEstado');
+        if (detalleCursoEstado) {
+            detalleCursoEstado.textContent = curso.estado === 1 ? 'Activo' : (curso.estado === 0 ? 'Inactivo' : 'Desconocido');
+        }
+
 
         // Populate Materias table
         const tablaMateriasCurso = document.getElementById('tablaMateriasCurso');
@@ -718,9 +744,17 @@ import "../../style/style-admin/cursos.css";
         // Populate Estudiantes table
         const tablaEstudiantesCurso = document.getElementById('tablaEstudiantesCurso');
         if (Array.isArray(curso.estudiantes_info) && curso.estudiantes_info.length > 0) {
-            let estudiantesHtml = `<div class=\"table-responsive\"><table class=\"table table-bordered table-sm table-dark\"><thead><tr><th>Período</th><th>Estudiante</th><th>Materia</th></tr></thead><tbody>`;
+            // MODIFICACIÓN: Añadir columna 'Estado' al encabezado
+            let estudiantesHtml = `<div class=\"table-responsive\"><table class=\"table table-bordered table-sm table-dark\"><thead><tr><th>Período</th><th>Estudiante</th><th>Materia</th><th>Estado</th></tr></thead><tbody>`;
             curso.estudiantes_info.forEach(estudiante => {
-                estudiantesHtml += `<tr><td>${estudiante.nombre_periodo || 'N/A'}</td><td>${estudiante.nombre_usuario || 'N/A'}</td><td>${estudiante.nombre_materia || 'N/A'}</td></tr>`;
+                // MODIFICACIÓN: Añadir celda 'Estado' y aplicar estilo
+                const estadoClase = estudiante.estado_materia === 'Aprobado' ? 'text-success' : 'text-danger';
+                estudiantesHtml += `<tr>
+                                        <td>${estudiante.nombre_periodo || 'N/A'}</td>
+                                        <td>${estudiante.nombre_usuario || 'N/A'}</td>
+                                        <td>${estudiante.nombre_materia || 'N/A'}</td>
+                                        <td class="${estadoClase}">${estudiante.estado_materia || 'N/A'}</td>
+                                    </tr>`;
             });
             estudiantesHtml += `</tbody></table></div>`;
             tablaEstudiantesCurso.innerHTML = estudiantesHtml;

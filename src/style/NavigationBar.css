@@ -803,3 +803,10 @@ small.form-text {
         font-size: 1.2rem;
     }
 }
+
+/* Estilos para el contenedor de notificaciones desplazables */
+.scrollable-notifications {
+  max-height: 300px; /* Ajusta la altura máxima según tu diseño */
+  overflow-y: auto;
+  padding-right: 8px; /* Espacio para la barra de scroll */
+}

@@ -1,520 +1,187 @@
 ---
-import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la página de periodos */
+import "../../style/style-admin/estudiantes.css"; /* Ahora solo importa est-c.txt */
 ---
 
 <section class="data-content-section">
-  <!-- Nueva sección del Título "Periodos Académicos" - AHORA DENTRO DE data-content-section -->
-  <section class="periodos-header-card">
+  <!-- Nueva sección del Título "Inactivos" -->
+  <section class="estudiantes-header-card">
     <div class="welcome-search-data">
-      <h2 class="welcome-search-data__title">Periodos Académicos</h2>
+      <h2 class="welcome-search-data__title">Inactivos</h2>
     </div>
   </section>
 
-  <!-- Sección de Tarjeta Consolidada de Resumen de Periodos -->
-  <section class="content-info-data">
-    <section class="data-general-control grid-layout"> <!-- Añadida clase grid-layout para posible futura expansión -->
-      <div class="registro-control consolidated-periodos-card">
-        <div class="card-icon-title">
-          <i class='bx bxs-calendar-plus'></i> <!-- Icono actualizado para el periodo -->
-          <h5 class="card-title">Resumen de Periodos Académicos</h5>
-        </div>
-        <div class="periodos-summary-grid">
-          <div class="summary-item">
-            <span class="summary-count" id="totalPeriodosCount">0</span>
-            <span class="summary-label">Total</span>
-          </div>
-        </div>
-        <!-- Botón para añadir periodo, ahora dentro de la tarjeta de resumen -->
-        <div class="mt-3 text-center"> <!-- Ajustado margen superior y centrado para el botón -->
-          <button class="btn btn-primary" id="btnAnadirPeriodo" data-bs-toggle="modal" data-bs-target="#modalAnadirPeriodo">
-            <i class='bx bx-plus me-2'></i>Añadir Periodo
-          </button>
-        </div>
-      </div>
-    </section>
-  </section>
-
-  <!-- La tabla de Periodos Académicos -->
-  <div class="display-table mt-4" id="table2"> <!-- Añadido mt-4 para margen superior -->
+  <!-- Tabla de Estudiantes Inactivos -->
+  <div class="display-table" id="table1">
+    <h1>Estudiantes</h1> <!-- Título para la tabla de estudiantes -->
     <div class="tabla-info-person">
       <table class="table table-dark table-hover table-striped">
         <thead>
           <tr>
             <th scope="col">Nº</th>
             <th scope="col">Periodo Académico</th>
-            <th scope="col">Fecha de Inicio</th>
-            <th scope="col">Fecha de Fin</th>
+            <th scope="col">Cédula</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Apellido</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Última Conexión</th>
             <th scope="col">Acciones</th>
           </tr>
         </thead>
-        <tbody id="periodosTableBody">
+        <tbody id="studentsTableBody">
           <tr>
-            <td colspan="5" class="text-center">Cargando periodos académicos...</td>
+            <td colspan="8" class="text-center">Cargando estudiantes...</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div id="paginationControls" class="pagination text-center mt-3"></div>
+    <div id="paginationControlsStudents" class="pagination text-center mt-3"></div>
   </div>
+
+  <br><br> <!-- Separador entre tablas -->
+
+  <!-- Tabla de Profesores Inactivos -->
+  <div class="display-table" id="table2">
+    <h1>Profesores</h1> <!-- Título para la tabla de profesores -->
+    <div class="tabla-info-person">
+      <table class="table table-dark table-hover table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Periodo Académico</th>
+            <th scope="col">Cédula</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Apellido</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Última Conexión</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="profesoresTableBody">
+          <tr>
+            <td colspan="8" class="text-center">Cargando profesores...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="paginationControlsProfesores" class="pagination text-center mt-3"></div>
+  </div>
+
+  <br><br> <!-- Separador entre tablas -->
+
+  <!-- Tabla de Cursos Inactivos -->
+  <div class="display-table" id="table3">
+    <h1>Cursos</h1> <!-- Título para la tabla de cursos -->
+    <div class="tabla-info-person">
+      <table class="table table-dark table-hover table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Periodo Académico</th>
+            <th scope="col">Nombre Curso</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="cursosTableBody">
+          <tr>
+            <td colspan="5" class="text-center">Cargando cursos...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="paginationControlsCursos" class="pagination text-center mt-3"></div>
+  </div>
+
+  <br><br> <!-- Separador entre tablas -->
+
+  <!-- Tabla de Materias Inactivas -->
+  <div class="display-table" id="table4">
+    <h1>Materias</h1> <!-- Título para la tabla de materias -->
+    <div class="tabla-info-person">
+      <table class="table table-dark table-hover table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Periodo Académico</th> <!-- Agregado el Periodo Académico para materias -->
+            <th scope="col">Nombre Materia</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="materiasTableBody">
+          <tr>
+            <td colspan="5" class="text-center">Cargando materias...</td> <!-- Colspan ajustado a 5 -->
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="paginationControlsMaterias" class="pagination text-center mt-3"></div>
+  </div>
+
+  <br><br> <!-- Separador entre tablas -->
+
+  <!-- Tabla de Secciones Inactivas (NUEVA) -->
+  <div class="display-table" id="table5">
+    <h1>Secciones</h1> <!-- Título para la tabla de secciones -->
+    <div class="tabla-info-person">
+      <table class="table table-dark table-hover table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Nº</th>
+            <th scope="col">Sección</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="seccionesTableBody">
+          <tr>
+            <td colspan="4" class="text-center">Cargando secciones...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="paginationControlsSecciones" class="pagination text-center mt-3"></div>
+  </div>
+
 </section>
 
-<!-- Modal para Añadir Nuevo Periodo Académico -->
-<div class="modal fade" id="modalAnadirPeriodo" tabindex="-1" aria-labelledby="modalAnadirPeriodoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-custom-width">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalAnadirPeriodoLabel">Añadir Nuevo Periodo Académico</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal">
-          <i class='bx bx-x'></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form id="formAnadirPeriodo">
-          <h6 class="section-title">Información del Nuevo Periodo</h6>
-          <div class="row">
-            <div class="col-md-12 mb-3">
-              <label for="anadirNombrePeriodoParte1" class="form-label">Nombre del Periodo</label>
-              <div class="input-group" style="width: 250px;"> <!-- Added style for fixed width for the input group -->
-                <input type="text" class="form-control text-center" id="anadirNombrePeriodoParte1" placeholder="2024" maxlength="4" required pattern="[0-9]{4}" title="Ingrese 4 dígitos para el año de inicio (Ej. 2024)" style="width: 80px;" /> <!-- Adjusted width and placeholder -->
-                <span class="input-group-text" style="background-color: #495057; border-color: #495057; color: #dee2e6;">-</span> <!-- Adjusted background, border and text color for consistency -->
-                <input type="text" class="form-control text-center" id="anadirNombrePeriodoParte2" placeholder="2025" maxlength="4" required pattern="[0-9]{4}" title="Ingrese 4 dígitos para el año de fin (Ej. 2025)" style="width: 80px;" /> <!-- Adjusted width and placeholder -->
-              </div>
-              <div class="invalid-feedback" id="anadirNombrePeriodoFeedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="anadirFechaInicio" class="form-label">Fecha de Inicio</label>
-              <input type="date" class="form-control" id="anadirFechaInicio" required />
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="anadirFechaFin" class="form-label">Fecha de Fin</label>
-              <input type="date" class="form-control" id="anadirFechaFin" required />
-              <div class="invalid-feedback"></div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary" id="btnGuardarPeriodo">Guardar Periodo</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal para Ver Más Información del Periodo Académico -->
-<div class="modal fade" id="modalVerMasInformacionPeriodo" tabindex="-1" aria-labelledby="modalVerMasInformacionPeriodoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-custom-width modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalVerMasInformacionPeriodoLabel">Detalles del Periodo Académico</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal">
-          <i class='bx bx-x'></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <h6 class="section-title">Información General del Periodo</h6>
-        <p><strong>ID del Periodo:</strong> <span id="detallePeriodoId"></span></p>
-        <p><strong>Nombre:</strong> <span id="detallePeriodoNombre"></span></p>
-        <p><strong>Fecha de Inicio:</strong> <span id="detalleFechaInicio"></span></p>
-        <p><strong>Fecha de Fin:</strong> <span id="detalleFechaFin"></span></p>
-
-        <h6 class="section-title mt-4">Asignaciones y Contenido Académico</h6>
-        <p><strong>Cursos Asociados:</strong> <span id="detalleCursosAsociados"></span></p>
-        <p><strong>Secciones Asociadas:</strong> <span id="detalleSeccionesAsociadas"></span></p>
-        <p><strong>Materias Ofrecidas:</strong> <span id="detalleMateriasOfrecidas"></span></p>
-        
-        <h6 class="section-title mt-4">Resumen de Participantes</h6>
-        <p><strong>Estudiantes Inscritos:</strong> <span id="detalleCantidadEstudiantes"></span></p>
-        <p><strong>Profesores Asignados:</strong> <span id="detalleCantidadProfesores"></span></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal para Editar Periodos Académicos -->
-<div class="modal fade" id="modalEditarPeriodo" tabindex="-1" aria-labelledby="modalEditarPeriodoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-custom-width">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalEditarPeriodoLabel">Editar Periodo Académico</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal">
-          <i class='bx bx-x'></i>
-        </button>
-      </div>
-      <div class="modal-body">
-        <form id="formEditarPeriodo">
-          <input type="hidden" id="editIdPeriodo" />
-          <h6 class="section-title">Información del Periodo Académico</h6>
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editNombrePeriodo" class="form-label">Periodo Académico</label>
-              <input type="text" class="form-control" id="editNombrePeriodo" placeholder="Ingrese el periodo académico" required />
-              <div class="invalid-feedback"></div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label for="editFechaInicio" class="form-label">Fecha de Inicio</label>
-              <input type="date" class="form-control" id="editFechaInicio" required />
-              <div class="invalid-feedback"></div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label for="editFechaFin" class="form-label">Fecha de Fin</label>
-              <input type="date" class="form-control" id="editFechaFin" required />
-              <div class="invalid-feedback"></div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary" id="btnGuardarEdicion">Guardar Cambios</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Nuevo Modal: Confirmación Personalizada (Movido aquí para una única instancia) -->
-<div class="modal fade" id="customConfirmModal" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="customConfirmModalLabel">Confirmación</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body" id="customConfirmModalBody">
-        <!-- El mensaje de confirmación se insertará aquí dinámicamente -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelActionBtnModal">Cancelar</button>
-        <button type="button" class="btn btn-danger" id="confirmActionBtnModal">Confirmar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Script de Bootstrap y funciones JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script is:inline>
+  const API_BASE_URL = 'http://localhost:3001/api'; // Asegúrate de que esta URL sea correcta
+
   document.addEventListener('DOMContentLoaded', function() {
-    console.log("DEBUG: DOMContentLoaded - Script principal cargado.");
-
-    // --- FIX: Asegura que todos los modales y backdrops se cierren al cargar la página ---
-    // Esto es crucial para evitar que la interfaz se quede "bloqueada" con un fondo oscuro
-    // si un modal no se cerró correctamente en la navegación o una redirección.
-    document.querySelectorAll('.modal.show').forEach(modalEl => {
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        if (modalInstance) {
-            modalInstance.hide();
-        }
-    });
-    document.querySelectorAll('.modal-backdrop').forEach(backdropEl => {
-        backdropEl.remove();
-    });
-    // --- FIN FIX ---
-
-    let currentPage = 1;
+    let currentPageStudents = 1;
+    let currentPageProfesores = 1;
+    let currentPageCursos = 1; 
+    let currentPageMaterias = 1; 
+    let currentPageSecciones = 1; // Nueva variable para paginación de secciones
     const itemsPerPage = 5; 
-    const periodosTableBody = document.getElementById('periodosTableBody');
-    const paginationControls = document.getElementById('paginationControls');
 
-    // Contadores de periodos
-    const totalPeriodosCount = document.getElementById('totalPeriodosCount');
+    const studentsTableBody = document.getElementById('studentsTableBody');
+    const profesoresTableBody = document.getElementById('profesoresTableBody');
+    const cursosTableBody = document.getElementById('cursosTableBody'); 
+    const materiasTableBody = document.getElementById('materiasTableBody'); 
+    const seccionesTableBody = document.getElementById('seccionesTableBody'); // Nueva referencia al tbody de secciones
 
-    // Elementos del modal "Ver Más Información"
-    const modalVerMasInformacionPeriodo = new bootstrap.Modal(document.getElementById('modalVerMasInformacionPeriodo'));
-    const detallePeriodoId = document.getElementById('detallePeriodoId'); 
-    const detallePeriodoNombre = document.getElementById('detallePeriodoNombre'); 
-    const detalleFechaInicio = document.getElementById('detalleFechaInicio');
-    const detalleFechaFin = document.getElementById('detalleFechaFin');
-    const detallePeriodoEstado = document.getElementById('detallePeriodoEstado'); 
-    const detalleCursosAsociados = document.getElementById('detalleCursosAsociados'); 
-    const detalleSeccionesAsociadas = document.getElementById('detalleSeccionesAsociadas'); 
-    const detalleMateriasOfrecidas = document.getElementById('detalleMateriasOfrecidas'); 
-    const detalleCantidadEstudiantes = document.getElementById('detalleCantidadEstudiantes'); 
-    const detalleCantidadProfesores = document.getElementById('detalleCantidadProfesores'); 
+    const paginationControlsStudents = document.getElementById('paginationControlsStudents');
+    const paginationControlsProfesores = document.getElementById('paginationControlsProfesores');
+    const paginationControlsCursos = document.getElementById('paginationControlsCursos'); 
+    const paginationControlsMaterias = document.getElementById('paginationControlsMaterias'); 
+    const paginationControlsSecciones = document.getElementById('paginationControlsSecciones'); // Nueva referencia a la paginación de secciones
 
-
-    // Elementos del Modal Editar Periodos Académicos
-    const modalEditarPeriodo = new bootstrap.Modal(document.getElementById('modalEditarPeriodo'));
-    const formEditarPeriodo = document.getElementById('formEditarPeriodo');
-    const editIdPeriodo = document.getElementById('editIdPeriodo');
-    const editNombrePeriodo = document.getElementById('editNombrePeriodo');
-    const editFechaInicio = document.getElementById('editFechaInicio');
-    const editFechaFin = document.getElementById('editFechaFin');
-    const btnGuardarEdicion = document.getElementById('btnGuardarEdicion');
-
-
-    // Elementos del nuevo Modal Añadir Periodo Académico
-    const modalAnadirPeriodo = new bootstrap.Modal(document.getElementById('modalAnadirPeriodo'));
-    const formAnadirPeriodo = document.getElementById('formAnadirPeriodo');
-    // Modified to new input fields for period name
-    const anadirNombrePeriodoParte1 = document.getElementById('anadirNombrePeriodoParte1');
-    const anadirNombrePeriodoParte2 = document.getElementById('anadirNombrePeriodoParte2');
-    const anadirNombrePeriodoFeedback = document.getElementById('anadirNombrePeriodoFeedback'); // For combined validation feedback
-
-    const anadirFechaInicio = document.getElementById('anadirFechaInicio');
-    const anadirFechaFin = document.getElementById('anadirFechaFin');
-    const btnGuardarPeriodo = document.getElementById('btnGuardarPeriodo');
-
-    // --- Instancia Única para el Modal de Confirmación ---
-    const customConfirmModalElement = document.getElementById('customConfirmModal');
-    const customConfirmModal = new bootstrap.Modal(customConfirmModalElement);
-    const customConfirmModalBody = document.getElementById('customConfirmModalBody');
-    const confirmActionBtn = document.getElementById('confirmActionBtnModal');
-    const cancelActionBtn = document.getElementById('cancelActionBtnModal');
-
-
-    // Event listener para el botón "Añadir Periodo"
-    document.getElementById('btnAnadirPeriodo').addEventListener('click', function() {
-        console.log("DEBUG: Botón 'Añadir Periodo' clickeado. Limpiando formulario.");
-        formAnadirPeriodo.reset(); // Limpia el formulario cada vez que se abre
-        // Limpia cualquier mensaje de validación previo para las dos partes del periodo
-        anadirNombrePeriodoParte1.classList.remove('is-invalid');
-        anadirNombrePeriodoParte2.classList.remove('is-invalid');
-        anadirNombrePeriodoFeedback.textContent = '';
-        anadirNombrePeriodoFeedback.style.display = 'none';
-
-        anadirFechaInicio.classList.remove('is-invalid');
-        if (anadirFechaInicio.nextElementSibling) anadirFechaInicio.nextElementSibling.textContent = '';
-        anadirFechaFin.classList.remove('is-invalid');
-        if (anadirFechaFin.nextElementSibling) anadirFechaFin.nextElementSibling.textContent = '';
-    });
-
-
-    // Manejar envío del formulario de Añadir Periodo
-    formAnadirPeriodo.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      console.log("DEBUG: Formulario de añadir periodo enviado. Iniciando validación...");
-
-      // Validación de las dos partes del nombre del periodo
-      let valid = true;
-      let periodoParte1Value = anadirNombrePeriodoParte1.value.trim();
-      let periodoParte2Value = anadirNombrePeriodoParte2.value.trim();
-
-      if (periodoParte1Value.length !== 4 || !/^[0-9]{4}$/.test(periodoParte1Value)) {
-        mostrarError(anadirNombrePeriodoParte1, 'Ingrese 4 dígitos válidos para el año de inicio.');
-        valid = false;
-      } else {
-        limpiarError(anadirNombrePeriodoParte1);
-      }
-
-      if (periodoParte2Value.length !== 4 || !/^[0-9]{4}$/.test(periodoParte2Value)) {
-        mostrarError(anadirNombrePeriodoParte2, 'Ingrese 4 dígitos válidos para el año de fin.');
-        valid = false;
-      } else {
-        limpiarError(anadirNombrePeriodoParte2);
-      }
-
-      // Validación de la fecha de inicio
-      if (anadirFechaInicio.value === '') {
-        mostrarError(anadirFechaInicio, 'La fecha de inicio es obligatoria.');
-        valid = false;
-      } else {
-        limpiarError(anadirFechaInicio);
-      }
-
-      // Validación de la fecha de fin
-      if (anadirFechaFin.value === '') {
-        mostrarError(anadirFechaFin, 'La fecha de fin es obligatoria.');
-        valid = false;
-      } else {
-        limpiarError(anadirFechaFin);
-      }
-
-      if (!valid) {
-        console.log("DEBUG: Validación de formulario fallida. Deteniendo envío.");
-        // Mostrar un mensaje de error combinado si ambas partes son inválidas o algo general
-        if (!valid && (anadirNombrePeriodoParte1.classList.contains('is-invalid') || anadirNombrePeriodoParte2.classList.contains('is-invalid'))) {
-            anadirNombrePeriodoFeedback.textContent = 'Asegúrese de que ambas partes del período sean años de 4 dígitos.';
-            anadirNombrePeriodoFeedback.style.display = 'block';
-        }
-        return;
-      }
-
-      // Combine the two parts of the period name
-      const nombrePeriodoCombinado = `${periodoParte1Value}-${periodoParte2Value}`;
-      console.log("DEBUG: Validación de formulario exitosa. Procediendo con el registro sin confirmación.");
-      
-      btnGuardarPeriodo.disabled = true;
-      btnGuardarPeriodo.innerHTML = `
-        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        Guardando...
-      `;
-      console.log("DEBUG: Botón de guardar deshabilitado y spinner activado. Intentando enviar datos al backend...");
-
-      try {
-        const formData = {
-          nombrePeriodo: nombrePeriodoCombinado, // Use the combined period name
-          fechaInicio: anadirFechaInicio.value, 
-          fechaFinal: anadirFechaFin.value 
-        };
-
-        console.log("DEBUG: Datos a enviar (frontend - añadir periodo):", formData); 
-
-        const response = await fetch('http://localhost:3001/api/periodos-academicos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
-        console.log("DEBUG: Solicitud de fetch completada. Procesando respuesta...");
-
-
-        const data = await response.json();
-        console.log("DEBUG: Datos recibidos del backend:", data);
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Error al añadir el periodo académico');
-        }
-
-        console.log("DEBUG: Respuesta del backend (añadir periodo):", data);
-        mostrarMensajeExito('Periodo académico añadido exitosamente');
-        
-        // --- FIX: Esperar a que el modal se oculte completamente antes de recargar la tabla y limpiar backdrops ---
-        modalAnadirPeriodo._element.addEventListener('hidden.bs.modal', function handler() {
-            console.log("DEBUG: modalAnadirPeriodo ha sido ocultado completamente. Recargando tabla y limpiando backdrops.");
-            modalAnadirPeriodo._element.removeEventListener('hidden.bs.modal', handler); // Remover este listener
-            
-            // Limpiar explícitamente todos los backdrops de modal que puedan haber quedado
-            document.querySelectorAll('.modal-backdrop').forEach(backdropEl => {
-                backdropEl.remove();
-            });
-            // Asegurarse de que el overflow del body se restaura a su estado normal (scroll)
-            document.body.style.overflow = ''; // O '' para eliminar la propiedad y volver al comportamiento por defecto
-
-            loadPeriodos(currentPage); // Recarga la tabla para reflejar los cambios
-        }, { once: true }); // Asegura que este listener se ejecute solo una vez
-
-        modalAnadirPeriodo.hide(); // Inicia el proceso de ocultar el modal
-        console.log("DEBUG: Modal de añadir periodo solicitado ocultar.");
-
-      } catch (error) {
-        console.error('❌ Error en la adición del periodo académico (frontend):', error); 
-        mostrarErrorAlUsuario(`Error al añadir periodo: ${error.message}`);
-        modalAnadirPeriodo.hide();
-        console.log("DEBUG: Modal de añadir periodo oculto después de un error.");
-      } finally {
-        btnGuardarPeriodo.disabled = false;
-        btnGuardarPeriodo.textContent = 'Guardar Periodo';
-        console.log("DEBUG: Proceso de añadir periodo finalizado (finally block).");
-      }
-    });
-
-    // Manejar envío del formulario de Edición de Periodo
-    formEditarPeriodo.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      console.log("DEBUG: Formulario de edición de periodo enviado. Iniciando validación...");
-
-
-      let valid = true;
-      if (editNombrePeriodo.value.trim() === '') {
-        mostrarError(editNombrePeriodo, 'El nombre del periodo es obligatorio.');
-        valid = false;
-      } else {
-        limpiarError(editNombrePeriodo);
-      }
-
-      if (editFechaInicio.value === '') {
-        mostrarError(editFechaInicio, 'La fecha de inicio es obligatoria.');
-        valid = false;
-      } else {
-        limpiarError(editFechaInicio);
-      }
-
-      if (editFechaFin.value === '') {
-        mostrarError(editFechaFin, 'La fecha de fin es obligatoria.');
-        valid = false;
-      } else {
-        limpiarError(editFechaFin);
-      }
-
-      if (!valid) {
-        console.log("DEBUG: Validación de formulario de edición fallida. Deteniendo envío.");
-        return;
-      }
-
-      console.log("DEBUG: Validación de formulario de edición exitosa. Mostrando confirmación...");
-      const confirmResult = await mostrarConfirmacion(
-            `¿Estás seguro de guardar los cambios para el periodo "${editNombrePeriodo.value}"?`
-        );
-      if (!confirmResult) {
-        console.log("DEBUG: Edición de periodo cancelada por el usuario.");
-        return;
-      }
-
-      const id_periodo = editIdPeriodo.value;
-      
-      btnGuardarEdicion.disabled = true;
-      btnGuardarEdicion.innerHTML = `
-        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        Guardando...
-      `;
-      console.log("DEBUG: Botón de guardar edición deshabilitado y spinner activado. Intentando enviar datos al backend...");
-
-      try {
-        const formData = {
-          nombrePeriodo: editNombrePeriodo.value.trim(),
-          fechaInicio: editFechaInicio.value, 
-          fechaFinal: editFechaFin.value, 
-        };
-
-        console.log("DEBUG: Datos a enviar (frontend - edición de periodo):", formData); 
-
-        const response = await fetch(`http://localhost:3001/api/periodos-academicos/${id_periodo}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
-        console.log("DEBUG: Solicitud de fetch (edición) completada. Procesando respuesta...");
-
-
-        const data = await response.json();
-        console.log("DEBUG: Datos recibidos del backend (edición):", data);
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Error al actualizar el periodo académico');
-        }
-
-        console.log("DEBUG: Respuesta del backend (edición de periodo):", data);
-        mostrarMensajeExito('Periodo académico actualizado correctamente');
-        
-        setTimeout(() => {
-          modalEditarPeriodo.hide();
-          console.log("DEBUG: Modal de edición de periodo oculto.");
-          loadPeriodos(currentPage); 
-          console.log("DEBUG: Tabla de periodos recargada (después de edición).");
-        }, 1500);
-
-      } catch (error) {
-        console.error('❌ Error en la actualización del periodo académico (frontend):', error);
-        mostrarErrorAlUsuario(`Error al actualizar periodo: ${error.message}`);
-      } finally {
-        btnGuardarEdicion.disabled = false;
-        btnGuardarEdicion.textContent = 'Guardar Cambios';
-        console.log("DEBUG: Proceso de edición de periodo finalizado (finally block).");
-      }
-    });
-
-
-    // Función para inicializar los dropdowns de Bootstrap después de cargar la tabla
-    function initializeDropdowns() {
-      console.log('DEBUG: initializeDropdowns called.');
+    // Función para inicializar los dropdowns de Bootstrap para la tabla de estudiantes
+    function initializeStudentDropdowns() {
+      console.log('DEBUG: initializeStudentDropdowns called.');
       if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
-        const dropdownToggles = periodosTableBody.querySelectorAll('.dropdown-toggle');
-        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Dropdowns...');
+        const dropdownToggles = studentsTableBody.querySelectorAll('.dropdown-toggle');
+        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Student Dropdowns...');
         dropdownToggles.forEach(button => {
-          // Destruir instancias existentes para evitar duplicados si la tabla se recarga
           const existingDropdown = bootstrap.Dropdown.getInstance(button);
           if (existingDropdown) {
             existingDropdown.dispose();
-            // console.log(`Disposed existing dropdown for #${button.id}`); 
+            console.log(`DEBUG: Disposed existing student dropdown for #${button.id}`);
           }
-          // Crear nueva instancia de Dropdown con popperConfig para evitar ser cortado
           new bootstrap.Dropdown(button, {
             popperConfig: function (defaultBsPopperConfig) {
               return {
@@ -525,241 +192,874 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
                   ...(defaultBsPopperConfig.modifiers || []),
                   {
                     name: 'offset',
-                    options: {
-                      offset: [0, 8] 
-                    }
+                    options: { offset: [0, 8] }
                   },
                 ],
               };
             }
           });
-          // console.log(`Initialized new dropdown for #${button.id}`); 
+          console.log(`DEBUG: Initialized new student dropdown for #${button.id}`);
         });
         if (dropdownToggles.length === 0) {
-            console.log('DEBUG: No dropdown toggles found to initialize.');
+            console.log('DEBUG: No student dropdown toggles found to initialize.');
         } else {
-            console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Dropdowns.`);
+            console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Student Dropdowns.`);
         }
       } else {
-        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible. Esto es crucial para que los dropdowns funcionen. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
+        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible para estudiantes. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
       }
     }
 
-    // Función principal para cargar periodos en la tabla y actualizar contadores
-    async function loadPeriodos(page) {
-      console.log(`DEBUG: loadPeriodos called for page ${page}.`);
-      periodosTableBody.innerHTML = `<tr><td colspan="5" class="text-center">Cargando periodos académicos...</td></tr>`;
-      paginationControls.innerHTML = ''; 
-      totalPeriodosCount.textContent = '...';
+    // Función para inicializar los dropdowns de Bootstrap para la tabla de profesores
+    function initializeProfessorDropdowns() {
+      console.log('DEBUG: initializeProfessorDropdowns called.');
+      if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
+        const dropdownToggles = profesoresTableBody.querySelectorAll('.dropdown-toggle');
+        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Professor Dropdowns...');
+        dropdownToggles.forEach(button => {
+          const existingDropdown = bootstrap.Dropdown.getInstance(button);
+          if (existingDropdown) {
+            existingDropdown.dispose();
+            console.log(`DEBUG: Disposed existing professor dropdown for #${button.id}`);
+          }
+          new bootstrap.Dropdown(button, {
+            popperConfig: function (defaultBsPopperConfig) {
+              return {
+                ...defaultBsPopperConfig,
+                placement: 'bottom-end', 
+                strategy: 'fixed', 
+                modifiers: [
+                  ...(defaultBsPopperConfig.modifiers || []),
+                  {
+                    name: 'offset',
+                    options: { offset: [0, 8] }
+                  },
+                ],
+              };
+            }
+          });
+          console.log(`DEBUG: Initialized new professor dropdown for #${button.id}`);
+        });
+        if (dropdownToggles.length === 0) {
+            console.log('DEBUG: No professor dropdown toggles found to initialize.');
+        } else {
+            console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Professor Dropdowns.`);
+        }
+      } else {
+        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible para profesores. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
+      }
+    }
 
+    // Función para inicializar los dropdowns de Bootstrap para la tabla de cursos
+    function initializeCourseDropdowns() {
+      console.log('DEBUG: initializeCourseDropdowns called.');
+      if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
+        const dropdownToggles = cursosTableBody.querySelectorAll('.dropdown-toggle');
+        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Course Dropdowns...');
+        dropdownToggles.forEach(button => {
+          const existingDropdown = bootstrap.Dropdown.getInstance(button);
+          if (existingDropdown) {
+            existingDropdown.dispose();
+            console.log(`DEBUG: Disposed existing course dropdown for #${button.id}`);
+          }
+          new bootstrap.Dropdown(button, {
+            popperConfig: function (defaultBsPopperConfig) {
+              return {
+                ...defaultBsPopperConfig,
+                placement: 'bottom-end', 
+                strategy: 'fixed', 
+                modifiers: [
+                  ...(defaultBsPopperConfig.modifiers || []),
+                  {
+                    name: 'offset',
+                    options: { offset: [0, 8] }
+                  },
+                ],
+              };
+            }
+          });
+          console.log(`DEBUG: Initialized new course dropdown for #${button.id}`);
+        });
+        if (dropdownToggles.length === 0) {
+            console.log('DEBUG: No course dropdown toggles found to initialize.');
+        } else {
+            console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Course Dropdowns.`);
+        }
+      } else {
+        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible para cursos. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
+      }
+    }
+
+    // Función para inicializar los dropdowns de Bootstrap para la tabla de materias
+    function initializeSubjectDropdowns() {
+      console.log('DEBUG: initializeSubjectDropdowns called.');
+      if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
+        const dropdownToggles = materiasTableBody.querySelectorAll('.dropdown-toggle');
+        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Subject Dropdowns...');
+        dropdownToggles.forEach(button => {
+          const existingDropdown = bootstrap.Dropdown.getInstance(button);
+          if (existingDropdown) {
+            existingDropdown.dispose();
+            console.log(`DEBUG: Disposed existing subject dropdown for #${button.id}`);
+          }
+          new bootstrap.Dropdown(button, {
+            popperConfig: function (defaultBsPopperConfig) {
+              return {
+                ...defaultBsPopperConfig,
+                placement: 'bottom-end', 
+                strategy: 'fixed', 
+                modifiers: [
+                  ...(defaultBsPopperConfig.modifiers || []),
+                  {
+                    name: 'offset',
+                    options: { offset: [0, 8] }
+                  },
+                ],
+              };
+            }
+          });
+          console.log(`DEBUG: Initialized new subject dropdown for #${button.id}`);
+        });
+        if (dropdownToggles.length === 0) {
+            console.log('DEBUG: No subject dropdown toggles found to initialize.');
+        } else {
+            console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Subject Dropdowns.`);
+        }
+      } else {
+        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible para materias. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
+      }
+    }
+
+    // Función para inicializar los dropdowns de Bootstrap para la tabla de secciones (NUEVA)
+    function initializeSectionDropdowns() {
+      console.log('DEBUG: initializeSectionDropdowns called.');
+      if (typeof window.bootstrap !== 'undefined' && typeof window.bootstrap.Dropdown !== 'undefined') {
+        const dropdownToggles = seccionesTableBody.querySelectorAll('.dropdown-toggle');
+        console.log('DEBUG: Attempting to initialize', dropdownToggles.length, 'Bootstrap Section Dropdowns...');
+        dropdownToggles.forEach(button => {
+          const existingDropdown = bootstrap.Dropdown.getInstance(button);
+          if (existingDropdown) {
+            existingDropdown.dispose();
+            console.log(`DEBUG: Disposed existing section dropdown for #${button.id}`);
+          }
+          new bootstrap.Dropdown(button, {
+            popperConfig: function (defaultBsPopperConfig) {
+              return {
+                ...defaultBsPopperConfig,
+                placement: 'bottom-end', 
+                strategy: 'fixed', 
+                modifiers: [
+                  ...(defaultBsPopperConfig.modifiers || []),
+                  {
+                    name: 'offset',
+                    options: { offset: [0, 8] }
+                  },
+                ],
+              };
+            }
+          });
+          console.log(`DEBUG: Initialized new section dropdown for #${button.id}`);
+        });
+        if (dropdownToggles.length === 0) {
+            console.log('DEBUG: No section dropdown toggles found to initialize.');
+        } else {
+            console.log(`✅ DEBUG: Finished initializing ${dropdownToggles.length} Bootstrap Section Dropdowns.`);
+        }
+      } else {
+        console.warn('⚠️ WARN: bootstrap.Dropdown no está disponible para secciones. Asegúrese de que el JavaScript de Bootstrap esté cargado antes de este script.');
+      }
+    }
+
+
+    // Función principal para cargar estudiantes inactivos en la tabla
+    async function loadInactiveStudents(page) {
+      console.log(`DEBUG: loadInactiveStudents called for page ${page}.`);
+      studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center">Cargando estudiantes...</td></tr>`;
+      paginationControlsStudents.innerHTML = ''; 
+      
       try {
-        console.log(`DEBUG: Solicitando periodos para la página ${page} a http://localhost:3001/api/periodos-academicos...`);
-        const response = await fetch(`http://localhost:3001/api/periodos-academicos?page=${page}&limit=${itemsPerPage}`);
+        console.log(`DEBUG: Solicitando estudiantes inactivos para la página ${page} a ${API_BASE_URL}/estudiantes/papelera?page=${page}&limit=${itemsPerPage}`);
+        const response = await fetch(`${API_BASE_URL}/estudiantes/papelera?page=${page}&limit=${itemsPerPage}`);
         
         if (!response.ok) {
           if (response.status === 404) {
-            periodosTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron periodos.</td></tr>`;
-            totalPeriodosCount.textContent = '0';
-            console.log("DEBUG: 404 - No se encontraron periodos.");
+            studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron estudiantes inactivos.</td></tr>`;
+            console.log("DEBUG: 404 - No se encontraron estudiantes inactivos.");
             return;
           }
           throw new Error(`Error HTTP: ${response.status}`);
         }
 
         const data = await response.json();
-        const periodos = data.periodos;
+        const estudiantes = data.estudiantes;
         const totalPages = data.totalPages;
-        currentPage = data.currentPage;
+        currentPageStudents = data.currentPage;
 
-        console.log("DEBUG: Datos de periodos recibidos del backend:", data); 
+        console.log("DEBUG: Datos de estudiantes inactivos recibidos del backend:", data);
 
-        // Actualizar el contador total
-        totalPeriodosCount.textContent = data.totalCount;
+        studentsTableBody.innerHTML = ''; 
 
-        periodosTableBody.innerHTML = ''; 
-
-        if (periodos.length === 0) {
-          periodosTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron periodos.</td></tr>`;
-          console.log("DEBUG: Array de periodos vacío.");
+        if (!estudiantes || estudiantes.length === 0) {
+          studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron estudiantes inactivos.</td></tr>`;
+          console.log("DEBUG: Array de estudiantes inactivos vacío después de fetch.");
           return;
         }
 
-        periodos.forEach((periodo, index) => {
-          // console.log(`DEBUG: Procesando periodo ${index + 1}:`, periodo); 
-          const periodoDataAttribute = JSON.stringify(periodo);
+        const processedEstudiantes = Array.isArray(estudiantes) ? estudiantes.map(estudiante => ({
+          ...estudiante,
+          periodoAcademicoNames: (typeof estudiante.periodoAcademicoNames === 'string' && estudiante.periodoAcademicoNames && estudiante.periodoAcademicoNames !== 'N/A') 
+                                 ? estudiante.periodoAcademicoNames.split(',').map(s => s.trim()).filter(Boolean) 
+                                 : ['N/A'], 
+          ultima_conexion: estudiante.ultima_conexion 
+        })) : [];
+
+        processedEstudiantes.forEach((estudiante, index) => {
+          const studentStatus = estudiante.estado === 1 ? 'Activo' : (estudiante.estado === 0 ? 'Inactivo' : 'Desconocido'); 
+          const lastConnectionText = estudiante.ultima_conexion ? new Date(estudiante.ultima_conexion).toLocaleDateString() : 'No ha ingresado a la pagina';
 
           const row = document.createElement('tr');
-          row.dataset.id = periodo.id_periodo;
-          row.dataset.periodoData = periodoDataAttribute; 
+          row.dataset.id = estudiante.id_usuario;
 
           row.innerHTML = `
-            <td>${(currentPage - 1) * itemsPerPage + index + 1}</td>
-            <td>${periodo.nombre_periodo || 'N/A'}</td> 
-            <td>${periodo.fechaInicio ? new Date(periodo.fechaInicio).toLocaleDateString() : 'N/A'}</td>
-            <td>${periodo.fechaFinal ? new Date(periodo.fechaFinal).toLocaleDateString() : 'N/A'}</td>
+            <td>${(currentPageStudents - 1) * itemsPerPage + index + 1}</td>
+            <td>${estudiante.periodoAcademicoNames.join(', ') || 'N/A'}</td>
+            <td>${estudiante.cedula || ''}</td>
+            <td>${estudiante.primer_nombre || ''}</td>
+            <td>${estudiante.primer_apellido || ''}</td>
+            <td>${studentStatus}</td>
+            <td>${lastConnectionText}</td>
             <td>
               <div class="dropdown">
-                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton${periodo.id_periodo}" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonStudent${estudiante.id_usuario}" data-bs-toggle="dropdown" aria-expanded="false">
                   <i class='bx bx-dots-vertical-rounded'></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton${periodo.id_periodo}">
-                  <li><a class="dropdown-item" href="#" data-action="ver-mas" data-id="${periodo.id_periodo}"><i class='bx bx-info-circle me-2'></i>Ver más información</a></li>
-                  <li><a class="dropdown-item" href="#" data-action="editar" data-id="${periodo.id_periodo}"><i class='bx bxs-edit-alt me-2'></i>Editar</a></li>
-                  <li><a class="dropdown-item" href="#" data-action="desactivar" data-id="${periodo.id_periodo}"><i class='bx bx-trash me-2'></i>Desactivar Periodo</a></li>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButtonStudent${estudiante.id_usuario}">       
+                  <li><a class="dropdown-item" href="#" data-action="activar-estudiante" data-id="${estudiante.id_usuario}"><i class='bx bx-undo me-2'></i>Activar Estudiante</a></li>
                 </ul>
               </div>
             </td>
           `;
-          periodosTableBody.appendChild(row);
+          studentsTableBody.appendChild(row);
         });
 
-        initializeDropdowns(); 
-        setupPagination(totalPages, currentPage);
-        setupActionListeners(periodos);
-        console.log("DEBUG: Renderizado de periodos completado.");
+        initializeStudentDropdowns();
+        setupStudentActionListeners(processedEstudiantes); 
+        setupPagination(totalPages, currentPageStudents, paginationControlsStudents, 'student');
+        console.log("DEBUG: Renderizado de estudiantes inactivos completado.");
       } catch (error) {
-        console.error('❌ Error al cargar periodos:', error);
-        periodosTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error al cargar periodos. Intente nuevamente.</td></tr>`;
-        totalPeriodosCount.textContent = '0';
+        console.error('Error al cargar estudiantes inactivos:', error);
+        studentsTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar estudiantes inactivos. Intente nuevamente.</td></tr>`;
       }
     }
 
-    // Configurar listeners para los botones de acción en cada fila
-    function setupActionListeners(periodosData) {
-        periodosTableBody.querySelectorAll('.dropdown-item').forEach(item => {
-            item.removeEventListener('click', handleActionClick); 
-            item.addEventListener('click', handleActionClick);
+    // Función principal para cargar profesores inactivos en la tabla
+    async function loadInactiveProfesores(page) {
+      console.log(`DEBUG: loadInactiveProfesores called for page ${page}.`);
+      profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center">Cargando profesores...</td></tr>`;
+      paginationControlsProfesores.innerHTML = ''; 
 
-            function handleActionClick(e) {
+      try {
+        // Intentar primero con /papelera, si falla, intentar con ?estado=0
+        let response = await fetch(`${API_BASE_URL}/profesores/papelera?page=${page}&limit=${itemsPerPage}`);
+        if (!response.ok && response.status === 404) {
+          console.log("DEBUG: Endpoint /profesores/papelera no encontrado, intentando con /profesores?estado=0.");
+          response = await fetch(`${API_BASE_URL}/profesores?estado=0&page=${page}&limit=${itemsPerPage}`);
+        }
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron profesores inactivos.</td></tr>`;
+            console.log("DEBUG: 404 - No se encontraron profesores inactivos.");
+            return;
+          }
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        // Asumiendo que la API devuelve un campo 'profesores'
+        const profesores = data.profesores; 
+        const totalPages = data.totalPages;
+        currentPageProfesores = data.currentPage;
+
+        console.log("DEBUG: Datos de profesores inactivos recibidos del backend:", data);
+
+        profesoresTableBody.innerHTML = ''; 
+
+        if (!profesores || profesores.length === 0) {
+          profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No se encontraron profesores inactivos.</td></tr>`;
+          console.log("DEBUG: Array de profesores inactivos vacío después de fetch.");
+          return;
+        }
+
+        const processedProfesores = Array.isArray(profesores) ? profesores.map(profesor => ({
+          ...profesor,
+          // Aseguramos que `periodoAcademicoNames` sea un array
+          periodoAcademicoNames: (typeof profesor.periodoAcademicoNames === 'string' && profesor.periodoAcademicoNames && profesor.periodoAcademicoNames !== 'N/A') 
+                                 ? profesor.periodoAcademicoNames.split(',').map(s => s.trim()).filter(Boolean) 
+                                 : ['N/A'], 
+          ultima_conexion: profesor.ultima_conexion 
+        })) : [];
+
+        processedProfesores.forEach((profesor, index) => {
+          const profesorStatus = profesor.estado === 1 ? 'Activo' : (profesor.estado === 0 ? 'Inactivo' : 'Desconocido'); 
+          const lastConnectionText = profesor.ultima_conexion ? new Date(profesor.ultima_conexion).toLocaleDateString() : 'No ha ingresado a la pagina';
+
+          const row = document.createElement('tr');
+          row.dataset.id = profesor.id_usuario;
+
+          row.innerHTML = `
+            <td>${(currentPageProfesores - 1) * itemsPerPage + index + 1}</td>
+            <td>${profesor.periodoAcademicoNames.join(', ') || 'N/A'}</td>
+            <td>${profesor.cedula || ''}</td>
+            <td>${profesor.primer_nombre || ''}</td>
+            <td>${profesor.primer_apellido || ''}</td>
+            <td>${profesorStatus}</td>
+            <td>${lastConnectionText}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonProfessor${profesor.id_usuario}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButtonProfessor${profesor.id_usuario}">
+                  <li><a class="dropdown-item" href="#" data-action="activar-profesor" data-id="${profesor.id_usuario}"><i class='bx bx-undo me-2'></i>Activar Profesor</a></li>
+                </ul>
+              </div>
+            </td>
+          `;
+          profesoresTableBody.appendChild(row);
+        });
+
+        initializeProfessorDropdowns();
+        setupProfessorActionListeners(processedProfesores);
+        setupPagination(totalPages, currentPageProfesores, paginationControlsProfesores, 'profesor');
+        console.log("DEBUG: Renderizado de profesores inactivos completado.");
+      } catch (error) {
+        console.error('❌ Error al cargar profesores inactivos:', error);
+        profesoresTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar profesores inactivos. Intente nuevamente.</td></tr>`;
+      }
+    }
+
+    // Función principal para cargar cursos inactivos en la tabla
+    async function loadInactiveCursos(page) {
+      console.log(`DEBUG: loadInactiveCursos called for page ${page}.`);
+      cursosTableBody.innerHTML = `<tr><td colspan="5" class="text-center">Cargando cursos...</td></tr>`;
+      paginationControlsCursos.innerHTML = ''; 
+
+      try {
+        let response = await fetch(`${API_BASE_URL}/cursos/papelera?page=${page}&limit=${itemsPerPage}`);
+        if (!response.ok && response.status === 404) {
+          console.log("DEBUG: Endpoint /cursos/papelera no encontrado, intentando con /cursos?estado=0.");
+          response = await fetch(`${API_BASE_URL}/cursos?estado=0&page=${page}&limit=${itemsPerPage}`);
+        }
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            cursosTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron cursos inactivos.</td></tr>`;
+            console.log("DEBUG: 404 - No se encontraron cursos inactivos.");
+            return;
+          }
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const cursos = data.cursos; 
+        const totalPages = data.totalPages;
+        currentPageCursos = data.currentPage;
+
+        console.log("DEBUG: Datos de cursos inactivos recibidos del backend:", data);
+
+        cursosTableBody.innerHTML = ''; 
+
+        if (!cursos || cursos.length === 0) {
+          cursosTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron cursos inactivos.</td></tr>`;
+          console.log("DEBUG: Array de cursos inactivos vacío después de fetch.");
+          return;
+        }
+
+        const processedCursos = Array.isArray(cursos) ? cursos.map(curso => ({
+          ...curso,
+          periodoAcademicoNames: (typeof curso.periodoAcademicoNames === 'string' && curso.periodoAcademicoNames && curso.periodoAcademicoNames !== 'N/A') 
+                                 ? curso.periodoAcademicoNames.split(',').map(s => s.trim()).filter(Boolean) 
+                                 : ['N/A'],
+          nombre_curso: curso.nombre_curso || 'N/A'
+        })) : [];
+
+        processedCursos.forEach((curso, index) => {
+          const cursoStatus = curso.activo === 1 ? 'Activo' : (curso.activo === 0 ? 'Inactivo' : 'Desconocido'); 
+          const row = document.createElement('tr');
+          row.dataset.id = curso.id_curso;
+
+          row.innerHTML = `
+            <td>${(currentPageCursos - 1) * itemsPerPage + index + 1}</td>
+            <td>${curso.periodoAcademicoNames.join(', ') || 'N/A'}</td>
+            <td>${curso.nombre_curso}</td>
+            <td>${cursoStatus}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonCourse${curso.id_curso}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButtonCourse${curso.id_curso}">
+                  <li><a class="dropdown-item" href="#" data-action="activar-curso" data-id="${curso.id_curso}"><i class='bx bx-undo me-2'></i>Activar Curso</a></li>
+                </ul>
+              </div>
+            </td>
+          `;
+          cursosTableBody.appendChild(row);
+        });
+
+        initializeCourseDropdowns();
+        setupCourseActionListeners(processedCursos);
+        setupPagination(totalPages, currentPageCursos, paginationControlsCursos, 'curso');
+        console.log("DEBUG: Renderizado de cursos inactivos completado.");
+      } catch (error) {
+        console.error('❌ Error al cargar cursos inactivos:', error);
+        cursosTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error al cargar cursos inactivos. Intente nuevamente.</td></tr>`;
+      }
+    }
+
+    // Función principal para cargar materias inactivos en la tabla
+    async function loadInactiveMaterias(page) {
+      console.log(`DEBUG: loadInactiveMaterias called for page ${page}.`);
+      materiasTableBody.innerHTML = `<tr><td colspan="5" class="text-center">Cargando materias...</td></tr>`; // Colspan ajustado a 5
+      paginationControlsMaterias.innerHTML = ''; 
+
+      try {
+        let response = await fetch(`${API_BASE_URL}/materias/papelera?page=${page}&limit=${itemsPerPage}`);
+        if (!response.ok && response.status === 404) {
+          console.log("DEBUG: Endpoint /materias/papelera no encontrado, intentando con /materias?estado=0.");
+          response = await fetch(`${API_BASE_URL}/materias?estado=0&page=${page}&limit=${itemsPerPage}`);
+        }
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            materiasTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron materias inactivas.</td></tr>`; // Colspan ajustado a 5
+            console.log("DEBUG: 404 - No se encontraron materias inactivas.");
+            return;
+          }
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const materias = data.materias; 
+        const totalPages = data.totalPages;
+        currentPageMaterias = data.currentPage;
+
+        console.log("DEBUG: Datos de materias inactivos recibidos del backend:", data);
+
+        materiasTableBody.innerHTML = ''; 
+
+        if (!materias || materias.length === 0) {
+          materiasTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No se encontraron materias inactivas.</td></tr>`; // Colspan ajustado a 5
+          console.log("DEBUG: Array de materias inactivos vacío después de fetch.");
+          return;
+        }
+
+        const processedMaterias = Array.isArray(materias) ? materias.map(materia => ({
+          ...materia,
+          nombre_materia: materia.nombre_materia || 'N/A',
+          periodoAcademicoNames: (typeof materia.periodoAcademicoNames === 'string' && materia.periodoAcademicoNames && materia.periodoAcademicoNames !== 'N/A') 
+                                 ? materia.periodoAcademicoNames.split(',').map(s => s.trim()).filter(Boolean) 
+                                 : ['N/A'],
+        })) : [];
+
+        processedMaterias.forEach((materia, index) => {
+          const materiaStatus = materia.activo === 1 ? 'Activo' : (materia.activo === 0 ? 'Inactivo' : 'Desconocido'); 
+          const row = document.createElement('tr');
+          row.dataset.id = materia.id_materia;
+
+          row.innerHTML = `
+            <td>${(currentPageMaterias - 1) * itemsPerPage + index + 1}</td>
+            <td>${materia.periodoAcademicoNames.join(', ') || 'N/A'}</td> <!-- Aquí se muestra el Periodo Académico -->
+            <td>${materia.nombre_materia}</td>
+            <td>${materiaStatus}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonSubject${materia.id_materia}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButtonSubject${materia.id_materia}">
+                  <li><a class="dropdown-item" href="#" data-action="activar-materia" data-id="${materia.id_materia}"><i class='bx bx-undo me-2'></i>Activar Materia</a></li>
+                </ul>
+              </div>
+            </td>
+          `;
+          materiasTableBody.appendChild(row);
+        });
+
+        initializeSubjectDropdowns();
+        setupSubjectActionListeners(processedMaterias);
+        setupPagination(totalPages, currentPageMaterias, paginationControlsMaterias, 'materia');
+        console.log("DEBUG: Renderizado de materias inactivos completado.");
+      } catch (error) {
+        console.error('❌ Error al cargar materias inactivos:', error);
+        materiasTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error al cargar materias inactivos. Intente nuevamente.</td></tr>`; // Colspan ajustado a 5
+      }
+    }
+
+    // Función principal para cargar secciones inactivos en la tabla (NUEVA)
+    async function loadInactiveSecciones(page) {
+      console.log(`DEBUG: loadInactiveSecciones called for page ${page}.`);
+      seccionesTableBody.innerHTML = `<tr><td colspan="4" class="text-center">Cargando secciones...</td></tr>`; 
+      paginationControlsSecciones.innerHTML = ''; 
+
+      try {
+        let response = await fetch(`${API_BASE_URL}/secciones-academicas/papelera?page=${page}&limit=${itemsPerPage}`);
+        if (!response.ok && response.status === 404) {
+          console.log("DEBUG: Endpoint /secciones-academicas/papelera no encontrado, intentando con /secciones-academicas?estado=0.");
+          response = await fetch(`${API_BASE_URL}/secciones-academicas?estado=0&page=${page}&limit=${itemsPerPage}`);
+        }
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            seccionesTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No se encontraron secciones inactivas.</td></tr>`;
+            console.log("DEBUG: 404 - No se encontraron secciones inactivas.");
+            return;
+          }
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const secciones = data.secciones; 
+        const totalPages = data.totalPages;
+        currentPageSecciones = data.currentPage;
+
+        console.log("DEBUG: Datos de secciones inactivos recibidos del backend:", data);
+
+        seccionesTableBody.innerHTML = ''; 
+
+        if (!secciones || secciones.length === 0) {
+          seccionesTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No se encontraron secciones inactivas.</td></tr>`;
+          console.log("DEBUG: Array de secciones inactivos vacío después de fetch.");
+          return;
+        }
+
+        secciones.forEach((seccion, index) => {
+          const seccionStatus = seccion.estado === 1 ? 'Activo' : (seccion.estado === 0 ? 'Inactivo' : 'Desconocido'); 
+          const row = document.createElement('tr');
+          row.dataset.id = seccion.id_seccion;
+
+          row.innerHTML = `
+            <td>${(currentPageSecciones - 1) * itemsPerPage + index + 1}</td>
+            <td>${seccion.seccion || 'N/A'}</td>
+            <td>${seccionStatus}</td>
+            <td>
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonSection${seccion.id_seccion}" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class='bx bx-dots-vertical-rounded'></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButtonSection${seccion.id_seccion}">
+                  <li><a class="dropdown-item" href="#" data-action="activar-seccion" data-id="${seccion.id_seccion}"><i class='bx bx-undo me-2'></i>Activar Sección</a></li>
+                </ul>
+              </div>
+            </td>
+          `;
+          seccionesTableBody.appendChild(row);
+        });
+
+        initializeSectionDropdowns();
+        setupSectionActionListeners(secciones);
+        setupPagination(totalPages, currentPageSecciones, paginationControlsSecciones, 'seccion');
+        console.log("DEBUG: Renderizado de secciones inactivos completado.");
+      } catch (error) {
+        console.error('❌ Error al cargar secciones inactivas:', error);
+        seccionesTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error al cargar secciones inactivas. Intente nuevamente.</td></tr>`;
+      }
+    }
+
+
+    // Configurar listeners para los botones de acción en la tabla de estudiantes
+    function setupStudentActionListeners(estudiantesData) {
+        studentsTableBody.querySelectorAll('.dropdown-item').forEach(item => {
+            item.removeEventListener('click', handleStudentActionClick); 
+            item.addEventListener('click', handleStudentActionClick);
+
+            function handleStudentActionClick(e) {
                 e.preventDefault();
                 const action = e.currentTarget.dataset.action;
-                const periodoId = e.currentTarget.dataset.id;
-                const periodo = periodosData.find(p => p.id_periodo.toString() === periodoId);
-                
-                if (!periodo) {
-                    console.error('Error: Periodo no encontrado para ID:', periodoId);
+                const userId = e.currentTarget.dataset.id;
+                const student = estudiantesData.find(s => s.id_usuario.toString() === userId);
+
+                if (!student) {
+                    console.error('Estudiante no encontrado para ID:', userId);
                     return;
                 }
 
                 switch (action) {
-                    case 'ver-mas':
-                        mostrarDetallesPeriodo(periodo);
-                        break;
-                    case 'editar':
-                        editarPeriodo(periodo);
-                        break;
-                    case 'desactivar':
-                        console.warn("WARN: La acción 'desactivar' para periodos ha sido comentada en el backend porque la tabla 'periodo' no tiene el campo 'estado'.");
-                        mostrarErrorAlUsuario("La función 'Desactivar Periodo' no está disponible actualmente ya que el campo 'estado' no existe en la tabla de periodos.");
+                    case 'activar-estudiante': 
+                        activarEstudiante(student);
                         break;
                     default:
-                        console.warn('Acción desconocida:', action);
+                        console.warn('Acción desconocida para estudiante:', action);
                 }
             }
         });
     }
 
-    // Mostrar los detalles del periodo en el modal
-    async function mostrarDetallesPeriodo(periodo) {
-        console.log("DEBUG: Periodo para ver detalles (mostrarDetallesPeriodo):", periodo);
-        try {
-            const response = await fetch(`http://localhost:3001/api/periodos-academicos/${periodo.id_periodo}`);
-            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-            const detallesCompletos = await response.json();
-            console.log("DEBUG: Detalles completos del periodo del backend (mostrarDetallesPeriodo):", detallesCompletos);
+    // Configurar listeners para los botones de acción en la tabla de profesores
+    function setupProfessorActionListeners(profesoresData) {
+        profesoresTableBody.querySelectorAll('.dropdown-item').forEach(item => {
+            item.removeEventListener('click', handleProfessorActionClick); 
+            item.addEventListener('click', handleProfessorActionClick);
 
-            detallePeriodoId.textContent = detallesCompletos.id_periodo || 'N/A';
-            detallePeriodoNombre.textContent = detallesCompletos.nombre_periodo || 'N/A';
-            detalleFechaInicio.textContent = detallesCompletos.fechaInicio ? new Date(detallesCompletos.fechaInicio).toLocaleDateString() : 'N/A';
-            detalleFechaFin.textContent = detallesCompletos.fechaFinal ? new Date(detallesCompletos.fechaFinal).toLocaleDateString() : 'N/A';
+            function handleProfessorActionClick(e) {
+                e.preventDefault();
+                const action = e.currentTarget.dataset.action;
+                const userId = e.currentTarget.dataset.id;
+                const professor = profesoresData.find(p => p.id_usuario.toString() === userId);
 
-            detalleCursosAsociados.textContent = detallesCompletos.cursos_info && detallesCompletos.cursos_info.length > 0
-                ? detallesCompletos.cursos_info.map(c => c.nombre_curso).join(', ')
-                : 'Ninguno';
-            
-            detalleSeccionesAsociadas.textContent = detallesCompletos.secciones_info && detallesCompletos.secciones_info.length > 0
-                ? detallesCompletos.secciones_info.map(s => s.nombre_seccion).join(', ')
-                : 'Ninguna';
+                if (!professor) {
+                    console.error('Profesor no encontrado para ID:', userId);
+                    return;
+                }
 
-            detalleMateriasOfrecidas.textContent = detallesCompletos.materias_info && detallesCompletos.materias_info.length > 0
-                ? detallesCompletos.materias_info.map(m => m.nombre_materia).join(', ')
-                : 'Ninguna';
-            
-            detalleCantidadEstudiantes.textContent = detallesCompletos.totalEstudiantes !== undefined ? detallesCompletos.totalEstudiantes : 'N/A';
-            detalleCantidadProfesores.textContent = detallesCompletos.totalProfesores !== undefined ? detallesCompletos.totalProfesores : 'N/A';
+                switch (action) {
+                    case 'activar-profesor': 
+                        activarProfesor(professor);
+                        break;
+                    default:
+                        console.warn('Acción desconocida para profesor:', action);
+                }
+            }
+        });
+    }
 
-            modalVerMasInformacionPeriodo.show();
+    // Configurar listeners para los botones de acción en la tabla de cursos
+    function setupCourseActionListeners(cursosData) {
+        cursosTableBody.querySelectorAll('.dropdown-item').forEach(item => {
+            item.removeEventListener('click', handleCourseActionClick); 
+            item.addEventListener('click', handleCourseActionClick);
 
-        } catch (error) {
-            console.error('❌ Error al obtener detalles del periodo:', error);
-            mostrarErrorAlUsuario('Error al cargar la información detallada del periodo. Intente nuevamente.');
-        }
+            function handleCourseActionClick(e) {
+                e.preventDefault();
+                const action = e.currentTarget.dataset.action;
+                const courseId = e.currentTarget.dataset.id;
+                const course = cursosData.find(c => c.id_curso.toString() === courseId);
+
+                if (!course) {
+                    console.error('Curso no encontrado para ID:', courseId);
+                    return;
+                }
+
+                switch (action) {
+                    case 'activar-curso': 
+                        activarCurso(course);
+                        break;
+                    default:
+                        console.warn('Acción desconocida para curso:', action);
+                }
+            }
+        });
+    }
+
+    // Configurar listeners para los botones de acción en la tabla de materias
+    function setupSubjectActionListeners(materiasData) {
+        materiasTableBody.querySelectorAll('.dropdown-item').forEach(item => {
+            item.removeEventListener('click', handleSubjectActionClick); 
+            item.addEventListener('click', handleSubjectActionClick);
+
+            function handleSubjectActionClick(e) {
+                e.preventDefault();
+                const action = e.currentTarget.dataset.action;
+                const subjectId = e.currentTarget.dataset.id;
+                const subject = materiasData.find(m => m.id_materia.toString() === subjectId);
+
+                if (!subject) {
+                    console.error('Materia no encontrada para ID:', subjectId);
+                    return;
+                }
+
+                switch (action) {
+                    case 'activar-materia': 
+                        activarMateria(subject);
+                        break;
+                    default:
+                        console.warn('Acción desconocida para materia:', action);
+                }
+            }
+        });
+    }
+
+    // Configurar listeners para los botones de acción en la tabla de secciones (NUEVA)
+    function setupSectionActionListeners(seccionesData) {
+        seccionesTableBody.querySelectorAll('.dropdown-item').forEach(item => {
+            item.removeEventListener('click', handleSectionActionClick); 
+            item.addEventListener('click', handleSectionActionClick);
+
+            function handleSectionActionClick(e) {
+                e.preventDefault();
+                const action = e.currentTarget.dataset.action;
+                const sectionId = e.currentTarget.dataset.id;
+                const section = seccionesData.find(s => s.id_seccion.toString() === sectionId);
+
+                if (!section) {
+                    console.error('Sección no encontrada para ID:', sectionId);
+                    return;
+                }
+
+                switch (action) {
+                    case 'activar-seccion': 
+                        activarSeccion(section);
+                        break;
+                    default:
+                        console.warn('Acción desconocida para sección:', action);
+                }
+            }
+        });
     }
 
 
-    // Función para Editar Periodo
-    async function editarPeriodo(periodo) {
-        console.log("DEBUG: Periodo para editar (editarPeriodo):", periodo); 
-
-        try {
-            const response = await fetch(`http://localhost:3001/api/periodos-academicos/${periodo.id_periodo}`);
-            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-            const detallesCompletos = await response.json();
-            console.log("DEBUG: Detalles completos del periodo para edición (editarPeriodo):", detallesCompletos);
-
-            editIdPeriodo.value = detallesCompletos.id_periodo;
-            editNombrePeriodo.value = detallesCompletos.nombre_periodo || ''; 
-            editFechaInicio.value = detallesCompletos.fechaInicio ? new Date(detallesCompletos.fechaInicio).toISOString().split('T')[0] : '';
-            editFechaFin.value = detallesCompletos.fechaFinal ? new Date(detallesCompletos.fechaFinal).toISOString().split('T')[0] : '';
-
-            limpiarError(editNombrePeriodo);
-            limpiarError(editFechaInicio);
-            limpiarError(editFechaFin);
-
-            modalEditarPeriodo.show();
-
-        } catch (error) {
-            console.error('❌ Error al cargar detalles para edición:', error);
-            mostrarErrorAlUsuario('Error al cargar la información del periodo para edición. Intente nuevamente.');
-        }
-    }
-
-    // Función para Desactivar Periodo (Eliminación Lógica) - COMENTADA PORQUE 'estado' NO ESTÁ EN LA TABLA 'periodo'
-    /*
-    async function desactivarPeriodo(periodo) {
+    // Función para Activar Estudiante
+    async function activarEstudiante(estudiante) {
         const confirmResult = await mostrarConfirmacion(
-            `¿Estás seguro de que quieres desactivar el periodo "${periodo.nombre_periodo}"? Esto cambiará su estado a "Inactivo".`
+            `¿Estás seguro de que quieres activar al estudiante ${estudiante.primer_nombre} ${estudiante.primer_apellido}? Esto cambiará su estado a "Activo".`
         );
 
         if (!confirmResult) return;
 
         try {
-            const response = await fetch(`http://localhost:3001/api/periodos-academicos/${periodo.id_periodo}/estado`, {
+            const response = await fetch(`${API_BASE_URL}/estudiantes/${estudiante.id_usuario}/estado`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ estado: 0 }) 
+                body: JSON.stringify({ estado: 1 }) 
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || 'Error al desactivar el periodo');
+                throw new Error(data.error || 'Error al activar el estudiante');
             }
 
-            mostrarMensajeExito(`Periodo "${periodo.nombre_periodo}" ha sido desactivado exitosamente.`);
-            loadPeriodos(currentPage); 
+            mostrarMensajeExito(`Estudiante ${estudiante.primer_nombre} ${estudiante.primer_apellido} ha sido activado exitosamente.`);
+            loadInactiveStudents(currentPageStudents); // Recargar la tabla de estudiantes
         } catch (error) {
-            console.error('Error al desactivar periodo:', error);
-            mostrarErrorAlUsuario(`Error al desactivar el periodo: ${error.message}`);
+            console.error('Error al activar estudiante:', error);
+            mostrarErrorAlUsuario(`Error al activar al estudiante: ${error.message}`);
         }
     }
-    */
+
+    // Función para Activar Profesor
+    async function activarProfesor(profesor) {
+        const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de que quieres activar al profesor ${profesor.primer_nombre} ${profesor.primer_apellido}? Esto cambiará su estado a "Activo".`
+        );
+
+        if (!confirmResult) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/profesores/${profesor.id_usuario}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: 1 }) 
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al activar el profesor');
+            }
+
+            mostrarMensajeExito(`Profesor ${profesor.primer_nombre} ${profesor.primer_apellido} ha sido activado exitosamente.`);
+            loadInactiveProfesores(currentPageProfesores); // Recargar la tabla de profesores
+        } catch (error) {
+            console.error('Error al activar profesor:', error);
+            mostrarErrorAlUsuario(`Error al activar al profesor: ${error.message}`);
+        }
+    }
+
+    // Función para Activar Curso
+    async function activarCurso(curso) {
+        const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de que quieres activar el curso ${curso.nombre_curso}? Esto cambiará su estado a "Activo".`
+        );
+
+        if (!confirmResult) return;
+
+        try {
+            // Se actualiza la ruta para que coincida con el backend
+            const response = await fetch(`${API_BASE_URL}/cursos/${curso.id_curso}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: 1 }) 
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al activar el curso');
+            }
+
+            mostrarMensajeExito(`Curso ${curso.nombre_curso} ha sido activado exitosamente.`);
+            loadInactiveCursos(currentPageCursos); // Recargar la tabla de cursos
+        } catch (error) {
+            console.error('Error al activar curso:', error);
+            mostrarErrorAlUsuario(`Error al activar el curso: ${error.message}`);
+        }
+    }
+
+    // Función para Activar Materia
+    async function activarMateria(materia) {
+        const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de que quieres activar la materia ${materia.nombre_materia}? Esto cambiará su estado a "Activo".`
+        );
+
+        if (!confirmResult) return;
+
+        try {
+            // Se actualiza la ruta para que coincida con el backend
+            const response = await fetch(`${API_BASE_URL}/materias/${materia.id_materia}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: 1 }) 
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al activar la materia');
+            }
+
+            mostrarMensajeExito(`Materia ${materia.nombre_materia} ha sido activada exitosamente.`);
+            loadInactiveMaterias(currentPageMaterias); // Recargar la tabla de materias
+        } catch (error) {
+            console.error('Error al activar materia:', error);
+            mostrarErrorAlUsuario(`Error al activar la materia: ${error.message}`);
+        }
+    }
+
+    // Función para Activar Sección (NUEVA)
+    async function activarSeccion(seccion) {
+        const confirmResult = await mostrarConfirmacion(
+            `¿Estás seguro de que quieres activar la sección ${seccion.seccion}? Esto cambiará su estado a "Activo".`
+        );
+
+        if (!confirmResult) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/secciones-academicas/${seccion.id_seccion}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estado: 1 }) 
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Error al activar la sección');
+            }
+
+            mostrarMensajeExito(`Sección ${seccion.seccion} ha sido activada exitosamente.`);
+            loadInactiveSecciones(currentPageSecciones); // Recargar la tabla de secciones
+        } catch (error) {
+            console.error('Error al activar sección:', error);
+            mostrarErrorAlUsuario(`Error al activar la sección: ${error.message}`);
+        }
+    }
 
 
-    // Función de paginación (generalizada)
-    function setupPagination(totalPages, currentPage) {
-      console.log('DEBUG: setupPagination called.');
-      paginationControls.innerHTML = '';
+    // Función de paginación (generalizada para estudiantes, profesores, cursos, materias y secciones)
+    function setupPagination(totalPages, currentPage, paginationContainer, type) {
+      paginationContainer.innerHTML = '';
       if (totalPages <= 1) return;
 
       const ul = document.createElement('ul');
@@ -774,7 +1074,11 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
       prevLink.addEventListener('click', (e) => {
         e.preventDefault();
         if (currentPage > 1) {
-          loadPeriodos(currentPage - 1);
+          if (type === 'student') loadInactiveStudents(currentPage - 1);
+          else if (type === 'profesor') loadInactiveProfesores(currentPage - 1);
+          else if (type === 'curso') loadInactiveCursos(currentPage - 1); 
+          else if (type === 'materia') loadInactiveMaterias(currentPage - 1); 
+          else if (type === 'seccion') loadInactiveSecciones(currentPage - 1); // Paginación de secciones
         }
       });
       prevLi.appendChild(prevLink);
@@ -792,7 +1096,11 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
         link.textContent = '1';
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          loadPeriodos(1);
+          if (type === 'student') loadInactiveStudents(1);
+          else if (type === 'profesor') loadInactiveProfesores(1);
+          else if (type === 'curso') loadInactiveCursos(1); 
+          else if (type === 'materia') loadInactiveMaterias(1); 
+          else if (type === 'seccion') loadInactiveSecciones(1); // Paginación de secciones
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -813,7 +1121,11 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
         link.textContent = i;
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          loadPeriodos(i);
+          if (type === 'student') loadInactiveStudents(i);
+          else if (type === 'profesor') loadInactiveProfesores(i);
+          else if (type === 'curso') loadInactiveCursos(i); 
+          else if (type === 'materia') loadInactiveMaterias(i); 
+          else if (type === 'seccion') loadInactiveSecciones(i); // Paginación de secciones
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -834,7 +1146,11 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
         link.textContent = totalPages;
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          loadPeriodos(totalPages);
+          if (type === 'student') loadInactiveStudents(totalPages);
+          else if (type === 'profesor') loadInactiveProfesores(totalPages);
+          else if (type === 'curso') loadInactiveCursos(totalPages); 
+          else if (type === 'materia') loadInactiveMaterias(totalPages); 
+          else if (type === 'seccion') loadInactiveSecciones(totalPages); // Paginación de secciones
         });
         li.appendChild(link);
         ul.appendChild(li);
@@ -849,64 +1165,42 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
       nextLink.addEventListener('click', (e) => {
         e.preventDefault();
         if (currentPage < totalPages) {
-          loadPeriodos(currentPage + 1);
+          if (type === 'student') loadInactiveStudents(currentPage + 1);
+          else if (type === 'profesor') loadInactiveProfesores(currentPage + 1);
+          else if (type === 'curso') loadInactiveCursos(currentPage + 1); 
+          else if (type === 'materia') loadInactiveMaterias(currentPage + 1); 
+          else if (type === 'seccion') loadInactiveSecciones(currentPage + 1); // Paginación de secciones
         }
       });
       nextLi.appendChild(nextLink);
       ul.appendChild(nextLi);
 
-      paginationControls.appendChild(ul);
+      paginationContainer.appendChild(ul);
     }
 
-    loadPeriodos(1); 
+    // Cargar todas las tablas al inicio
+    loadInactiveStudents(1); 
+    loadInactiveProfesores(1);
+    loadInactiveCursos(1); 
+    loadInactiveMaterias(1); 
+    loadInactiveSecciones(1); // Cargar secciones inactivas (NUEVA)
 
-    // Funciones auxiliares
+    // Funciones auxiliares (manteniendo las tuyas si las usas en otras partes de tu app)
     function mostrarError(elemento, mensaje) {
-      // Check if the element is part of the period name input group
-      if (elemento === anadirNombrePeriodoParte1 || elemento === anadirNombrePeriodoParte2) {
-        anadirNombrePeriodoParte1.classList.add('is-invalid');
-        anadirNombrePeriodoParte2.classList.add('is-invalid');
-        anadirNombrePeriodoFeedback.textContent = mensaje;
-        anadirNombrePeriodoFeedback.style.display = 'block';
-      } else {
-        elemento.classList.add('is-invalid');
-        const errorElement = elemento.nextElementSibling; 
-        if (errorElement && errorElement.classList.contains('invalid-feedback')) {
-          errorElement.textContent = mensaje;
-          errorElement.style.display = 'block';
-        } else {
-          const parentErrorElement = elemento.parentNode.querySelector('.invalid-feedback');
-          if (parentErrorElement) {
-            parentErrorElement.textContent = mensaje;
-            parentErrorElement.style.display = 'block';
-          }
-        }
+      elemento.classList.add('is-invalid');
+      const errorElement = elemento.nextElementSibling || elemento.parentNode.querySelector('.invalid-feedback');
+      if (errorElement) {
+        errorElement.textContent = mensaje;
+        errorElement.style.display = 'block';
       }
-      console.log(`DEBUG: Error mostrado para ${elemento.id}: ${mensaje}`);
     }
 
     function limpiarError(elemento) {
-      // Check if the element is part of the period name input group
-      if (elemento === anadirNombrePeriodoParte1 || elemento === anadirNombrePeriodoParte2) {
-        anadirNombrePeriodoParte1.classList.remove('is-invalid');
-        anadirNombrePeriodoParte2.classList.remove('is-invalid');
-        anadirNombrePeriodoFeedback.textContent = '';
-        anadirNombrePeriodoFeedback.style.display = 'none';
-      } else {
-        elemento.classList.remove('is-invalid');
-        const errorElement = elemento.nextElementSibling; 
-        if (errorElement && errorElement.classList.contains('invalid-feedback')) {
-          errorElement.textContent = '';
-          errorElement.style.display = 'none';
-        } else {
-          const parentErrorElement = elemento.parentNode.querySelector('.invalid-feedback');
-          if (parentErrorElement) {
-            parentErrorElement.textContent = '';
-            parentErrorElement.style.display = 'none';
-          }
-        }
+      elemento.classList.remove('is-invalid');
+      const errorElement = elemento.nextElementSibling || elemento.parentNode.querySelector('.invalid-feedback');
+      if (errorElement) {
+        errorElement.style.display = 'none';
       }
-      console.log(`DEBUG: Error limpiado para ${elemento.id}.`);
     }
 
     function mostrarMensajeExito(mensaje) {
@@ -915,11 +1209,9 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
       alerta.style.zIndex = '1100';
       alerta.textContent = mensaje;
       document.body.appendChild(alerta);
-      console.log(`DEBUG: Mensaje de éxito mostrado: ${mensaje}`);
       
       setTimeout(() => {
         alerta.remove();
-        console.log("DEBUG: Mensaje de éxito removido.");
       }, 3000);
     }
 
@@ -929,48 +1221,49 @@ import "../../style/style-admin/periodo.css"; /* Importa los estilos CSS para la
       alerta.style.zIndex = '1100';
       alerta.textContent = mensaje;
       document.body.appendChild(alerta);
-      console.log(`DEBUG: Mensaje de error mostrado al usuario: ${mensaje}`);
       
       setTimeout(() => {
         alerta.remove();
-        console.log("DEBUG: Mensaje de error removido.");
       }, 5000);
     }
 
+    // Función para mostrar un modal de confirmación personalizado (reutilizada)
     function mostrarConfirmacion(mensaje) {
-      console.log("DEBUG: [mostrarConfirmacion] Iniciando...");
       return new Promise((resolve) => {
-        customConfirmModalBody.innerHTML = mensaje;
+        const confirmModalHtml = `
+          <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-labelledby="customConfirmModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="customConfirmModalLabel">Confirmación</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                  ${mensaje}
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirmar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', confirmModalHtml);
+        const confirmModalElement = document.getElementById('customConfirmModal');
+        const customConfirmModal = new bootstrap.Modal(confirmModalElement);
 
-        let resultToResolve = false; 
+        const confirmActionBtn = document.getElementById('confirmActionBtn');
+        confirmActionBtn.addEventListener('click', () => {
+          customConfirmModal.hide();
+          resolve(true);
+        });
 
-        const handleConfirmClick = () => {
-            console.log("DEBUG: [mostrarConfirmacion] Botón 'Confirmar' clickeado.");
-            resultToResolve = true; 
-            customConfirmModal.hide(); 
-        };
-        confirmActionBtn.removeEventListener('click', handleConfirmClick); 
-        confirmActionBtn.addEventListener('click', handleConfirmClick, { once: true });
-        console.log("DEBUG: [mostrarConfirmacion] Listener para 'Confirmar' adjuntado.");
-        
-        const handleCancelClick = () => {
-            console.log("DEBUG: [mostrarConfirmacion] Botón 'Cancelar' clickeado.");
-            resultToResolve = false; 
-            customConfirmModal.hide(); 
-        };
-        cancelActionBtn.removeEventListener('click', handleCancelClick); 
-        cancelActionBtn.addEventListener('click', handleCancelClick, { once: true });
-        console.log("DEBUG: [mostrarConfirmacion] Listener para 'Cancelar' adjuntado.");
+        confirmModalElement.addEventListener('hidden.bs.modal', () => {
+          confirmModalElement.remove();
+          resolve(false); 
+        }, { once: true }); 
 
-        const handleHiddenEvent = () => {
-            console.log("DEBUG: [mostrarConfirmacion] Evento 'hidden.bs.modal' disparado. Resolviendo promesa.");
-            customConfirmModalElement.removeEventListener('hidden.bs.modal', handleHiddenEvent); 
-            resolve(resultToResolve); 
-        };
-        customConfirmModalElement.removeEventListener('hidden.bs.modal', handleHiddenEvent); 
-        customConfirmModalElement.addEventListener('hidden.bs.modal', handleHiddenEvent, { once: true }); 
-
-        console.log("DEBUG: [mostrarConfirmacion] Llamando a customConfirmModal.show()...");
         customConfirmModal.show();
       });
     }

@@ -196,110 +196,221 @@ router.post('/login', async (req, res) => {
       return res.status(500).json({ error: 'Error interno del servidor' });
     }
   });
-  
+// --- COMIENZO DE LAS FUNCIONES DE UTILIDAD (DEBEN ESTAR EN TU BACKEND) ---
+
+// Función para convertir db.query en una Promesa
+// Esto es necesario para usar async/await con mysql2 basado en callbacks.
+const queryPromise = (sql, values) => {
+    return new Promise((resolve, reject) => {
+        // Asegúrate de que 'db' sea tu objeto de conexión a la base de datos mysql2
+        // Ejemplo: db.query(...)
+        db.query(sql, values, (err, result) => {
+            if (err) {
+                console.error("Error en queryPromise:", err); // Log de error aquí también
+                return reject(err);
+            }
+            resolve(result);
+        });
+    });
+};
+
+// Funciones para manejar transacciones con Promesas (si las usas)
+const beginTransactionPromise = () => {
+    return new Promise((resolve, reject) => {
+        db.beginTransaction(err => {
+            if (err) {
+                console.error("Error al iniciar transacción:", err);
+                return reject(err);
+            }
+            resolve();
+        });
+    });
+};
+
+const commitPromise = () => {
+    return new Promise((resolve, reject) => {
+        db.commit(err => {
+            if (err) {
+                console.error("Error al hacer commit de transacción:", err);
+                return reject(err);
+            }
+            resolve();
+        });
+    });
+};
+
+const rollbackPromise = () => {
+    return new Promise((resolve, reject) => {
+        db.rollback(() => {
+            console.warn('Transacción revertida.');
+            resolve(); // Siempre resuelve para no encadenar errores de rollback
+        });
+    });
+};
+
+// --- FIN DE LAS FUNCIONES DE UTILIDAD ---
   // Esta es una api para terminar el registro de un usuario (asignar rol, secciones, etc.)
-  router.post('/asignar-usuario',isAuthenticated,registrarAccion('Asignación de rol a usuario', 'usuarios'), (req, res) => {
-     // Usamos un bloque try...catch para errores de sintaxis o síncronos.
+router.post('/asignar-usuario', isAuthenticated, registrarAccion('Asignación de rol a usuario', 'usuarios'), (req, res) => {
     try {
-        // Añadimos 'periodos' a la desestructuración de req.body
         const { id_usuario, rol, secciones = [], cursos = [], materias = [], periodos = [] } = req.body;
 
-        // 1. Asignar id_nivel según el rol
         const niveles = { estudiante: 1, admin: 2, profesor: 3 };
         const id_nivel = niveles[rol] || 4; // 4 para "pendiente" o un valor por defecto si el rol no coincide
 
+        console.log(`[ASIGNAR-USUARIO] INICIO - Recibido: id_usuario=${id_usuario}, rol=${rol}, secciones=${JSON.stringify(secciones)}, cursos=${JSON.stringify(cursos)}, materias (id_materia_periodo)=${JSON.stringify(materias)}, periodos=${JSON.stringify(periodos)}`);
+
         // Paso 1: Actualizar el rol principal del usuario.
-        db.query('UPDATE usuarios SET rol = ?, id_nivel = ? WHERE id_usuario = ?', [rol, id_nivel, id_usuario], (err, result) => {
-            if (err) {
-                console.error('Error al actualizar el rol del usuario:', err);
-                return res.status(500).json({ error: 'Error asignando el rol al usuario.', detalle: err.message });
-            }
+        queryPromise('UPDATE usuarios SET rol = ?, id_nivel = ? WHERE id_usuario = ?', [rol, id_nivel, id_usuario])
+            .then(async (result) => { // <-- Este callback ahora es async
+                console.log(`[ASIGNAR-USUARIO] Rol de usuario ${id_usuario} actualizado a ${rol}.`);
 
-            // Función para continuar con las asignaciones específicas del rol
-            // Esta función será llamada después de insertar en la tabla específica del rol (estudiantes, profesores, administradores)
-            const continuarAsignaciones = () => {
-                // Solo realizamos estas inserciones si el rol NO es 'admin'
-                if (rol === 'estudiante' || rol === 'profesor') {
-                    // Asignar secciones al usuario
-                    if (secciones && secciones.length > 0) {
-                        const seccionValues = secciones.map(id_sec => [id_usuario, id_sec]);
-                        db.query('INSERT INTO usuario_seccion (id_usuario, id_seccion) VALUES ?', [seccionValues], (err) => {
-                            if (err) console.error('Error insertando usuario_seccion:', err);
-                            // En un entorno de producción, aquí querrías un manejo de errores más robusto,
-                            // como un rollback de la transacción si alguna inserción falla.
-                        });
+                // Función para continuar con las asignaciones específicas del rol
+                const continuarAsignaciones = async () => { // <-- Esta función DEBE ser async
+                    const directAssignmentPromises = []; // Para secciones, cursos, periodos (inserciones directas)
+
+                    if (rol === 'estudiante' || rol === 'profesor') {
+                        // Asignar secciones al usuario
+                        if (secciones && secciones.length > 0) {
+                            const seccionValues = secciones.map(id_sec => [id_usuario, id_sec]);
+                            console.log(`[ASIGNAR-USUARIO] Preparando inserción en usuario_seccion: ${JSON.stringify(seccionValues)}`);
+                            directAssignmentPromises.push(queryPromise('INSERT INTO usuario_seccion (id_usuario, id_seccion) VALUES ?', [seccionValues]));
+                        }
+
+                        // Asignar cursos al usuario
+                        if (cursos && cursos.length > 0) {
+                            const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+                            const cursoValues = cursos.map(id_cur => [id_usuario, id_cur, currentDateTime]);
+                            console.log(`[ASIGNAR-USUARIO] Preparando inserción en usuario_cursos: ${JSON.stringify(cursoValues)}`);
+                            directAssignmentPromises.push(queryPromise('INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES ?', [cursoValues]));
+                        }
+
+                        // Asignar periodos al usuario
+                        if (periodos && periodos.length > 0) {
+                            const periodoValues = periodos.map(id_per => [id_usuario, id_per]);
+                            console.log(`[ASIGNAR-USUARIO] Preparando inserción en usuario_periodo: ${JSON.stringify(periodoValues)}`);
+                            directAssignmentPromises.push(queryPromise('INSERT INTO usuario_periodo (id_usuario, id_periodo) VALUES ?', [periodoValues]));
+                        }
+
+                        // MODIFICACIÓN CLAVE: Asignar materias llamando a las APIs específicas (como en profesores/register)
+                        if (materias && materias.length > 0) {
+                            console.log(`[ASIGNAR-USUARIO] Procesando ${materias.length} materias (id_materia_periodo) para llamadas a API.`);
+                            for (const id_materia_periodo of materias) {
+                                console.log(`[ASIGNAR-USUARIO] Materia a procesar: id_materia_periodo = ${id_materia_periodo}`);
+                                try {
+                                    // 1. Obtener id_materia y id_periodo de la tabla materias_periodo
+                                    const mpDetails = await queryPromise('SELECT id_materia, id_periodo FROM materias_periodo WHERE id_materia_periodo = ?', [id_materia_periodo]);
+
+                                    if (mpDetails.length === 0) {
+                                        console.warn(`[ASIGNAR-USUARIO] WARN: No se encontraron detalles de materia/periodo para id_materia_periodo: ${id_materia_periodo}. Saltando asignación de materia.`);
+                                        continue; // Saltar esta asignación si no se encuentran los detalles
+                                    }
+                                    const { id_materia, id_periodo } = mpDetails[0];
+                                    console.log(`[ASIGNAR-USUARIO] Extraído de materias_periodo: id_materia=${id_materia}, id_periodo=${id_periodo} para id_materia_periodo=${id_materia_periodo}`);
+
+                                    let apiEndpoint;
+                                    let bodyData;
+
+                                    if (rol === 'estudiante') {
+                                        apiEndpoint = `/api/materias-academicas/${id_materia}/asignar-estudiantes`;
+                                        bodyData = { estudiantes: [id_usuario], id_periodo: id_periodo };
+                                        console.log(`[ASIGNAR-USUARIO] Rol es ESTUDIANTE. Llamando a: ${apiEndpoint}`);
+                                    } else if (rol === 'profesor') {
+                                        apiEndpoint = `/api/materias-academicas/${id_materia}/asignar-profesor`;
+                                        bodyData = { profesores: [id_usuario], id_periodo: id_periodo };
+                                        console.log(`[ASIGNAR-USUARIO] Rol es PROFESOR. Llamando a: ${apiEndpoint}`);
+                                    } else {
+                                        console.warn(`[ASIGNAR-USUARIO] WARN: Rol desconocido '${rol}' para asignación de materia. Saltando.`);
+                                        continue;
+                                    }
+
+                                    console.log(`[ASIGNAR-USUARIO] Realizando llamada interna a ${apiEndpoint} con body: ${JSON.stringify(bodyData)}`);
+                                    const assignResponse = await fetch(`http://localhost:3001${apiEndpoint}`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        // IMPORTANTE: Si tus APIs de asignación requieren autenticación (ej. token en header),
+                                        // deberías incluirlo aquí. 'credentials: include' no funcionará para S2S.
+                                        // Por ahora, asumimos que no es estrictamente necesario para llamadas internas o se maneja de otra forma.
+                                        body: JSON.stringify(bodyData)
+                                    });
+
+                                    let assignData;
+                                    try {
+                                        assignData = await assignResponse.json();
+                                    } catch (jsonError) {
+                                        const textResponse = await assignResponse.text();
+                                        console.error(`[ASIGNAR-USUARIO] ERROR: No se pudo parsear JSON de la respuesta de ${apiEndpoint}. Respuesta: ${textResponse}`, jsonError);
+                                        throw new Error(`Respuesta inválida de la API de asignación: ${textResponse.substring(0, 100)}...`);
+                                    }
+
+
+                                    if (!assignResponse.ok) {
+                                        console.error(`[ASIGNAR-USUARIO] ERROR: Fallo en la llamada interna a ${apiEndpoint}:`, assignData.error || assignData.detalle || 'Error desconocido');
+                                        throw new Error(`Error al asignar ${rol} a materia ${id_materia} (periodo ${id_periodo}): ${assignData.error || assignData.detalle || 'Error desconocido'}`);
+                                    }
+                                    console.log(`[ASIGNAR-USUARIO] ÉXITO: ${rol} ${id_usuario} asignado a materia ${id_materia} (periodo ${id_periodo}) exitosamente a través de API.`);
+
+                                } catch (fetchError) {
+                                    console.error(`[ASIGNAR-USUARIO] ERROR: Fallo al procesar asignación de materia ${id_materia_periodo}:`, fetchError);
+                                    // Propagar el error para que el catch principal lo maneje
+                                    return Promise.reject(fetchError);
+                                }
+                            }
+                        } else {
+                            console.log('[ASIGNAR-USUARIO] No hay materias para asignar.');
+                        }
+                    } else {
+                        console.log(`[ASIGNAR-USUARIO] Rol '${rol}' no requiere asignaciones académicas detalladas.`);
                     }
 
-                    // Asignar materias al usuario
-                    if (materias && materias.length > 0) {
-                        const materiaValues = materias.map(id_mat => [id_usuario, id_mat]);
-                        db.query('INSERT INTO usuario_materias (id_usuario, id_materia) VALUES ?', [materiaValues], (err) => {
-                            if (err) console.error('Error insertando usuario_materias:', err);
-                        });
-                    }
 
-                    // Asignar cursos al usuario
-                    if (cursos && cursos.length > 0) {
-                        const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-                        const cursoValues = cursos.map(id_cur => [id_usuario, id_cur, currentDateTime]);
-                        db.query('INSERT INTO usuario_cursos (id_usuario, id_curso, fecha_inscripcion) VALUES ?', [cursoValues], (err) => {
-                            if (err) console.error('Error insertando usuario_cursos:', err);
-                        });
-                    }
+                    try {
+                        console.log(`[ASIGNAR-USUARIO] Esperando que las promesas de asignación directa (${directAssignmentPromises.length}) se resuelvan...`);
+                        await Promise.all(directAssignmentPromises); // Esperar a que las promesas de asignación directa se resuelvan
+                        console.log('[ASIGNAR-USUARIO] Todas las asignaciones académicas directas completadas.');
 
-                    // NUEVO: Asignar periodos al usuario
-                    if (periodos && periodos.length > 0) {
-                        const periodoValues = periodos.map(id_per => [id_usuario, id_per]);
-                        db.query('INSERT INTO usuario_periodo (id_usuario, id_periodo) VALUES ?', [periodoValues], (err) => {
-                            if (err) console.error('Error insertando usuario_periodo:', err);
-                        });
+                        // Actualizar notificación a "procesado" (esto siempre se hace, independientemente del rol)
+                        queryPromise('UPDATE notificaciones SET estado = "procesado" WHERE id_usuario = ?', [id_usuario])
+                            .then(() => console.log(`[ASIGNAR-USUARIO] Notificación para usuario ${id_usuario} actualizada a "procesado".`))
+                            .catch(err => console.error('[ASIGNAR-USUARIO] Error actualizando notificación:', err)); // Manejar error de forma independiente
+
+                        // Finalmente, enviar la respuesta de éxito
+                        res.status(200).json({ message: 'Usuario asignado y registrado correctamente.' });
+                    } catch (assignmentError) {
+                        console.error('[ASIGNAR-USUARIO] ERROR: Fallo en una de las asignaciones académicas (Promise.all):', assignmentError);
+                        res.status(500).json({ error: 'Error al asignar detalles académicos al usuario.', detalle: assignmentError.message });
                     }
+                };
+
+                // Paso 2: Insertar el usuario en la tabla específica del rol (estudiantes, profesores, administradores)
+                if (rol === 'estudiante') {
+                    console.log(`[ASIGNAR-USUARIO] Insertando usuario ${id_usuario} en tabla 'estudiantes'.`);
+                    queryPromise('INSERT INTO estudiantes (id_usuario) VALUES (?)', [id_usuario])
+                        .catch(err => console.error('[ASIGNAR-USUARIO] Error insertando en la tabla de estudiantes:', err))
+                        .finally(() => continuarAsignaciones());
+                } else if (rol === 'profesor') {
+                    console.log(`[ASIGNAR-USUARIO] Insertando usuario ${id_usuario} en tabla 'profesores'.`);
+                    queryPromise('INSERT INTO profesores (id_usuario) VALUES (?)', [id_usuario])
+                        .catch(err => console.error('[ASIGNAR-USUARIO] Error insertando en la tabla de profesores:', err))
+                        .finally(() => continuarAsignaciones());
+                } else if (rol === 'admin') {
+                    console.log(`[ASIGNAR-USUARIO] Insertando usuario ${id_usuario} en tabla 'usuario_administradores'.`);
+                    queryPromise('INSERT INTO usuario_administradores (id_usuario) VALUES (?)', [id_usuario])
+                        .catch(err => console.error('[ASIGNAR-USUARIO] Error insertando en la tabla de administradores:', err))
+                        .finally(() => continuarAsignaciones());
+                } else {
+                    console.log(`[ASIGNAR-USUARIO] Rol '${rol}' no requiere inserción en tabla específica. Continuando asignaciones.`);
+                    continuarAsignaciones();
                 }
-
-                // Actualizar notificación a "procesado" (esto siempre se hace, independientemente del rol)
-                db.query('UPDATE notificaciones SET estado = "procesado" WHERE id_usuario = ?', [id_usuario], (err) => {
-                    if (err) console.error('Error actualizando notificación:', err);
-                });
-
-                // Finalmente, enviar la respuesta de éxito
-                res.status(200).json({ message: 'Usuario asignado y registrado correctamente.' });
-            };
-
-            // Paso 2: Insertar el usuario en la tabla específica del rol (estudiantes, profesores, administradores)
-            if (rol === 'estudiante') {
-                db.query('INSERT INTO estudiantes (id_usuario) VALUES ( ?)', [id_usuario], (err) => {
-                    if (err) {
-                        console.error('Error insertando en la tabla de estudiantes:', err);
-                        // No retornamos aquí, llamamos a continuarAsignaciones para mantener el flujo
-                    }
-                    continuarAsignaciones();
-                });
-            } else if (rol === 'profesor') {
-                db.query('INSERT INTO profesores (id_usuario) VALUES (?)', [id_usuario], (err) => {
-                    if (err) {
-                        console.error('Error insertando en la tabla de profesores:', err);
-                    }
-                    continuarAsignaciones();
-                });
-            } else if (rol === 'admin') {
-                db.query('INSERT INTO usuario_administradores (id_usuario) VALUES (?)', [id_usuario], (err) => {
-                    if (err) {
-                        console.error('Error insertando en la tabla de administradores:', err);
-                    }
-                    continuarAsignaciones(); // Continuar incluso si hay error en la inserción de admin
-                });
-            } else {
-                // Si el rol no es ninguno de los anteriores, simplemente continuar
-                continuarAsignaciones();
-            }
-        });
+            })
+            .catch(err => { // Captura errores de la actualización inicial del rol
+                console.error('[ASIGNAR-USUARIO] ERROR: Fallo al actualizar el rol del usuario (promesa inicial):', err);
+                return res.status(500).json({ error: 'Error asignando el rol al usuario.', detalle: err.message });
+            });
     } catch (error) {
-        console.error('Error general en /asignar-usuario:', error);
+        console.error('[ASIGNAR-USUARIO] ERROR: General en /asignar-usuario (catch principal):', error);
         res.status(500).json({ error: 'Error interno del servidor.', detalle: error.message });
     }
-
-  });
-
+});
   router.get('/me', (req, res) => {
   if (req.session && req.session.usuario && req.session.usuario.id) {
     res.json({ id_usuario: req.session.usuario.id });

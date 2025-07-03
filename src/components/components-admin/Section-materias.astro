@@ -141,7 +141,7 @@ import "../../style/style-admin/materias.css";
   </div>
 </div>
 
-<!-- Modal para Editar Materia -->
+<!-- Modal para Editar Materia (EXISTENTE EN TU CÓDIGO) -->
 <div class="modal fade" id="modalEditarMateria" tabindex="-1" aria-labelledby="modalEditarMateriaLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-dialog-custom-width">
     <div class="modal-content">
@@ -166,6 +166,22 @@ import "../../style/style-admin/materias.css";
               <!-- Opciones de cursos se cargarán aquí -->
             </select>
             <div class="invalid-feedback">Por favor, selecciona un curso.</div>
+          </div>
+          <div class="mb-3">
+            <label for="editIdPeriodo" class="form-label">Período <span class="campo-obligatorio">*</span></label>
+            <select class="form-select" id="editIdPeriodo" required>
+              <option value="">Selecciona un período</option>
+              <!-- Opciones de períodos se cargarán aquí -->
+            </select>
+            <div class="invalid-feedback">Por favor, selecciona un período.</div>
+          </div>
+          <div class="mb-3">
+            <label for="editIdSeccion" class="form-label">Sección <span class="campo-obligatorio">*</span></label>
+            <select class="form-select" id="editIdSeccion" required>
+              <option value="">Selecciona una sección</option>
+              <!-- Opciones de secciones se cargarán aquí -->
+            </select>
+            <div class="invalid-feedback">Por favor, selecciona una sección.</div>
           </div>
           <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -303,7 +319,7 @@ import "../../style/style-admin/materias.css";
    * @param {string} tipo El tipo de alerta ('success' o 'danger').
    * @param {number} duracion La duración en milisegundos (por defecto 5000).
    */
-  function mostrarAlerta(mensaje, tipo, duracion = 5000) {
+  function mostrarAlerta(mensaje, tipo, duracion = 4000) { // Cambiado a 4000ms (4 segundos)
     const alertContainer = document.getElementById('alertContainer') || (() => {
       const div = document.createElement('div');
       div.id = 'alertContainer';
@@ -329,6 +345,10 @@ import "../../style/style-admin/materias.css";
       // Usa Bootstrap's native dismiss method
       const bsAlert = new bootstrap.Alert(alertElement);
       bsAlert.dispose(); // Cierra el alerta y lo remueve del DOM
+      // Asegurarse de que el elemento se elimine del DOM
+      if (alertElement.parentNode) {
+        alertElement.parentNode.removeChild(alertElement);
+      }
     }, duracion);
   }
 
@@ -639,6 +659,9 @@ import "../../style/style-admin/materias.css";
             <a href="/Admin-Control/actividades-notas?materiaId=${materia.id_materia}&periodoId=${materia.id_periodo}" class="btn btn-primary btn-sm">
               <i class='bx bx-list-check me-1'></i> Ver Actividades/Notas
             </a>
+            <button type="button" class="btn btn-primary btn-sm edit-materia-btn" data-id="${materia.id_materia}" data-periodo-id="${materia.id_periodo}">
+              <i class='bx bx-edit me-1'></i> Editar Materia
+            </button>
             ${materia.estado === 1 ? `
               <button type="button" class="btn btn-primary btn-sm desactivar-materia-btn" data-id="${materia.id_materia}">
                 <i class='bx bx-pause me-1'></i> Desactivar Materia
@@ -729,32 +752,34 @@ import "../../style/style-admin/materias.css";
 
   // Cargar opciones para los selects de cursos, estudiantes y profesores
   async function loadSelectOptions() {
-    const idCursoSelect = document.getElementById('idCurso');
-    const editIdCursoSelect = document.getElementById('editIdCurso');
-    const idPeriodoSelect = document.getElementById('idPeriodo');
-    const idSeccionSelect = document.getElementById('idSeccion');
+    const idCursoSelect = document.getElementById('idCurso'); // Para añadir materia
+    const editIdCursoSelect = document.getElementById('editIdCurso'); // Para editar materia
+    const idPeriodoSelect = document.getElementById('idPeriodo'); // Para añadir materia
+    const editIdPeriodoSelect = document.getElementById('editIdPeriodo'); // Para editar materia
+    const idSeccionSelect = document.getElementById('idSeccion'); // Para añadir materia
+    const editIdSeccionSelect = document.getElementById('editIdSeccion'); // Para editar materia
+
 
     try {
-      const cursos = await fetch(`${API_BASE_URL}/cursos`).then(r => r.json());
-      idCursoSelect.innerHTML = '<option value="">Selecciona una opción</option>';
-      cursos.forEach(curso => {
-        idCursoSelect.innerHTML += `<option value="${curso.id_curso}">${curso.nombre_curso} - ${curso.nombre_periodo}</option>`;
-      });
+      // Cargar cursos
+      const cursosResponse = await fetch(`${API_BASE_URL}/cursos`);
+      const cursos = await cursosResponse.json();
+      populateSelect(idCursoSelect, cursos, 'id_curso', 'nombre_curso');
+      populateSelect(editIdCursoSelect, cursos, 'id_curso', 'nombre_curso');
+
 
       // Obtener periodos (solo activos)
       const periodosResponse = await fetch(`${API_BASE_URL}/periodos`);
       const periodos = await periodosResponse.json();
-      periodos.forEach(periodo => {
-        idPeriodoSelect.innerHTML += `<option value="${periodo.id_periodo}">${periodo.periodo}</option>`;
-      });
+      populateSelect(idPeriodoSelect, periodos, 'id_periodo', 'periodo');
+      populateSelect(editIdPeriodoSelect, periodos, 'id_periodo', 'periodo');
+
 
       // Obtener secciones
       const seccionesResponse = await fetch(`${API_BASE_URL}/secciones`);
       const secciones = await seccionesResponse.json();
-      idSeccionSelect.innerHTML = '<option value="">Selecciona una sección</option>';
-      secciones.forEach(seccion => {
-        idSeccionSelect.innerHTML += `<option value="${seccion.id_seccion}">${seccion.seccion}</option>`;
-      });
+      populateSelect(idSeccionSelect, secciones, 'id_seccion', 'seccion');
+      populateSelect(editIdSeccionSelect, secciones, 'id_seccion', 'seccion');
 
     } catch (error) {
       console.error('Error al cargar opciones de select:', error);
@@ -779,13 +804,13 @@ import "../../style/style-admin/materias.css";
       button.addEventListener('click', handleEditMateria);
     });
 
-    // Event listeners para botones de cambiar estado
+    // Event listeners para botones de cambiar estado (si existen)
     document.querySelectorAll('.estado-materia-btn').forEach(button => {
       button.removeEventListener('click', handleChangeMateriaEstado); // Evitar duplicados
       button.addEventListener('click', handleChangeMateriaEstado);
     });
 
-    // Event listeners para botones de eliminar
+    // Event listeners para botones de eliminar (si existen)
     document.querySelectorAll('.delete-materia-btn').forEach(button => {
       button.removeEventListener('click', handleDeleteMateria); // Evitar duplicados
       button.addEventListener('click', handleDeleteMateria);
@@ -816,13 +841,13 @@ import "../../style/style-admin/materias.css";
     event.preventDefault();
 
     const form = event.target;
-    const nombreMateria = form.elements['nombreMateria'].value.trim();
+    const materia = form.elements['nombreMateria'].value.trim(); 
     const idCurso = form.elements['idCurso'].value;
     const idPeriodo = form.elements['idPeriodo'].value;
     const idSeccion = form.elements['idSeccion'].value;
 
     // Validación básica
-    if (!nombreMateria || !idCurso || !idPeriodo || !idSeccion) {
+    if (!materia || !idCurso || !idPeriodo || !idSeccion) {
       form.classList.add('was-validated'); // Muestra feedback de Bootstrap
       mostrarAlerta('Por favor, completa todos los campos obligatorios.', 'danger');
       return;
@@ -830,7 +855,7 @@ import "../../style/style-admin/materias.css";
 
     const data = {
       id_curso: parseInt(idCurso),
-      nombreMateria,
+      materia, 
       id_periodo: parseInt(idPeriodo),
       id_seccion: parseInt(idSeccion)
     };
@@ -871,17 +896,78 @@ import "../../style/style-admin/materias.css";
 
   async function handleEditMateria(event) {
     const materiaId = event.currentTarget.dataset.id;
+    const periodoId = event.currentTarget.dataset.periodoId; // Obtener el ID del período de la materia
+
     try {
-      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}`); // Obtener detalles de la materia
+      // Obtener detalles de la materia, incluyendo el id_periodo
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}?id_periodo=${periodoId}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const materia = await response.json();
 
+      console.log("DEBUG: Materia data fetched for editing:", materia); // Log the entire materia object
+      console.log("DEBUG: Expected id_curso to set:", materia.id_curso); // Log the id_curso from backend
+      console.log("DEBUG: Expected id_seccion to set:", materia.id_seccion); // Log the id_seccion from backend
+
       // Llenar el modal de edición con los datos de la materia
       document.getElementById('editMateriaId').value = materia.id_materia;
-      document.getElementById('editNombreMateria').value = materia.nombre_materia || materia.materia || '';
-      document.getElementById('editIdCurso').value = materia.id_curso;
+      // Almacenar el ID del período original en un dataset del select de período
+      document.getElementById('editIdPeriodo').dataset.originalPeriodoId = periodoId; 
+      document.getElementById('editNombreMateria').value = materia.nombre_materia || ''; 
+      
+      // Establecer el curso, período y sección correctos
+      const editIdCursoSelect = document.getElementById('editIdCurso');
+      let cursoOptionFound = false;
+      for (let i = 0; i < editIdCursoSelect.options.length; i++) {
+          if (editIdCursoSelect.options[i].value == materia.id_curso) {
+              editIdCursoSelect.options[i].selected = true;
+              cursoOptionFound = true;
+              break;
+          }
+      }
+      if (!cursoOptionFound) {
+          console.warn(`WARN: Course ID ${materia.id_curso} not found in dropdown options for materia ${materia.id_materia}. Setting to default.`);
+          editIdCursoSelect.value = ""; // Reset to default "Selecciona una opción"
+      }
+      console.log("DEBUG: Current value of editIdCursoSelect after setting:", editIdCursoSelect.value);
+
+      // Establecer el período
+      const editIdPeriodoSelect = document.getElementById('editIdPeriodo');
+      let periodoOptionFound = false;
+      for (let i = 0; i < editIdPeriodoSelect.options.length; i++) {
+          if (editIdPeriodoSelect.options[i].value == materia.id_periodo) {
+              editIdPeriodoSelect.options[i].selected = true;
+              periodoOptionFound = true;
+              break;
+          }
+      }
+      if (!periodoOptionFound) {
+          console.warn(`WARN: Period ID ${materia.id_periodo} not found in dropdown options for materia ${materia.id_materia}. Setting to default.`);
+          editIdPeriodoSelect.value = ""; // Reset to default "Selecciona una opción"
+      }
+      console.log("DEBUG: Current value of editIdPeriodoSelect after setting:", editIdPeriodoSelect.value);
+      
+      const editIdSeccionSelect = document.getElementById('editIdSeccion');
+      
+      // Establecer la sección correcta iterando sobre las opciones
+      let seccionOptionFound = false;
+      for (let i = 0; i < editIdSeccionSelect.options.length; i++) {
+          // Usar '==' para permitir la coerción de tipo (número vs string)
+          if (editIdSeccionSelect.options[i].value == materia.id_seccion) {
+              editIdSeccionSelect.options[i].selected = true;
+              seccionOptionFound = true;
+              break;
+          }
+      }
+      if (!seccionOptionFound) {
+          console.warn(`WARN: Section ID ${materia.id_seccion} not found in dropdown options for materia ${materia.id_materia}. Setting to default.`);
+          editIdSeccionSelect.value = ""; // Reset to default "Selecciona una opción"
+      }
+      console.log("DEBUG: Current value of editIdSeccionSelect after setting:", editIdSeccionSelect.value);
+      const selectedOption = Array.from(editIdSeccionSelect.options).find(option => option.selected);
+      console.log("DEBUG: Selected option in editIdSeccionSelect after setting:", selectedOption ? selectedOption.value : 'No option selected');
+
 
       const modalElement = document.getElementById('modalEditarMateria');
       const bootstrapModal = new bootstrap.Modal(modalElement);
@@ -898,22 +984,37 @@ import "../../style/style-admin/materias.css";
 
     const form = event.target;
     const materiaId = form.elements['editMateriaId'].value;
-    const nombreMateria = form.elements['editNombreMateria'].value.trim();
+    const materia = form.elements['editNombreMateria'].value.trim(); 
     const idCurso = form.elements['editIdCurso'].value;
+    const idPeriodo = form.elements['editIdPeriodo'].value; // Este es el newIdPeriodo
+    const idSeccion = form.elements['editIdSeccion'].value; 
 
-    if (!nombreMateria || !idCurso) {
+    // oldIdPeriodo se obtiene del dataset del select de período
+    const oldIdPeriodo = document.getElementById('editIdPeriodo').dataset.originalPeriodoId; 
+
+    // Validación: Solo los campos de entrada del usuario
+    if (!materia || !idCurso || !idPeriodo || !idSeccion) { 
       form.classList.add('was-validated');
       mostrarAlerta('Por favor, completa todos los campos obligatorios.', 'danger');
       return;
     }
 
+    // Asegurarse de que oldIdPeriodo no sea undefined/null antes de enviar
+    if (!oldIdPeriodo) {
+        console.error("ERROR: oldIdPeriodo no está definido. No se puede actualizar la materia.");
+        mostrarAlerta('Error interno: No se pudo obtener el período original de la materia.', 'danger');
+        return;
+    }
+
     const data = {
-      nombre_materia: nombreMateria,
-      id_curso: parseInt(idCurso)
+      materia: materia, 
+      id_curso: parseInt(idCurso),
+      id_periodo: parseInt(idPeriodo), // newIdPeriodo
+      id_seccion: parseInt(idSeccion)
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}`, { // Ruta PUT para actualizar
+      const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}/periodo/${oldIdPeriodo}`, { 
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -986,7 +1087,7 @@ import "../../style/style-admin/materias.css";
         const response = await fetch(`${API_BASE_URL}/materias-academicas/${materiaId}/estado`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado: 'inactivo' }) // Cambiado de 0 a 'inactivo'
+          body: JSON.stringify({ estado: 'inactivo' }) 
         });
 
         if (!response.ok) {

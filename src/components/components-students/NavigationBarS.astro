@@ -198,98 +198,245 @@ import "../../style/style-students/NavigationBar.css"; // Este CSS ahora incluye
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
 <script type="module">
-  // Importa Bootstrap Bundle con Popper para que los offcanvas y modales funcionen
-  import 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js';
-
   // Base URL for your API, make sure it is correct.
   const API_BASE_URL = 'http://localhost:3001/api';
 
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM completamente cargado. Inicializando funciones de navegación.');
-    cargarUsuarioLogueado();
-    cargarComentariosEstudiante(); // Cambiado de cargarNotificaciones a cargarComentariosEstudiante
-    configurarLogout();
-    configurarOffcanvasPerfil(); // Nueva función para manejar el offcanvas del perfil
-    // NOTA: Las funciones relacionadas con el modal de asignación de usuario (para admin)
-    // han sido removidas de este archivo navEst.txt ya que no corresponden al rol de estudiante.
-    const editProfileNavButton = document.getElementById('editProfileNavButton');
-    if (editProfileNavButton) {
-      editProfileNavButton.addEventListener('click', () => {
-        // Redirige a la página de perfil al hacer clic en el botón
-        window.location.href = '/Students-Control/Editar-perfil'; 
-      });
-    }
   // Define la función para mostrar alertas (debería ser la misma que en tu sidebar y otras páginas)
   let globalMostrarAlerta;
 
-  // Lógica de carga de Bootstrap JS (importante para que los modales y offcanvas funcionen)
-  const loadBootstrapPromise = new Promise((resolve, reject) => {
-    const checkBootstrapReady = setInterval(() => {
-        if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal && window.bootstrap.Alert && window.bootstrap.Offcanvas) {
-            clearInterval(checkBootstrapReady);
-            console.log("Bootstrap ya cargado en el ámbito global.");
-            resolve();
-        }
-    }, 50); // Chequea cada 50ms
-  });
+  document.addEventListener('DOMContentLoaded', async () => { // Hacemos esta función async
+    console.log('DOM completamente cargado. Inicializando funciones de navegación.');
 
-  document.addEventListener('DOMContentLoaded', async () => {
-    console.log("Navbar DOMContentLoaded: Iniciando script.");
+    // Lógica de carga de Bootstrap JS (importante para que los modales y offcanvas funcionen)
+    // Mover la definición de loadBootstrapPromise aquí para que esté en el ámbito correcto
+    const loadBootstrapPromise = new Promise((resolve, reject) => {
+      const checkBootstrapReady = setInterval(() => {
+          if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Modal && window.bootstrap.Alert && window.bootstrap.Offcanvas) {
+              clearInterval(checkBootstrapReady);
+              console.log("Bootstrap ya cargado en el ámbito global.");
+              resolve();
+          }
+      }, 50); // Chequea cada 50ms
+    });
+
     try {
-      await loadBootstrapPromise;
+      await loadBootstrapPromise; // Ahora loadBootstrapPromise está definida en este ámbito
       console.log("Navbar: Bootstrap JS disponible.");
       
+      // Funciones auxiliares y de lógica de la página, definidas dentro del DOMContentLoaded
+      // para asegurar que estén en el ámbito correcto y Bootstrap esté cargado.
 
-      // Definir globalMostrarAlerta aquí
-      globalMostrarAlerta = function(mensaje, tipo, duracion = 5000) {
-        const alertContainer = document.getElementById('alertContainer') || (() => {
-          const div = document.createElement('div');
-          div.id = 'alertContainer';
-          div.style.position = 'fixed';
-          div.style.top = '20px';
-          div.style.left = '50%';
-          div.style.transform = 'translateX(-50%)';
-          div.style.zIndex = '9999';
-          div.style.width = 'auto';
-          div.style.maxWidth = '90%';
-          document.body.appendChild(div);
-          return div;
-        })();
+      // 1) Carga datos del usuario logueado en el offcanvas de perfil (MODIFICADA para mayor robustez)
+      async function cargarUsuarioLogueado() {
+        let currentUserId = null;
+        let userName = 'Cargando...';
+        let userEmail = 'Cargando...';
+        let userRole = 'Cargando...';
+        let profileImageUrl = '';
+        let profileIconClass = '';
 
-        const alertElement = document.createElement('div');
-        alertElement.className = `alert alert-${tipo} alert-dismissible fade show`;
-        alertElement.role = 'alert';
-        alertElement.textContent = mensaje;
-        alertContainer.appendChild(alertElement);
+        try {
+          // Paso 1: Obtener la información básica de la sesión para conseguir el ID del usuario
+          const sessionRes = await fetch('http://localhost:3001/usuario', {
+            method: 'GET',
+            credentials: 'include'
+          });
+          const sessionData = await sessionRes.json();
+          console.log('Session Data (from /usuario):', sessionData);
 
-        setTimeout(() => {
-          if (alertElement.parentNode) {
-            const bsAlert = new bootstrap.Alert(alertElement);
-            bsAlert.dispose();
+          if (sessionRes.ok && sessionData.id) {
+            // Asegúrate de que el ID sea un número válido y elimina cualquier parte extra
+            currentUserId = parseInt(sessionData.id);
+            if (isNaN(currentUserId)) {
+              console.error("ID de usuario no es un número válido:", sessionData.id);
+              throw new Error("ID de usuario inválido.");
+            }
+
+            // Usar los datos de la sesión para una carga inicial más rápida de la información básica
+            userName = `${sessionData.primer_nombre || ''} ${sessionData.primer_apellido || ''}`;
+            userEmail = sessionData.correo || 'Cargando...'; // Asegúrate de que el campo de email en /usuario sea 'correo'
+            userRole = sessionData.rol || 'Cargando...';
+
+            // Paso 2: Usar el ID para obtener la información COMPLETA del usuario (incluyendo imagen/icono)
+            // Se añade un manejo de errores más específico para la respuesta JSON.
+            const userRes = await fetch(`http://localhost:3001/usuarios/${currentUserId}`, {
+              method: 'GET',
+              credentials: 'include'
+            });
+            
+            let userData = null;
+            if (userRes.ok) {
+                try {
+                    userData = await userRes.json();
+                    console.log('User Data (from /usuarios/{id}):', userData); // ¡Revisa esto en tu consola!
+                } catch (jsonError) {
+                    console.error('Error parsing JSON from /usuarios/{id}:', jsonError);
+                    console.error('Response text was:', await userRes.text()); // Log the problematic response text
+                }
+            } else {
+                console.warn(`No se pudo obtener la información detallada del usuario para el ID ${currentUserId}. HTTP Status: ${userRes.status}`);
+                console.warn('Response text was:', await userRes.text()); // Log the response for debugging
+            }
+
+            if (userData) { // Si los datos detallados del usuario están disponibles, sobrescribir con ellos
+              userName = `${userData.primer_nombre || ''} ${userData.primer_apellido || ''}`;
+              userEmail = userData.correo_electronico || userData.correo || 'Cargando...'; // Prefiere 'correo_electronico', pero usa 'correo' if not exists
+              userRole = userData.rol || 'Cargando...';
+              profileImageUrl = userData.profile_image_url || '';
+              profileIconClass = userData.profile_icon_class || '';
+            } else {
+              console.warn(`No se pudo obtener la información detallada del usuario o hubo un error al parsear. Se utilizarán los datos básicos de la sesión.`);
+              profileImageUrl = sessionData.profile_image_url || ''; // Fallback a la sesión si existe
+              profileIconClass = sessionData.profile_icon_class || ''; // Fallback a la sesión si existe
+            }
+          } else {
+            console.warn('ID de usuario no encontrado en la sesión o el usuario no está autenticado. Se mostrarán los valores por defecto.');
           }
-        }, duracion);
-      };
 
-      // Inicializar el dropdown del usuario (se mantiene intacto)
-      const userDropdownToggle = document.getElementById('userDropdownToggle');
-      const userDropdownMenu = document.getElementById('userDropdownMenu'); 
-      if (userDropdownToggle && userDropdownMenu) { 
-        const dropdown = new bootstrap.Dropdown(userDropdownToggle);
-        userDropdownToggle.addEventListener('click', () => {
-            dropdown.toggle(); 
-        });
-      } else {
-          console.warn("Elementos del dropdown de usuario no encontrados o no aplicables para este HTML.");
+        } catch (error) {
+          console.error('❌ Error en cargarUsuarioLogueado (catch principal):', error);
+          userName = 'Error al cargar';
+          userEmail = 'Error al cargar';
+          userRole = 'Error al cargar';
+          profileImageUrl = '';
+          profileIconClass = '';
+        } finally {
+          document.getElementById('nombreUsuario').textContent = userName;
+          document.getElementById('emailUsuario').textContent = userEmail;
+          document.getElementById('rolUsuario').textContent = userRole;
+          updateProfileDisplayElements(profileImageUrl, profileIconClass);
+        }
       }
-      // Lógica de Logout (se mantiene intacta, con tu función de toast)
-      configurarLogout(); 
+
+      // 2) Carga comentarios y los inyecta en el offcanvas (Modificada para mostrar SOLO no leídos)
+      async function cargarComentariosEstudiante() { 
+        const container = document.getElementById('notificacionComentariosContainer'); 
+        if (!container) {
+            console.error("Contenedor de notificaciones no encontrado: #notificacionComentariosContainer");
+            return;
+        }
+        container.innerHTML = `<p class="text-center text-muted p-4">Cargando comentarios...</p>`; 
+
+        try {
+          const resp = await fetch(`${API_BASE_URL}/comentarios`, { 
+            method: 'GET',
+            credentials: 'include'
+          });
+
+          if (!resp.ok) {
+            const errorData = await resp.json().catch(() => ({ error: "Error desconocido" }));
+            throw new Error(`Error HTTP! Status: ${resp.status}. Detalles: ${errorData.error}`);
+          }
+          
+          const { comentarios } = await resp.json(); 
+          console.log("Comentarios recibidos para offcanvas:", comentarios);
+
+          container.innerHTML = ''; 
+
+          // CAMBIO CLAVE: Filtrar para mostrar SOLO comentarios NO LEÍDOS en el offcanvas
+          const unreadComentarios = comentarios.filter(c => !c.leido_por_estudiante);
+
+          if (unreadComentarios.length === 0) {
+            container.innerHTML = `<p class="text-center text-muted p-4">Sin comentarios nuevos.</p>`;
+            return;
+          }
+          // Añade los comentarios no leídos dinámicamente
+          unreadComentarios.forEach(c => { 
+            const card = document.createElement('div');
+            card.className = 'offcanvas-body notificacion-item';
+            card.dataset.comentarioId = c.id_comentario; 
+            card.dataset.comentarioData = JSON.stringify(c); 
+            
+            card.innerHTML = `
+              <div class="notification-content">
+                <i class="bx bx-user-circle"></i>
+              </div>
+              <div class="notification-text">
+                <h6 class="name-user-notifi">
+                  ${c.nombre_profesor} ${c.apellido_profesor} <span>(${c.rol_emisor})</span>
+                </h6>
+                <p class="message-user-notifi">Actividad: <strong>${c.nombre_actividad}</strong></p>
+                <p class="message-user-notifi-short">${c.contenido.substring(0, 50)}${c.contenido.length > 50 ? '...' : ''}</p>
+                <small class="text-info">${new Date(c.fecha_creacion).toLocaleDateString()} ${new Date(c.fecha_creacion).toLocaleTimeString()}</small>
+                <span class="read-status-offcanvas">
+                  <i class="bx bx-check unread-icon"></i> <!-- Siempre 'nuevo' aquí inicialmente -->
+                </span>
+              </div>`;
+            
+            // Abre el modal de ver mensaje Y MARCA COMO LEÍDO al hacer clic en la tarjeta
+            card.addEventListener('click', async (event) => {
+                const clickedCard = event.currentTarget;
+                const comentarioId = clickedCard.dataset.comentarioId;
+                const comentarioData = JSON.parse(clickedCard.dataset.comentarioData);
+
+                await abrirModalVerMensaje(comentarioData); // Abre el modal
+
+                // Marcar como leído en el backend
+                await markCommentsAsRead([parseInt(comentarioId)]);
+
+                // Quitar el comentario del offcanvas inmediatamente
+                clickedCard.remove(); 
+
+                // CAMBIO CLAVE: Pequeña demora para asegurar que la DB se actualice antes de pedir el nuevo conteo.
+                setTimeout(() => {
+                    if (window.updateUnreadCommentsCountFromNavbar) {
+                        console.log("Notificando al navbar para actualizar el conteo después de un breve retraso.");
+                        window.updateUnreadCommentsCountFromNavbar();
+                    }
+                }, 200); // 200ms de retraso
+            });
+            container.appendChild(card);
+          });
+
+        }                       catch (error) {
+          console.error('Error cargando comentarios para el offcanvas:', error);
+          container.innerHTML = `<p class="text-center text-danger p-4">Error al cargar comentarios.</p>`;
+        }
+      }
+
+      // Función para abrir modal para ver el mensaje completo del comentario (Mantenida de tu código)
+      function abrirModalVerMensaje(comentario) {
+        document.getElementById('remitenteNombre').textContent = `${comentario.nombre_profesor} ${comentario.apellido_profesor}`; 
+        document.getElementById('remitenteRol').textContent = comentario.rol_emisor;
+        document.getElementById('mensajeFecha').textContent = new Date(comentario.fecha_creacion).toLocaleDateString() + ' ' + new Date(comentario.fecha_creacion).toLocaleTimeString(); 
+        document.getElementById('actividad').textContent = comentario.nombre_actividad;
+        document.getElementById('mensajeCompleto').textContent = comentario.contenido;
+
+        const modalVerMensaje = new bootstrap.Modal(document.getElementById('modalVerMensaje'));
+        modalVerMensaje.show();
+      }
+
+      /**
+       * @function markCommentsAsRead
+       * @description Llama a la API para marcar un array de comentarios como leídos.
+       * Esta función es llamada desde `Comentarios.astro` (la página principal de comentarios)
+       * y ahora también desde el `estd-.txt` (navbar) al abrir el modal de comentario.
+       * @param {number[]} ids - Array de IDs de comentarios a marcar como leídos.
+       */
+      async function markCommentsAsRead(ids) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/comentarios/marcar-leido`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ comentarioIds: ids }),
+            credentials: 'include'
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
+            throw new Error(`Error HTTP! Estado: ${response.status}. Detalles: ${errorData.error}`);
+          }
+
+          const result = await response.json();
+          console.log("Respuesta de marcar como leído:", result.message);
+
+        } catch (error) {
+          console.error("Error al marcar comentarios como leídos en el backend:", error);
+        }
+      }
       
-
-      // --- Nuevas funcionalidades para notificaciones ---
-      const unreadCommentsBadge = document.getElementById('unreadCommentsBadge');
-      const notificationBellButton = document.getElementById('notificationBellButton');
-      const offcanvasNotifications = document.getElementById('offcanvasNotifications');
-
       // Función para actualizar el conteo de notificaciones
       async function updateUnreadCommentsCount() {
         console.log("Intentando actualizar el conteo de comentarios no leídos...");
@@ -329,6 +476,194 @@ import "../../style/style-students/NavigationBar.css"; // Este CSS ahora incluye
         }
       }
 
+      // 6) Configurar logout (Mantenida de tu código)
+      function configurarLogout() {
+        const btn = document.getElementById('logoutButton');
+        if (!btn) {
+          console.warn('El botón con ID "logoutButton" no fue encontrado en el DOM.');
+          return;
+        }
+        btn.addEventListener('click', async (event) => {
+          event.preventDefault(); 
+          try {
+            const response = await fetch('http://localhost:3001/logout', { 
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              credentials: 'include'
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log('Respuesta del backend al logout:', data.message);
+              localStorage.removeItem('isLoggedIn'); 
+              window.location.href = '/'; 
+            } else {
+              const errorData = await response.json();
+              console.error('Error al cerrar sesión en el backend:', errorData.error || response.statusText);
+              mostrarToastError(`Error al cerrar sesión: ${errorData.error || response.statusText}`);
+            }
+          } catch (error) {
+            console.error('Error de red o del servidor al cerrar sesión:', error);
+            mostrarToastError('No se pudo conectar con el servidor para cerrar la sesión.');
+          }
+        });
+      }
+
+      // 7) Configurar offcanvas del perfil para manejar clics fuera del área
+      function configurarOffcanvasPerfil() {
+        const offcanvasPerfil = document.getElementById('offcanvasWithBothOptions');
+        if (!offcanvasPerfil) {
+          console.warn('El offcanvas del perfil no fue encontrado en el DOM.');
+          return;
+        }
+
+        // Event listener para detectar clics fuera del offcanvas
+        document.addEventListener('click', (event) => {
+          const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasPerfil);
+          
+          // Si el offcanvas está abierto
+          if (offcanvasInstance && offcanvasPerfil.classList.contains('show')) {
+            // Verificar si el clic fue fuera del offcanvas
+            if (!offcanvasPerfil.contains(event.target) && 
+                !event.target.closest('.Perfil-icons-container') && // Asegúrate de que este selector sea correcto para tu botón de perfil
+                !event.target.closest('.offcanvas-backdrop')) { // Asegúrate de no cerrar si el clic es en el backdrop
+              // Cerrar el offcanvas
+              offcanvasInstance.hide();
+            }
+          }
+        });
+
+        // Event listener para el evento 'hidden.bs.offcanvas' para limpiar cualquier estado residual
+        offcanvasPerfil.addEventListener('hidden.bs.offcanvas', () => {
+          // En lugar de eliminarlo, solo ocúltalo correctamente
+          const backdrop = document.querySelector('.offcanvas-backdrop');
+          if (backdrop) {
+            backdrop.classList.remove('show');
+            setTimeout(() => backdrop.remove(), 150); // le damos tiempo a la transición
+          }
+        });
+      }
+
+      // Function to update the displayed profile picture/icon in Navbar and Offcanvas
+      function updateProfileDisplayElements(profileImageUrl, iconClass) {
+        const navProfileImage = document.getElementById('navProfileImage');
+        const navProfileIcon = document.getElementById('navProfileIcon');
+        const offcanvasProfileImage = document.getElementById('offcanvasProfileImage');
+        const offcanvasProfileIcon = document.getElementById('offcanvasProfileIcon');
+
+        // Update Navbar Profile
+        if (profileImageUrl && profileImageUrl !== '') {
+          navProfileImage.src = profileImageUrl;
+          navProfileImage.classList.add('active'); // Show image
+          navProfileIcon.classList.remove('active'); // Hide icon
+        } else if (iconClass && iconClass !== '') {
+          navProfileIcon.className = iconClass + ' profile-nav-icon'; // Set the icon class
+          navProfileIcon.classList.add('active'); // Show icon
+          navProfileImage.classList.remove('active'); // Hide image
+        } else { // Fallback to default user circle icon if neither is provided
+          navProfileIcon.className = 'bx bx-user-circle profile-nav-icon';
+          navProfileIcon.classList.add('active');
+          navProfileImage.classList.remove('active');
+        }
+
+        // Update Offcanvas Profile
+        if (profileImageUrl && profileImageUrl !== '') {
+          offcanvasProfileImage.src = profileImageUrl;
+          offcanvasProfileImage.classList.add('active'); // Show image
+          offcanvasProfileIcon.classList.remove('active'); // Hide icon
+        } else if (iconClass && iconClass !== '') {
+          offcanvasProfileIcon.className = iconClass + ' img-perfil-icon'; // Set the icon class
+          offcanvasProfileIcon.classList.add('active'); // Show icon
+          offcanvasProfileImage.classList.remove('active'); // Hide image
+        } else { // Fallback to default user circle icon if neither is provided
+          offcanvasProfileIcon.className = 'bx bx-user-circle img-perfil-icon';
+          offcanvasProfileIcon.classList.add('active');
+          offcanvasProfileImage.classList.remove('active');
+        }
+      }
+
+      // Función para mostrar un toast de error (Mantenida de tu código y modificada para duración)
+      function mostrarToastError(message = 'Ocurrió un error inesperado.') {
+        const toastErrorEl = document.getElementById('toastError');
+        const toastErrorBody = document.getElementById('toastErrorBody');
+        if (toastErrorBody) {
+          toastErrorBody.textContent = message;
+        }
+        if (toastErrorEl) {
+          const toast = new bootstrap.Toast(toastErrorEl);
+          toast.show();
+          setTimeout(() => {
+            toast.hide(); // Ocultar el toast después de 4 segundos
+          }, 4000); 
+        } else {
+          console.error("No se encontró el elemento 'toastError' para mostrar el mensaje:", message);
+        }
+      }
+
+      // Función para mostrar un toast de confirmación (añadida para duración)
+      function mostrarToastConfirmacion(message = '¡Listo! Operación completada.') {
+        const toastConfirmacionEl = document.getElementById('toastConfirmacion');
+        const toastConfirmacionBody = toastConfirmacionEl ? toastConfirmacionEl.querySelector('.toast-body') : null;
+        if (toastConfirmacionBody) {
+          toastConfirmacionBody.textContent = message;
+        }
+        if (toastConfirmacionEl) {
+          const toast = new bootstrap.Toast(toastConfirmacionEl);
+          toast.show();
+          setTimeout(() => {
+            toast.hide(); // Ocultar el toast después de 4 segundos
+          }, 4000); 
+        } else {
+          console.error("No se encontró el elemento 'toastConfirmacion' para mostrar el mensaje:", message);
+        }
+      }
+
+      // Llamadas iniciales
+      cargarUsuarioLogueado();
+      cargarComentariosEstudiante(); 
+      configurarLogout();
+      configurarOffcanvasPerfil(); 
+
+      const editProfileNavButton = document.getElementById('editProfileNavButton');
+      if (editProfileNavButton) {
+        editProfileNavButton.addEventListener('click', () => {
+          window.location.href = '/Students-Control/Editar-perfil'; 
+        });
+      }
+
+      // Definir globalMostrarAlerta aquí
+      globalMostrarAlerta = function(mensaje, tipo, duracion = 4000) { // Duración cambiada a 4 segundos
+        const alertContainer = document.getElementById('alertContainer') || (() => {
+          const div = document.createElement('div');
+          div.id = 'alertContainer';
+          div.style.position = 'fixed';
+          div.style.top = '20px';
+          div.style.left = '50%';
+          div.style.transform = 'translateX(-50%)';
+          div.style.zIndex = '9999';
+          div.style.width = 'auto';
+          div.style.maxWidth = '90%';
+          document.body.appendChild(div);
+          return div;
+        })();
+
+        const alertElement = document.createElement('div');
+        alertElement.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertElement.role = 'alert';
+        alertElement.textContent = mensaje;
+        alertContainer.appendChild(alertElement);
+
+        setTimeout(() => {
+          if (alertElement.parentNode) {
+            const bsAlert = new bootstrap.Alert(alertElement);
+            bsAlert.dispose();
+            alertElement.parentNode.removeChild(alertElement); // Eliminar del DOM
+          }
+        }, duracion);
+      };
+
       // Hacemos global la función para que la página de comentarios la pueda llamar
       window.updateUnreadCommentsCountFromNavbar = updateUnreadCommentsCount;
 
@@ -344,388 +679,18 @@ import "../../style/style-students/NavigationBar.css"; // Este CSS ahora incluye
       await cargarComentariosEstudiante(); // Carga inicial al cargar la página (solo no leídos).
       await updateUnreadCommentsCount(); // Actualizar el conteo del badge al cargar la página.
 
-      // Llamar a cargarUsuarioLogueado al inicio (se mantiene tu función existente)
-      cargarUsuarioLogueado(); 
-
 
     } catch (error) {
       console.error("Error crítico en el script del Navbar:", error);
-      if (typeof alert !== 'undefined') {
+      // Usar globalMostrarAlerta si ya está definida, de lo contrario un alert simple
+      if (typeof globalMostrarAlerta === 'function') {
+        globalMostrarAlerta("Error crítico en la navegación. Algunas funciones pueden no estar disponibles. Detalles: " + error.message, 'danger');
+      } else {
         alert("Error crítico en la navegación. Algunas funciones pueden no estar disponibles. Detalles: " + error.message);
       }
     }
     
   });
-
-  // Función para mostrar un toast de error (Mantenida de tu código)
-  function mostrarToastError(message = 'Ocurrió un error inesperado.') {
-    const toastErrorEl = document.getElementById('toastError');
-    const toastErrorBody = document.getElementById('toastErrorBody');
-    if (toastErrorBody) {
-      toastErrorBody.textContent = message;
-    }
-    if (toastErrorEl) {
-      const toast = new bootstrap.Toast(toastErrorEl);
-      toast.show();
-    } else {
-      console.error("No se encontró el elemento 'toastError' para mostrar el mensaje:", message);
-    }
-  }
-  const perfilOffcanvas = document.getElementById('offcanvasWithBothOptions');
-
-    // Cierra el offcanvas cuando se hace clic fuera (en el backdrop)
-    document.addEventListener('mousedown', (e) => {
-      const isBackdrop = e.target.classList.contains('offcanvas-backdrop');
-      const isOffcanvasShown = perfilOffcanvas.classList.contains('show');
-
-      if (isBackdrop && isOffcanvasShown) {
-        const offcanvasInstance = bootstrap.Offcanvas.getInstance(perfilOffcanvas);
-        if (offcanvasInstance) {
-          offcanvasInstance.hide();
-        }
-      }
-    });
-
-    // Elimina backdrop residual manualmente cuando se oculta
-    perfilOffcanvas.addEventListener('hidden.bs.offcanvas', () => {
-  // En lugar de eliminarlo, solo ocúltalo correctamente
-  const backdrop = document.querySelector('.offcanvas-backdrop');
-  if (backdrop) {
-    backdrop.classList.remove('show');
-    setTimeout(() => backdrop.remove(), 150); // le damos tiempo a la transición
-  }
-});
-
-  // Function to update the displayed profile picture/icon in Navbar and Offcanvas
-  function updateProfileDisplayElements(profileImageUrl, iconClass) {
-    const navProfileImage = document.getElementById('navProfileImage');
-    const navProfileIcon = document.getElementById('navProfileIcon');
-    const offcanvasProfileImage = document.getElementById('offcanvasProfileImage');
-    const offcanvasProfileIcon = document.getElementById('offcanvasProfileIcon');
-
-    // Update Navbar Profile
-    if (profileImageUrl && profileImageUrl !== '') {
-      navProfileImage.src = profileImageUrl;
-      navProfileImage.classList.add('active'); // Show image
-      navProfileIcon.classList.remove('active'); // Hide icon
-    } else if (iconClass && iconClass !== '') {
-      navProfileIcon.className = iconClass + ' profile-nav-icon'; // Set the icon class
-      navProfileIcon.classList.add('active'); // Show icon
-      navProfileImage.classList.remove('active'); // Hide image
-    } else { // Fallback to default user circle icon if neither is provided
-      navProfileIcon.className = 'bx bx-user-circle profile-nav-icon';
-      navProfileIcon.classList.add('active');
-      navProfileImage.classList.remove('active');
-    }
-
-    // Update Offcanvas Profile
-    if (profileImageUrl && profileImageUrl !== '') {
-      offcanvasProfileImage.src = profileImageUrl;
-      offcanvasProfileImage.classList.add('active'); // Show image
-      offcanvasProfileIcon.classList.remove('active'); // Hide icon
-    } else if (iconClass && iconClass !== '') {
-      offcanvasProfileIcon.className = iconClass + ' img-perfil-icon'; // Set the icon class
-      offcanvasProfileIcon.classList.add('active'); // Show icon
-      offcanvasProfileImage.classList.remove('active'); // Hide image
-    } else { // Fallback to default user circle icon if neither is provided
-      offcanvasProfileIcon.className = 'bx bx-user-circle img-perfil-icon';
-      offcanvasProfileIcon.classList.add('active');
-      offcanvasProfileImage.classList.remove('active');
-    }
-  }
-
-
-  // 1) Carga datos del usuario logueado en el offcanvas de perfil (MODIFICADA para mayor robustez)
-  async function cargarUsuarioLogueado() {
-    let currentUserId = null;
-    let userName = 'Cargando...';
-    let userEmail = 'Cargando...';
-    let userRole = 'Cargando...';
-    let profileImageUrl = '';
-    let profileIconClass = '';
-
-    try {
-      // Paso 1: Obtener la información básica de la sesión para conseguir el ID del usuario
-      const sessionRes = await fetch('http://localhost:3001/usuario', {
-        method: 'GET',
-        credentials: 'include'
-      });
-      const sessionData = await sessionRes.json();
-      console.log('Session Data (from /usuario):', sessionData);
-
-      if (sessionRes.ok && sessionData.id) {
-        // Asegúrate de que el ID sea un número válido y elimina cualquier parte extra
-        currentUserId = parseInt(sessionData.id);
-        if (isNaN(currentUserId)) {
-          console.error("ID de usuario no es un número válido:", sessionData.id);
-          throw new Error("ID de usuario inválido.");
-        }
-
-        // Usar los datos de la sesión para una carga inicial más rápida de la información básica
-        userName = `${sessionData.primer_nombre || ''} ${sessionData.primer_apellido || ''}`;
-        userEmail = sessionData.correo || 'Cargando...'; // Asegúrate de que el campo de email en /usuario sea 'correo'
-        userRole = sessionData.rol || 'Cargando...';
-
-        // Paso 2: Usar el ID para obtener la información COMPLETA del usuario (incluyendo imagen/icono)
-        // Se añade un manejo de errores más específico para la respuesta JSON.
-        const userRes = await fetch(`http://localhost:3001/usuarios/${currentUserId}`, {
-          method: 'GET',
-          credentials: 'include'
-        });
-        
-        let userData = null;
-        if (userRes.ok) {
-            try {
-                userData = await userRes.json();
-                console.log('User Data (from /usuarios/{id}):', userData); // ¡Revisa esto en tu consola!
-            } catch (jsonError) {
-                console.error('Error parsing JSON from /usuarios/{id}:', jsonError);
-                console.error('Response text was:', await userRes.text()); // Log the problematic response text
-            }
-        } else {
-            console.warn(`No se pudo obtener la información detallada del usuario para el ID ${currentUserId}. HTTP Status: ${userRes.status}`);
-            console.warn('Response text was:', await userRes.text()); // Log the response for debugging
-        }
-
-        if (userData) { // Si los datos detallados del usuario están disponibles, sobrescribir con ellos
-          userName = `${userData.primer_nombre || ''} ${userData.primer_apellido || ''}`;
-          userEmail = userData.correo_electronico || userData.correo || 'Cargando...'; // Prefiere 'correo_electronico', pero usa 'correo' si no existe
-          userRole = userData.rol || 'Cargando...';
-          profileImageUrl = userData.profile_image_url || '';
-          profileIconClass = userData.profile_icon_class || '';
-        } else {
-          console.warn(`No se pudo obtener la información detallada del usuario o hubo un error al parsear. Se utilizarán los datos básicos de la sesión.`);
-          profileImageUrl = sessionData.profile_image_url || ''; // Fallback a la sesión si existe
-          profileIconClass = sessionData.profile_icon_class || ''; // Fallback a la sesión si existe
-        }
-      } else {
-        console.warn('ID de usuario no encontrado en la sesión o el usuario no está autenticado. Se mostrarán los valores por defecto.');
-      }
-
-    } catch (error) {
-      console.error('❌ Error en cargarUsuarioLogueado (catch principal):', error);
-      userName = 'Error al cargar';
-      userEmail = 'Error al cargar';
-      userRole = 'Error al cargar';
-      profileImageUrl = '';
-      profileIconClass = '';
-    } finally {
-      document.getElementById('nombreUsuario').textContent = userName;
-      document.getElementById('emailUsuario').textContent = userEmail;
-      document.getElementById('rolUsuario').textContent = userRole;
-      updateProfileDisplayElements(profileImageUrl, profileIconClass);
-    }
-  }
-
-  // 2) Carga comentarios y los inyecta en el offcanvas (Modificada para mostrar SOLO no leídos)
-  async function cargarComentariosEstudiante() { 
-    const container = document.getElementById('notificacionComentariosContainer'); 
-    if (!container) {
-        console.error("Contenedor de notificaciones no encontrado: #notificacionComentariosContainer");
-        return;
-    }
-    container.innerHTML = `<p class="text-center text-muted p-4">Cargando comentarios...</p>`; 
-
-    try {
-      const resp = await fetch(`${API_BASE_URL}/comentarios`, { 
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if (!resp.ok) {
-        const errorData = await resp.json().catch(() => ({ error: "Error desconocido" }));
-        throw new Error(`Error HTTP! Status: ${resp.status}. Detalles: ${errorData.error}`);
-      }
-      
-      const { comentarios } = await resp.json(); 
-      console.log("Comentarios recibidos para offcanvas:", comentarios);
-
-      container.innerHTML = ''; 
-
-      // CAMBIO CLAVE: Filtrar para mostrar SOLO comentarios NO LEÍDOS en el offcanvas
-      const unreadComentarios = comentarios.filter(c => !c.leido_por_estudiante);
-
-      if (unreadComentarios.length === 0) {
-        container.innerHTML = `<p class="text-center text-muted p-4">Sin comentarios nuevos.</p>`;
-        return;
-      }
-      // Añade los comentarios no leídos dinámicamente
-      unreadComentarios.forEach(c => { 
-        const card = document.createElement('div');
-        card.className = 'offcanvas-body notificacion-item';
-        card.dataset.comentarioId = c.id_comentario; 
-        card.dataset.comentarioData = JSON.stringify(c); 
-        
-        card.innerHTML = `
-          <div class="notification-content">
-            <i class="bx bx-user-circle"></i>
-          </div>
-          <div class="notification-text">
-            <h6 class="name-user-notifi">
-              ${c.nombre_profesor} ${c.apellido_profesor} <span>(${c.rol_emisor})</span>
-            </h6>
-            <p class="message-user-notifi">Actividad: <strong>${c.nombre_actividad}</strong></p>
-            <p class="message-user-notifi-short">${c.contenido.substring(0, 50)}${c.contenido.length > 50 ? '...' : ''}</p>
-            <small class="text-info">${new Date(c.fecha_creacion).toLocaleDateString()} ${new Date(c.fecha_creacion).toLocaleTimeString()}</small>
-            <span class="read-status-offcanvas">
-              <i class="bx bx-check unread-icon"></i> <!-- Siempre 'nuevo' aquí inicialmente -->
-            </span>
-          </div>`;
-        
-        // Abre el modal de ver mensaje Y MARCA COMO LEÍDO al hacer clic en la tarjeta
-        card.addEventListener('click', async (event) => {
-            const clickedCard = event.currentTarget;
-            const comentarioId = clickedCard.dataset.comentarioId;
-            const comentarioData = JSON.parse(clickedCard.dataset.comentarioData);
-
-            await abrirModalVerMensaje(comentarioData); // Abre el modal
-
-            // Marcar como leído en el backend
-            await markCommentsAsRead([parseInt(comentarioId)]);
-
-            // Quitar el comentario del offcanvas inmediatamente
-            clickedCard.remove(); 
-
-            // CAMBIO CLAVE: Pequeña demora para asegurar que la DB se actualice antes de pedir el nuevo conteo.
-            setTimeout(() => {
-                if (window.updateUnreadCommentsCountFromNavbar) {
-                    console.log("Notificando al navbar para actualizar el conteo después de un breve retraso.");
-                    window.updateUnreadCommentsCountFromNavbar();
-                }
-            }, 200); // 200ms de retraso
-        });
-        container.appendChild(card);
-      });
-
-    }                       catch (error) {
-      console.error('Error cargando comentarios para el offcanvas:', error);
-      container.innerHTML = `<p class="text-center text-danger p-4">Error al cargar comentarios.</p>`;
-    }
-  }
-
-  // Función para abrir modal para ver el mensaje completo del comentario (Mantenida de tu código)
-  function abrirModalVerMensaje(comentario) {
-    document.getElementById('remitenteNombre').textContent = `${comentario.nombre_profesor} ${comentario.apellido_profesor}`; 
-    document.getElementById('remitenteRol').textContent = comentario.rol_emisor;
-    document.getElementById('mensajeFecha').textContent = new Date(comentario.fecha_creacion).toLocaleDateString() + ' ' + new Date(comentario.fecha_creacion).toLocaleTimeString(); 
-    document.getElementById('actividad').textContent = comentario.nombre_actividad;
-    document.getElementById('mensajeCompleto').textContent = comentario.contenido;
-
-    const modalVerMensaje = new bootstrap.Modal(document.getElementById('modalVerMensaje'));
-    modalVerMensaje.show();
-  }
-
-  /**
-   * @function markCommentsAsRead
-   * @description Llama a la API para marcar un array de comentarios como leídos.
-   * Esta función es llamada desde `Comentarios.astro` (la página principal de comentarios)
-   * y ahora también desde el `estd-.txt` (navbar) al abrir el modal de comentario.
-   * @param {number[]} ids - Array de IDs de comentarios a marcar como leídos.
-   */
-  async function markCommentsAsRead(ids) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/comentarios/marcar-leido`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ comentarioIds: ids }),
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: "Error desconocido" }));
-        throw new Error(`Error HTTP! Estado: ${response.status}. Detalles: ${errorData.error}`);
-      }
-
-      const result = await response.json();
-      console.log("Respuesta de marcar como leído:", result.message);
-
-    } catch (error) {
-      console.error("Error al marcar comentarios como leídos en el backend:", error);
-    }
-  }
-  // Este código debe estar FUERA del DOMContentLoaded para que escuche los clics en todo momento
-
-
-
-
-  // 6) Configurar logout (Mantenida de tu código)
-  function configurarLogout() {
-    const btn = document.getElementById('logoutButton');
-    if (!btn) {
-      console.warn('El botón con ID "logoutButton" no fue encontrado en el DOM.');
-      return;
-    }
-    btn.addEventListener('click', async (event) => {
-      event.preventDefault(); 
-      try {
-        const response = await fetch('http://localhost:3001/logout', { 
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include'
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Respuesta del backend al logout:', data.message);
-          localStorage.removeItem('isLoggedIn'); 
-          window.location.href = '/'; 
-        } else {
-          const errorData = await response.json();
-          console.error('Error al cerrar sesión en el backend:', errorData.error || response.statusText);
-          mostrarToastError(`Error al cerrar sesión: ${errorData.error || response.statusText}`);
-        }
-      } catch (error) {
-        console.error('Error de red o del servidor al cerrar sesión:', error);
-        mostrarToastError('No se pudo conectar con el servidor para cerrar la sesión.');
-      }
-    });
-  }
-
-  // --- LAS SIGUIENTES FUNCIONES HAN SIDO ELIMINADAS/COMENTADAS ---
-  // Las funciones `abrirModalAsignacion`, `cargarSelect` y `configurarAsignacion`
-  // son para la gestión de usuarios (admin) y no son parte de la funcionalidad
-  // del menú de navegación de un estudiante. Para mantener el código limpio y
-  // enfocado al rol del archivo, se asume que esta lógica se encuentra
-  // en los archivos correspondientes al panel de administración.
-  // Si las necesitas en otro contexto, deberás gestionarlas allí.
-
-  // 7) Configurar offcanvas del perfil para manejar clics fuera del área
-  function configurarOffcanvasPerfil() {
-    const offcanvasPerfil = document.getElementById('offcanvasWithBothOptions');
-    if (!offcanvasPerfil) {
-      console.warn('El offcanvas del perfil no fue encontrado en el DOM.');
-      return;
-    }
-
-    // Event listener para detectar clics fuera del offcanvas
-    document.addEventListener('click', (event) => {
-      const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasPerfil);
-      
-      // Si el offcanvas está abierto
-      if (offcanvasInstance && offcanvasPerfil.classList.contains('show')) {
-        // Verificar si el clic fue fuera del offcanvas
-        if (!offcanvasPerfil.contains(event.target) && 
-            !event.target.closest('.Perfil-icons')) {
-          // Cerrar el offcanvas
-          offcanvasInstance.hide();
-        }
-      }
-    });
-
-    // Event listener para el evento 'hidden.bs.offcanvas' para limpiar cualquier estado residual
-    offcanvasPerfil.addEventListener('hidden.bs.offcanvas', () => {
-      // Asegurar que no haya backdrop residual
-      const backdrop = document.querySelector('.offcanvas-backdrop');
-      if (backdrop) {
-        backdrop.remove();
-      }
-    });
-  }
-
 </script>
 
 
