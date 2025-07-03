@@ -2,18 +2,33 @@
 @import './global.css';
 
 .bar-home-content {
+    position: fixed;
+    top: 4.5rem; /* Ajustado para coincidir con la altura del navbar */
+    left: 0;
+    width: 250px;
     display: flex;
-    padding: 1rem 0.5rem;
     flex-direction: column;
-    justify-content: space-between;
-    /* place-content: center; */
-    height: calc(100vh - 5rem);
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 1rem 0.5rem;
+    height: calc(100vh - 4.5rem);
     overflow-y: auto;
     font-family: var(--font-family-Paragraph);
+    background: #17021a; /* Color de fondo específico solicitado */
+    z-index: 1000; /* Asegurar que esté por encima del contenido */
+    transition: width 0.3s ease;
+}
+
+.section-bar-area-content {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .bar-home-content .close-sidebar {
-    margin: 0 1rem;
+    margin-top: auto;
+    margin-bottom: 0.5rem;
     cursor: pointer;
     display: flex;
     padding: 0.5rem;
@@ -205,7 +220,7 @@
     width: 70px !important;
     min-width: 70px !important;
     max-width: 70px !important;
-    transition: width 0.3s;
+    transition: width 0.3s ease;
     overflow-x: hidden;
 }
 
@@ -234,4 +249,35 @@
 
 .bar-home-content.minimized .close-sidebar > i {
     transform: rotate(180deg);
+}
+
+/* Estilos para el contenido principal para compensar la sidebar fija */
+.Layout-grid-area {
+    margin-left: 250px; /* Mismo ancho que la sidebar */
+    transition: margin-left 0.3s ease;
+}
+
+.Layout-grid-area.sidebar-minimized {
+    margin-left: 70px; /* Mismo ancho que la sidebar minimizada */
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+    .bar-home-content {
+        width: 200px;
+    }
+    
+    .bar-home-content.minimized {
+        width: 60px !important;
+        min-width: 60px !important;
+        max-width: 60px !important;
+    }
+    
+    .Layout-grid-area {
+        margin-left: 200px;
+    }
+    
+    .Layout-grid-area.sidebar-minimized {
+        margin-left: 60px;
+    }
 }

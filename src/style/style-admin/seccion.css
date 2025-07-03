@@ -170,3 +170,50 @@ body {
     color: var(--color-quaternary);
     box-shadow: var(--box-shadow-button1);
 }
+
+/* ===================== RESPONSIVIDAD Y GRID UNIFICADO ===================== */
+@media (max-width: 1200px) {
+  .data-content-section {
+    border-radius: 0;
+    padding: 1rem;
+  }
+  .search-content-data {
+    padding: 1rem;
+    border-radius: 0;
+  }
+}
+@media (max-width: 991.98px) {
+  .data-content-section {
+    border-radius: 0;
+    padding: 1rem;
+  }
+  .search-content-data {
+    width: calc(100% + 2rem);
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 1rem;
+    border-radius: 0;
+  }
+  .info-cards-section {
+    padding: 0 1rem 1rem 1rem;
+    gap: 1rem;
+  }
+}
+@media (max-width: 767.98px) {
+  .info-cards-section {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .card-item {
+    width: 100%;
+    min-width: unset;
+  }
+}
+@media (max-width: 575.98px) {
+  .welcome-search-data h2 {
+    font-size: 1.5rem;
+  }
+  .info-cards-section {
+    padding: 0 0.5rem 1rem 0.5rem;
+  }
+}

@@ -819,6 +819,28 @@ small.form-text {
     .modal-dialog.modal-fullscreen .modal-body {
         padding: 1.5rem; /* Ajustar padding para pantallas pequeñas */
     }
+    .bar-search {
+        padding: var(--spacing-8) var(--spacing-8);
+    }
+    .bar-search .bar-content {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    .bar-search__logo {
+        width: 20vw;
+        max-width: 120px;
+    }
+    .bar-search .bar-content .search {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    .icons-nav {
+        justify-content: flex-end;
+        max-width: 60vw;
+        margin-left: auto;
+        margin-right: 0;
+    }
 }
 
 /* Para pantallas más pequeñas que 768px (sm breakpoint de Bootstrap) */
@@ -846,6 +868,16 @@ small.form-text {
         width: 1.5rem;
         height: 1.5rem;
     }
+    .bar-search {
+        padding: var(--spacing-4) var(--spacing-4);
+    }
+    .bar-search__logo {
+        width: 30vw;
+        max-width: 80px;
+    }
+    .bar-search .bar-content .search {
+        font-size: 0.9rem;
+    }
 }
 
 /* Ajustes adicionales para móviles */
@@ -856,6 +888,45 @@ small.form-text {
     .modal-body .section-title {
         font-size: 1.2rem;
     }
+}
+
+/* ===================== AJUSTE DE ICONOS DE PERFIL Y CAMPANITA EN RESPONSIVE ===================== */
+@media (max-width: 700px) {
+  .icons-nav {
+    max-width: 80vw;
+    margin-left: auto;
+    margin-right: 0;
+  }
+}
+@media (max-width: 500px) {
+  .icons-nav {
+    max-width: 95vw;
+    margin-left: auto;
+    margin-right: 0;
+  }
+}
+@media (max-width: 400px) {
+  .icons-nav {
+    max-width: 99vw;
+    margin-left: auto;
+    margin-right: 0;
+  }
+}
+
+.icons-nav {
+  justify-content: flex-end;
+  margin-left: auto;
+  margin-right: 0;
+  max-width: 400px;
+}
+
+/* Evitar que los iconos pasen del centro en cualquier resolución */
+@media (min-width: 992px) {
+  .icons-nav {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: 0;
+  }
 }
 
 /* --- NUEVOS ESTILOS PARA LOS ICONOS/IMÁGENES DE PERFIL --- */

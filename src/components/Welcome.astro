@@ -1433,7 +1433,7 @@ import "../style/welcome.css";
         if (!validateTextOnly(regPrimerNombreInput, "Primer Nombre"))
           formularioValido = false;
         if (!validateTextOnly(regSegundoNombreInput, "Segundo Nombre"))
-          formularioValularioValido = false;
+          formularioValido = false;
         if (!validateTextOnly(regPrimerApellidoInput, "Primer Apellido"))
           formularioValido = false;
         if (!validateTextOnly(regSegundoApellidoInput, "Segundo Apellido"))
@@ -1639,6 +1639,21 @@ import "../style/welcome.css";
       //     logoutButton.addEventListener('click', handleLogout);
       // }
       // --- FIN DE INSTRUCCIONES PARA EL MANEJO DE CERRAR SESIÓN EN EL DASHBOARD ---\
+
+      // --- SOLUCIÓN: Limpiar backdrop y clase modal-open al cerrar los modales de recuperación ---
+      ["forgotPasswordModal", "verifyCodeModal"].forEach((modalId) => {
+        const modalEl = document.getElementById(modalId);
+        if (modalEl) {
+          modalEl.addEventListener("hidden.bs.modal", () => {
+            // Elimina cualquier backdrop persistente
+            document.querySelectorAll(".modal-backdrop").forEach((el) => el.remove());
+            // Elimina la clase modal-open del body si quedó pegada
+            document.body.classList.remove("modal-open");
+            // Restaura el scroll si quedó bloqueado
+            document.body.style.overflow = "";
+          });
+        }
+      });
     </script>
   </body>
 </html>
