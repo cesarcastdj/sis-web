@@ -34,13 +34,7 @@ router.post('/login', async (req, res) => {
   
         const currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
   
-        const insertLogin = new Promise((resolve, reject) => {
-          db.query('INSERT INTO login (id_usuario, fecha_hora) VALUES (?, ?)', [user.id_usuario, currentDateTime], (err) => {
-            if (err) reject(err);
-            else resolve();
-          });
-        });
-  
+      
         const updateLastConnection = new Promise((resolve, reject) => {
           db.query('UPDATE usuarios SET ultima_conexion = ? WHERE id_usuario = ?', [currentDateTime, user.id_usuario], (err) => {
             if (err) reject(err);
@@ -48,7 +42,7 @@ router.post('/login', async (req, res) => {
           });
         });
   
-        await Promise.all([insertLogin, updateLastConnection]);
+        await Promise.all([updateLastConnection]);
   
         req.session.usuario = {
           id: user.id_usuario,
