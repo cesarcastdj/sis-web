@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-06-2025 a las 18:56:20
+-- Tiempo de generación: 03-07-2025 a las 14:37:06
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -33,6 +33,7 @@ CREATE TABLE `actividades` (
   `descripcion` text DEFAULT NULL,
   `fecha_creacion` date NOT NULL,
   `id_materia` int(11) NOT NULL,
+  `id_periodo` int(11) NOT NULL,
   `ponderacion` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
@@ -40,25 +41,10 @@ CREATE TABLE `actividades` (
 -- Volcado de datos para la tabla `actividades`
 --
 
-INSERT INTO `actividades` (`id_actividad`, `nombre_actividad`, `descripcion`, `fecha_creacion`, `id_materia`, `ponderacion`) VALUES
-(1, 'Waos', 'increible bro', '2025-06-06', 2, 20),
-(2, 'll', 'll', '2025-06-05', 14, 20),
-(3, 'ddd', 'dasd', '2025-06-11', 16, 15),
-(4, 'ddd', 'ff', '2025-06-26', 16, 12),
-(5, 'ddddd', 'ff', '2025-06-10', 16, 14);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `bitacora`
---
-
-CREATE TABLE `bitacora` (
-  `id_accion` int(11) NOT NULL,
-  `accion_realizada` text NOT NULL,
-  `fecha_hora` datetime NOT NULL,
-  `id_estudiante` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+INSERT INTO `actividades` (`id_actividad`, `nombre_actividad`, `descripcion`, `fecha_creacion`, `id_materia`, `id_periodo`, `ponderacion`) VALUES
+(1, 'Examen de Álgebra', 'Primer examen parcial', '2025-07-01', 1, 1, 30),
+(2, 'Práctica de Laboratorio', 'Experimentos químicos básicos', '2025-07-02', 4, 1, 25),
+(3, 'Ensayo Histórico', 'Análisis de la Edad Antigua', '2025-07-03', 5, 1, 20);
 
 -- --------------------------------------------------------
 
@@ -580,25 +566,57 @@ INSERT INTO `ciudades` (`id_ciudad`, `id_estado`, `ciudad`, `capital`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `codigos_recuperacion`
+--
+
+CREATE TABLE `codigos_recuperacion` (
+  `id` int(11) NOT NULL,
+  `correo` varchar(255) NOT NULL,
+  `codigo` varchar(10) NOT NULL,
+  `expiracion` datetime NOT NULL,
+  `usado` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `codigos_recuperacion`
+--
+
+INSERT INTO `codigos_recuperacion` (`id`, `correo`, `codigo`, `expiracion`, `usado`, `created_at`) VALUES
+(1, 'andislopez123@gmail.com', '277284', '2025-06-26 12:14:15', 1, '2025-06-26 15:59:15'),
+(2, 'andislopez123@gmail.com', '120920', '2025-06-26 12:14:38', 1, '2025-06-26 15:59:38'),
+(3, 'andislopez123@gmail.com', '796844', '2025-06-26 12:15:57', 1, '2025-06-26 16:00:57'),
+(4, 'andislopez123@gmail.com', '994203', '2025-06-26 12:21:59', 1, '2025-06-26 16:06:59'),
+(5, 'andislopez123@gmail.com', '367974', '2025-06-26 12:24:55', 1, '2025-06-26 16:09:55'),
+(6, 'andislopez123@gmail.com', '356264', '2025-06-26 12:27:19', 1, '2025-06-26 16:12:19'),
+(7, 'andislopez123@gmail.com', '451748', '2025-06-26 12:28:15', 1, '2025-06-26 16:13:15'),
+(8, 'andislopez123@gmail.com', '789233', '2025-06-26 12:30:27', 1, '2025-06-26 16:15:27'),
+(9, 'andislopez123@gmail.com', '346317', '2025-06-26 12:32:42', 1, '2025-06-26 16:17:42');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `comentarios`
 --
 
 CREATE TABLE `comentarios` (
   `id_comentario` int(11) NOT NULL,
   `id_estudiante` int(11) NOT NULL,
+  `id_usuario` int(11) NOT NULL,
   `mensaje` text NOT NULL,
-  `fecha_hora` datetime NOT NULL
+  `fecha_hora` datetime NOT NULL,
+  `id_actividad` int(11) NOT NULL,
+  `leido_por_estudiante` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
 -- Volcado de datos para la tabla `comentarios`
 --
 
-INSERT INTO `comentarios` (`id_comentario`, `id_estudiante`, `mensaje`, `fecha_hora`) VALUES
-(1, 1, 'dww', '2025-06-16 11:04:37'),
-(2, 1, 'dww', '2025-06-16 11:07:50'),
-(3, 1, 'ññ', '2025-06-16 11:11:20'),
-(5, 1, 'dd', '2025-06-16 11:17:55');
+INSERT INTO `comentarios` (`id_comentario`, `id_estudiante`, `id_usuario`, `mensaje`, `fecha_hora`, `id_actividad`, `leido_por_estudiante`) VALUES
+(1, 1, 4, 'Excelente desempeño en el examen', '2025-07-01 10:30:00', 1, 1),
+(2, 2, 4, 'Debes repasar los ejercicios 5 y 6', '2025-07-01 11:15:00', 1, 0),
+(3, 3, 5, 'Muy buena práctica de laboratorio', '2025-07-02 09:45:00', 2, 1);
 
 -- --------------------------------------------------------
 
@@ -617,17 +635,9 @@ CREATE TABLE `cursos` (
 --
 
 INSERT INTO `cursos` (`id_curso`, `curso`, `activo`) VALUES
-(1, 'Matemática', 1),
+(1, 'Matemáticas Básicas', 1),
 (2, 'Ciencias Naturales', 1),
-(3, 'Ciencias Naturales', 1),
-(4, 'Historia Universal', 1),
-(5, 'Lenguaje y Literatura', 1),
-(6, 'cursito', 1),
-(7, 'cursito1', 1),
-(8, 'yeah', 1),
-(9, 'yeah1', 1),
-(10, 'ws', 1),
-(11, 'rn', 1);
+(3, 'Historia Universal', 1);
 
 -- --------------------------------------------------------
 
@@ -643,16 +653,6 @@ CREATE TABLE `cursos_materias` (
   `id_periodo` int(11) NOT NULL,
   `id_nota` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Volcado de datos para la tabla `cursos_materias`
---
-
-INSERT INTO `cursos_materias` (`id_curso_materia`, `id_estudiante`, `id_curso`, `id_materia`, `id_periodo`, `id_nota`) VALUES
-(1, 1, 1, 4, 3, 1),
-(2, 18, 3, 4, 2, 2),
-(3, 18, 2, 4, 2, 3),
-(4, 18, 1, 5, 5, 4);
 
 -- --------------------------------------------------------
 
@@ -671,16 +671,9 @@ CREATE TABLE `cursos_periodo` (
 --
 
 INSERT INTO `cursos_periodo` (`id_curso_periodo`, `id_curso`, `id_periodo`) VALUES
-(1, 6, 2),
-(2, 7, 3),
-(3, 8, 1),
-(4, 9, 1),
-(5, 10, 5),
-(6, 11, 3),
-(7, 1, 5),
-(8, 2, 6),
-(9, 3, 4),
-(10, 4, 5);
+(1, 1, 1),
+(2, 2, 1),
+(3, 3, 1);
 
 -- --------------------------------------------------------
 
@@ -699,7 +692,9 @@ CREATE TABLE `cursos_seccion` (
 --
 
 INSERT INTO `cursos_seccion` (`id_cursos_seccion`, `id_curso`, `id_seccion`) VALUES
-(1, 1, 1);
+(1, 1, 1),
+(2, 2, 1),
+(3, 3, 1);
 
 -- --------------------------------------------------------
 
@@ -719,29 +714,9 @@ CREATE TABLE `direccion` (
 --
 
 INSERT INTO `direccion` (`id_direccion`, `direccion`, `id_ciudad`, `id_estado`) VALUES
-(1, 'oo', 4, 12),
-(2, 'g', 212, 12),
-(3, 'g', 212, 12),
-(4, 'g', 212, 12),
-(5, '123', 227, 12),
-(6, '123', 227, 12),
-(7, '123', 248, 13),
-(8, 'g', 277, 14),
-(9, 'g', 277, 14),
-(10, 'g', 277, 14),
-(11, 'g', 225, 12),
-(12, '123gg12', 55, 4),
-(13, 'ggbb', 224, 12),
-(14, 'oog', 1, 1),
-(15, 'oogg', 1, 1),
-(16, 'oogF', 1, 1),
-(17, 'oogFgvvg', 1, 1),
-(18, '0', 278, 14),
-(19, 'g', 247, 13),
-(20, 'g', 247, 13),
-(21, '2', 226, 12),
-(22, 'gg', 225, 12),
-(23, 'gg', 279, 14);
+(1, 'Calle Principal 123', 212, 12),
+(2, 'Avenida Central 456', 149, 24),
+(3, 'Boulevard Escolar 789', 225, 12);
 
 -- --------------------------------------------------------
 
@@ -784,8 +759,7 @@ INSERT INTO `estados` (`id_estado`, `estados`, `iso-3166-2`) VALUES
 (22, 'Yaracuy', 'VE-U'),
 (23, 'Zulia', 'VE-V'),
 (24, 'Distrito Capital', 'VE-A'),
-(25, 'Dependencias Federales', 'VE-Z'),
-(26, 'Distrito Capital', 'DC');
+(25, 'Dependencias Federales', 'VE-Z');
 
 -- --------------------------------------------------------
 
@@ -804,148 +778,51 @@ CREATE TABLE `estudiantes` (
 
 INSERT INTO `estudiantes` (`id_estudiante`, `id_usuario`) VALUES
 (1, 1),
-(3, 11),
-(12, 12),
-(19, 12),
-(2, 13),
-(13, 13),
-(18, 18);
+(2, 2),
+(3, 3);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `login`
+-- Estructura de tabla para la tabla `historial_acciones`
 --
 
-CREATE TABLE `login` (
-  `id_login` int(11) NOT NULL,
+CREATE TABLE `historial_acciones` (
+  `id_historial` int(11) NOT NULL,
   `id_usuario` int(11) NOT NULL,
-  `fecha_hora` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+  `accion` varchar(255) NOT NULL,
+  `tabla_afectada` varchar(50) DEFAULT NULL,
+  `id_registro_afectado` int(11) DEFAULT NULL,
+  `datos_anteriores` text DEFAULT NULL,
+  `datos_nuevos` text DEFAULT NULL,
+  `fecha_hora` datetime NOT NULL,
+  `ip` varchar(45) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `login`
+-- Volcado de datos para la tabla `historial_acciones`
 --
 
-INSERT INTO `login` (`id_login`, `id_usuario`, `fecha_hora`) VALUES
-(1, 8, '2025-06-06 22:57:40'),
-(2, 8, '2025-06-06 22:59:17'),
-(3, 8, '2025-06-06 23:03:19'),
-(4, 8, '2025-06-06 23:05:05'),
-(5, 8, '2025-06-06 23:09:28'),
-(6, 8, '2025-06-06 23:10:42'),
-(7, 8, '2025-06-06 23:16:53'),
-(8, 8, '2025-06-06 23:21:18'),
-(9, 8, '2025-06-06 23:21:44'),
-(10, 9, '2025-06-06 23:25:41'),
-(11, 9, '2025-06-07 00:28:27'),
-(12, 9, '2025-06-07 00:36:24'),
-(13, 9, '2025-06-07 01:08:01'),
-(14, 9, '2025-06-07 01:08:49'),
-(15, 9, '2025-06-07 01:16:51'),
-(16, 9, '2025-06-07 01:44:51'),
-(17, 9, '2025-06-07 03:05:19'),
-(18, 9, '2025-06-07 14:54:41'),
-(19, 9, '2025-06-07 16:02:22'),
-(20, 9, '2025-06-07 16:07:03'),
-(21, 9, '2025-06-07 17:52:53'),
-(22, 9, '2025-06-07 19:32:45'),
-(23, 9, '2025-06-07 20:02:00'),
-(24, 9, '2025-06-08 00:40:35'),
-(25, 9, '2025-06-08 00:44:57'),
-(26, 9, '2025-06-08 14:07:48'),
-(27, 9, '2025-06-08 14:17:32'),
-(28, 9, '2025-06-08 15:24:18'),
-(29, 9, '2025-06-08 18:31:38'),
-(30, 9, '2025-06-08 20:03:42'),
-(31, 9, '2025-06-08 20:13:19'),
-(32, 9, '2025-06-08 21:51:09'),
-(33, 9, '2025-06-08 22:35:01'),
-(34, 9, '2025-06-08 22:59:22'),
-(35, 9, '2025-06-08 23:18:10'),
-(36, 9, '2025-06-09 01:13:30'),
-(37, 9, '2025-06-09 02:46:45'),
-(38, 9, '2025-06-09 11:42:15'),
-(39, 9, '2025-06-09 12:01:13'),
-(40, 9, '2025-06-09 12:30:42'),
-(41, 9, '2025-06-09 13:58:42'),
-(42, 9, '2025-06-09 14:44:43'),
-(43, 9, '2025-06-09 16:39:55'),
-(44, 9, '2025-06-10 00:27:23'),
-(45, 9, '2025-06-10 00:41:11'),
-(46, 9, '2025-06-10 01:28:22'),
-(47, 9, '2025-06-10 01:36:16'),
-(48, 9, '2025-06-10 01:41:30'),
-(49, 9, '2025-06-10 01:45:31'),
-(50, 9, '2025-06-10 01:46:49'),
-(51, 9, '2025-06-10 03:18:04'),
-(52, 9, '2025-06-10 12:12:06'),
-(53, 9, '2025-06-10 13:47:36'),
-(54, 9, '2025-06-10 15:31:04'),
-(55, 9, '2025-06-10 15:48:36'),
-(56, 9, '2025-06-10 16:02:31'),
-(57, 9, '2025-06-10 18:45:18'),
-(58, 9, '2025-06-10 18:47:02'),
-(59, 9, '2025-06-10 19:15:39'),
-(60, 9, '2025-06-10 20:22:36'),
-(61, 9, '2025-06-10 21:17:27'),
-(62, 9, '2025-06-10 21:51:55'),
-(63, 9, '2025-06-10 22:26:56'),
-(64, 9, '2025-06-11 00:55:57'),
-(65, 9, '2025-06-11 01:54:11'),
-(66, 9, '2025-06-11 20:10:56'),
-(67, 9, '2025-06-11 21:23:40'),
-(68, 9, '2025-06-11 22:09:24'),
-(69, 9, '2025-06-11 22:29:58'),
-(70, 9, '2025-06-12 00:02:29'),
-(71, 18, '2025-06-12 01:13:41'),
-(72, 9, '2025-06-12 01:33:05'),
-(73, 18, '2025-06-12 01:33:16'),
-(74, 18, '2025-06-12 01:55:13'),
-(75, 18, '2025-06-12 01:58:17'),
-(76, 18, '2025-06-12 02:05:13'),
-(77, 18, '2025-06-12 02:10:41'),
-(78, 18, '2025-06-12 02:16:37'),
-(79, 18, '2025-06-12 02:17:41'),
-(80, 8, '2025-06-14 17:50:37'),
-(81, 9, '2025-06-14 17:50:46'),
-(82, 9, '2025-06-14 19:16:30'),
-(83, 9, '2025-06-14 20:57:33'),
-(84, 9, '2025-06-14 21:28:26'),
-(85, 9, '2025-06-14 23:33:36'),
-(86, 9, '2025-06-15 00:01:30'),
-(87, 9, '2025-06-15 00:10:02'),
-(88, 9, '2025-06-15 00:50:44'),
-(89, 9, '2025-06-15 01:00:50'),
-(90, 9, '2025-06-15 01:06:34'),
-(91, 9, '2025-06-15 02:03:53'),
-(92, 9, '2025-06-15 21:37:48'),
-(93, 9, '2025-06-15 23:14:29'),
-(94, 9, '2025-06-16 00:47:18'),
-(95, 19, '2025-06-16 14:29:29'),
-(96, 9, '2025-06-16 14:29:37'),
-(97, 9, '2025-06-16 15:26:25'),
-(98, 9, '2025-06-16 15:50:10'),
-(99, 9, '2025-06-16 18:37:08'),
-(100, 9, '2025-06-16 19:18:19'),
-(101, 9, '2025-06-17 00:57:43'),
-(102, 9, '2025-06-17 02:01:31'),
-(103, 15, '2025-06-17 02:16:46'),
-(104, 15, '2025-06-17 02:33:56'),
-(105, 15, '2025-06-17 02:49:29'),
-(106, 15, '2025-06-17 02:53:39'),
-(107, 15, '2025-06-17 02:58:37'),
-(108, 15, '2025-06-17 02:59:18'),
-(109, 15, '2025-06-17 03:00:32'),
-(110, 15, '2025-06-17 03:01:47'),
-(111, 15, '2025-06-17 03:02:39'),
-(112, 15, '2025-06-17 03:02:57'),
-(113, 15, '2025-06-17 03:03:10'),
-(114, 15, '2025-06-17 03:03:51'),
-(115, 15, '2025-06-17 03:05:27'),
-(116, 9, '2025-06-17 14:00:52'),
-(117, 9, '2025-06-17 14:23:42'),
-(118, 9, '2025-06-17 14:29:42');
+INSERT INTO `historial_acciones` (`id_historial`, `id_usuario`, `accion`, `tabla_afectada`, `id_registro_afectado`, `datos_anteriores`, `datos_nuevos`, `fecha_hora`, `ip`) VALUES
+(1, 21, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 02:51:47', '::1'),
+(2, 21, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 02:54:16', '::1'),
+(3, 21, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 03:00:23', '::1'),
+(4, 21, 'Logout', NULL, NULL, NULL, NULL, '2025-07-03 03:17:05', '::1'),
+(5, 21, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 03:17:15', '::1'),
+(6, 21, 'Logout', NULL, NULL, NULL, NULL, '2025-07-03 03:17:24', '::1'),
+(7, 31, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 03:17:54', '::1'),
+(8, 31, 'Logout', NULL, NULL, NULL, NULL, '2025-07-03 03:20:00', '::1'),
+(9, 32, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 03:21:05', '::1'),
+(10, 21, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 03:36:26', '::1'),
+(11, 21, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 04:08:01', '::1'),
+(12, 21, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 04:17:47', '::1'),
+(13, 21, 'Logout', NULL, NULL, NULL, NULL, '2025-07-03 04:18:28', '::1'),
+(14, 31, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 12:11:53', '::1'),
+(15, 31, 'Logout', NULL, NULL, NULL, NULL, '2025-07-03 12:12:28', '::1'),
+(16, 21, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 12:12:33', '::1'),
+(17, 21, 'Logout', NULL, NULL, NULL, NULL, '2025-07-03 12:12:59', '::1'),
+(18, 21, 'Login exitoso', NULL, NULL, NULL, NULL, '2025-07-03 12:25:44', '::1'),
+(19, 21, 'Logout', NULL, NULL, NULL, NULL, '2025-07-03 12:26:50', '::1');
 
 -- --------------------------------------------------------
 
@@ -965,21 +842,11 @@ CREATE TABLE `materias` (
 --
 
 INSERT INTO `materias` (`id_materia`, `id_curso`, `materia`, `activo`) VALUES
-(2, 1, 'Álgebra', 1),
-(3, 1, 'Geometría', 1),
-(4, 1, 'Cálculo I', 1),
-(5, 2, 'Biología', 1),
-(6, 2, 'Química', 1),
-(7, 2, 'Física', 1),
-(8, 3, 'Historia Antigua', 1),
-(9, 3, 'Historia Medieval', 1),
-(10, 3, 'Historia Contemporánea', 1),
-(11, 4, 'Gramática', 1),
-(12, 4, 'Ortografía', 1),
-(13, 4, 'Literatura Universal', 1),
-(14, 7, 'roma', 1),
-(15, 8, 'das', 1),
-(16, 7, 'ff', 1);
+(1, 1, 'Álgebra', 1),
+(2, 1, 'Geometría', 1),
+(3, 2, 'Biología', 1),
+(4, 2, 'Química', 1),
+(5, 3, 'Historia Antigua', 1);
 
 -- --------------------------------------------------------
 
@@ -998,9 +865,11 @@ CREATE TABLE `materias_periodo` (
 --
 
 INSERT INTO `materias_periodo` (`id_materia_periodo`, `id_materia`, `id_periodo`) VALUES
-(1, 15, 1),
-(2, 14, 3),
-(3, 16, 3);
+(1, 1, 1),
+(2, 2, 1),
+(3, 3, 1),
+(4, 4, 1),
+(5, 5, 1);
 
 -- --------------------------------------------------------
 
@@ -1019,66 +888,11 @@ CREATE TABLE `materias_seccion` (
 --
 
 INSERT INTO `materias_seccion` (`id_cursos_materias`, `id_materia`, `id_seccion`) VALUES
-(1, 16, 1);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `matricula`
---
-
-CREATE TABLE `matricula` (
-  `id_matricula` int(11) NOT NULL,
-  `id_estudiante` int(11) NOT NULL,
-  `id_periodo` int(11) NOT NULL,
-  `id_seccion` int(11) NOT NULL,
-  `estado` tinyint(1) DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Volcado de datos para la tabla `matricula`
---
-
-INSERT INTO `matricula` (`id_matricula`, `id_estudiante`, `id_periodo`, `id_seccion`, `estado`) VALUES
-(1, 1, 1, 1, 1);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `matricula_curso`
---
-
-CREATE TABLE `matricula_curso` (
-  `id_matricula` int(11) NOT NULL,
-  `id_matricula_curso` int(11) NOT NULL,
-  `id_curso` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Volcado de datos para la tabla `matricula_curso`
---
-
-INSERT INTO `matricula_curso` (`id_matricula`, `id_matricula_curso`, `id_curso`) VALUES
-(1, 1, 1);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `matricula_materias`
---
-
-CREATE TABLE `matricula_materias` (
-  `id_matricula_cursos` int(11) NOT NULL,
-  `id_materia` int(11) NOT NULL,
-  `id_matricula` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Volcado de datos para la tabla `matricula_materias`
---
-
-INSERT INTO `matricula_materias` (`id_matricula_cursos`, `id_materia`, `id_matricula`) VALUES
-(1, 4, 1);
+(1, 1, 1),
+(2, 2, 1),
+(3, 3, 1),
+(4, 4, 1),
+(5, 5, 1);
 
 -- --------------------------------------------------------
 
@@ -1112,7 +926,7 @@ CREATE TABLE `notas` (
   `id_actividad` int(11) NOT NULL,
   `id_estudiante` int(11) NOT NULL,
   `nota` decimal(5,2) NOT NULL,
-  `fecha_registro` date DEFAULT NULL
+  `fecha_registro` date DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
@@ -1120,14 +934,9 @@ CREATE TABLE `notas` (
 --
 
 INSERT INTO `notas` (`id_nota`, `id_actividad`, `id_estudiante`, `nota`, `fecha_registro`) VALUES
-(1, 1, 1, 20.00, NULL),
-(2, 1, 3, 15.00, '2025-06-04'),
-(3, 1, 18, 15.00, '2025-06-11'),
-(4, 1, 18, 5.00, '2025-06-10'),
-(5, 2, 18, 15.00, '2025-06-14'),
-(6, 4, 1, 15.00, NULL),
-(11, 4, 12, 14.00, NULL),
-(12, 4, 13, 12.00, NULL);
+(1, 1, 1, 18.50, '2025-07-01'),
+(2, 1, 2, 15.75, '2025-07-01'),
+(3, 2, 3, 20.00, '2025-07-02');
 
 -- --------------------------------------------------------
 
@@ -1143,21 +952,6 @@ CREATE TABLE `notificaciones` (
   `mensaje` varchar(255) NOT NULL DEFAULT 'Usuario por confirmación',
   `fecha` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Volcado de datos para la tabla `notificaciones`
---
-
-INSERT INTO `notificaciones` (`id_notificacion`, `id_usuario`, `id_admin`, `estado`, `mensaje`, `fecha`) VALUES
-(2, 10, 1, 'procesado', 'Usuario por confirmación', '2025-06-07 00:52:18'),
-(3, 11, 1, 'procesado', 'Usuario por confirmación', '2025-06-08 00:45:28'),
-(4, 13, 1, 'procesado', 'Usuario por confirmación', '2025-06-08 00:45:06'),
-(5, 14, 1, 'procesado', 'Usuario por confirmación', '2025-06-10 01:37:02'),
-(6, 15, 1, 'procesado', 'Usuario por confirmación', '2025-06-10 01:42:43'),
-(7, 16, 1, 'procesado', 'Usuario por confirmación', '2025-06-10 01:45:42'),
-(8, 17, 1, 'procesado', 'Usuario por confirmación', '2025-06-10 19:15:52'),
-(9, 18, 1, 'procesado', 'Usuario por confirmación', '2025-06-11 21:26:31'),
-(10, 19, 1, 'procesado', 'Usuario por confirmación', '2025-06-17 14:29:56');
 
 -- --------------------------------------------------------
 
@@ -1177,12 +971,7 @@ CREATE TABLE `periodo` (
 --
 
 INSERT INTO `periodo` (`id_periodo`, `periodo`, `fechaInicio`, `fechaFinal`) VALUES
-(1, '2024 - 2025', '2024-09-01', '2025-07-15'),
-(2, '2023 - 2024', '2023-09-01', '2024-07-15'),
-(3, '2022 - 2023', '2022-09-01', '2023-07-15'),
-(4, '2024-2025', '2025-06-04', '2025-06-26'),
-(5, '2022-2028', '2025-06-03', '2025-06-27'),
-(6, '2022-2027', '2025-06-02', '2025-06-25');
+(1, '2024-2025', '2024-09-01', '2025-07-15');
 
 -- --------------------------------------------------------
 
@@ -1200,8 +989,8 @@ CREATE TABLE `profesores` (
 --
 
 INSERT INTO `profesores` (`id_profesor`, `id_usuario`) VALUES
-(17, 17),
-(19, 19);
+(1, 4),
+(2, 5);
 
 -- --------------------------------------------------------
 
@@ -1220,19 +1009,8 @@ CREATE TABLE `seccion` (
 --
 
 INSERT INTO `seccion` (`id_seccion`, `seccion`, `estado`) VALUES
-(1, 'Primer Grado', 1);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `sessions`
---
-
-CREATE TABLE `sessions` (
-  `session_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
-  `expires` int(11) UNSIGNED NOT NULL,
-  `data` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+(1, 'Primer Grado', 1),
+(2, 'Segundo Grado', 1);
 
 -- --------------------------------------------------------
 
@@ -1254,29 +1032,20 @@ CREATE TABLE `usuarios` (
   `contraseña` varchar(60) DEFAULT NULL,
   `rol` enum('admin','estudiante','profesor','pendiente') NOT NULL,
   `estado` tinyint(1) DEFAULT 1,
-  `ultima_conexion` datetime DEFAULT NULL
+  `ultima_conexion` datetime DEFAULT NULL,
+  `profile_icon_class` varchar(50) DEFAULT 'bx bx-user-circle'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id_usuario`, `id_nivel`, `id_direccion`, `cedula`, `primer_nombre`, `segundo_nombre`, `primer_apellido`, `segundo_apellido`, `telefono`, `correo`, `contraseña`, `rol`, `estado`, `ultima_conexion`) VALUES
-(1, 1, 17, '1234', 'asddf', 'qqwgh', 'cf', '1', '0412-1234567', '1@gol.com', '1', 'estudiante', 1, '2025-06-06 18:08:07'),
-(6, 4, 6, '245652', 'sadasd', 'yy', 'sad', 'sw', '0412-1234567', 'ad@c.com', NULL, 'pendiente', 1, NULL),
-(7, 4, 7, '12345789', 'sadasd', 'yy', 'sad', 'sw', '0412-1234567', 'ad@c.com', NULL, 'pendiente', 1, NULL),
-(8, 4, 8, '245657', 'sadasd', 'yy', 'd', 'sw', '0412-1234567', 'adm@gol.com', '$2b$10$b83IfLy3Rcu.ommMdO8VVOrIGVKHs9cgLgMfhxOvXDdjq/.oxh.qq', 'pendiente', 1, '2025-06-14 17:50:37'),
-(9, 2, 6, '123456789', 'lol', 'lol', 'lol', 'lol', '0412-1234567', 'admin@gol.com', '$2b$10$Q5MJY2KY/zpVZhOotsxu..8nPsqXztZuijTqb3SGVSGgb8TJEA4.e', 'admin', 1, '2025-06-17 14:29:42'),
-(10, 2, 10, '1234578', 'qww', 'yy', 'sad', 'sw', '0412-4565454', 'ad@gl.com', '$2b$10$NaKd.ifu0i4.xTtn1w5v6uqUAr3Y4jOr06IsZEi6NZmlvxdBH77iG', 'profesor', 1, NULL),
-(11, 1, 11, '1230785', 'qww', 'yy', 'sad', 'sw', '0412-1234567', 'ad@g.com', '$2b$10$PMpTs.g8HNedR/ceFqQyCe9qHAPCtaiius9vhPufaIc07/P2VBqDO', 'estudiante', 1, NULL),
-(12, 1, 12, '45654221', 'sad', 'qwef', 'gg', 'nn', '0422-1234567', 'asd@go.com', NULL, 'estudiante', 1, NULL),
-(13, 1, 13, '123475', 'gg', 'ggg', 'gg', 'gg', '0412-1234567', 'lol@lol.com', '$2b$10$hZwkptOyaa26g/mLSZOkBe15zmwLalOhSka/Ln0abQjrjEXBcbEX.', 'estudiante', 1, NULL),
-(14, 3, 18, '123445', 'qww', 'wos', 'fgas', 'des', '0412-4532131', 'a@pr.com', '$2b$10$wKCIqjkT58YmD/E6w7QI5urZsxQPZSQgESuSh5cA1ZIiMlBjYpxX6', 'profesor', 1, NULL),
-(15, 3, 19, '45645654', 'sa', 'g', 'fb', 'n', '0414-4554254', 'wow@pr.com', '$2b$10$06KiPvjr.G27frDwsMDtte4nWRVAEmi6Sc8Zp5TL5Fw2WKYhqHc.u', 'profesor', 1, '2025-06-17 03:05:27'),
-(16, 3, 20, '45654545', '12', '123', 'fff', '45', '0412-4565454', '213@go.com', '$2b$10$wLq0RnEV.2mH.RIredTJb.ot0y3VZoXi0boKmkIgJBnlrCCWNXxe6', 'profesor', 1, NULL),
-(17, 3, 21, '23456464', '123', '45', 'kkk', 'ddsa', '0412-4564554', 'f@gm.com', '$2b$10$goLVsCFbNm81Klg4YQt5VuXsWfoFK7.GF2dfJH98jiGDaDx2CguqW', 'profesor', 1, NULL),
-(18, 1, 22, '234234', 'gg', 'gg', 'gg', 'gg', '0412-1234567', 'gg@gg.gg', '$2b$10$OOfknBGkYbNN9pHbQmreOOdNT/YpVIu2/v5NWwT3.USrsoUb07Ckm', 'estudiante', 1, '2025-06-12 02:17:41'),
-(19, 3, 23, '2456522', 'ggg', 'dss', 'ff', 'ggg', '0412-1234567', 'son@gol.com', '$2b$10$yHEW7ucvUM0R.v4du4LB4.7gdPwbXlzaqIlgNy8wAJFcUuXtTem/K', 'profesor', 1, '2025-06-16 14:29:29');
+INSERT INTO `usuarios` (`id_usuario`, `id_nivel`, `id_direccion`, `cedula`, `primer_nombre`, `segundo_nombre`, `primer_apellido`, `segundo_apellido`, `telefono`, `correo`, `contraseña`, `rol`, `estado`, `ultima_conexion`, `profile_icon_class`) VALUES
+(1, 1, 1, '27564321', 'Ana', 'María', 'Gómez', 'Pérez', '0412-1112233', 'ana@escuela.com', '$2b$10$abc123', 'estudiante', 1, NULL, 'bx bx-user-circle'),
+(2, 1, 2, '28564322', 'Carlos', 'Andrés', 'López', 'García', '0414-2223344', 'carlos@escuela.com', '$2b$10$def456', 'estudiante', 1, NULL, 'bx bx-user-circle'),
+(3, 1, 3, '29564323', 'María', 'Fernanda', 'Martínez', 'Rodríguez', '0424-3334455', 'maria@escuela.com', '$2b$10$ghi789', 'estudiante', 1, NULL, 'bx bx-user-circle'),
+(4, 3, 1, '12345678', 'Juan', 'Pablo', 'González', 'Sánchez', '0416-4445566', 'juan@profesor.com', '$2b$10$jkl012', 'profesor', 1, NULL, 'bx bx-user-circle'),
+(5, 3, 2, '23456789', 'Laura', 'Isabel', 'Hernández', 'Díaz', '0426-5556677', 'laura@profesor.com', '$2b$10$mno345', 'profesor', 1, NULL, 'bx bx-user-circle');
 
 -- --------------------------------------------------------
 
@@ -1286,16 +1055,18 @@ INSERT INTO `usuarios` (`id_usuario`, `id_nivel`, `id_direccion`, `cedula`, `pri
 
 CREATE TABLE `usuario_administradores` (
   `id_admin` int(11) NOT NULL,
-  `id_usuario` int(11) NOT NULL,
-  `id_nivel` int(11) NOT NULL
+  `id_usuario` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
 -- Volcado de datos para la tabla `usuario_administradores`
 --
 
-INSERT INTO `usuario_administradores` (`id_admin`, `id_usuario`, `id_nivel`) VALUES
-(1, 9, 2);
+INSERT INTO `usuario_administradores` (`id_admin`, `id_usuario`) VALUES
+(1, 9),
+(20, 20),
+(21, 24),
+(22, 28);
 
 -- --------------------------------------------------------
 
@@ -1315,17 +1086,9 @@ CREATE TABLE `usuario_cursos` (
 --
 
 INSERT INTO `usuario_cursos` (`id_usuario_cursos`, `id_usuario`, `id_curso`, `fecha_inscripcion`) VALUES
-(2, 10, 1, '2025-06-07 00:52:18'),
-(5, 11, 2, '2025-06-08 00:45:28'),
-(20, 13, 3, '2025-06-14 23:08:54'),
-(22, 12, 3, '2025-06-14 22:28:33'),
-(37, 14, 2, '2025-06-14 23:33:02'),
-(38, 15, 1, '2025-06-14 23:40:18'),
-(39, 16, 3, '2025-06-10 05:45:42'),
-(40, 17, 2, '2025-06-10 23:15:52'),
-(41, 18, 3, '2025-06-14 22:57:12'),
-(42, 1, 2, '2025-06-14 22:21:59'),
-(43, 19, 7, '2025-06-17 18:29:56');
+(1, 1, 1, '2025-07-03 12:35:08'),
+(2, 2, 1, '2025-07-03 12:35:08'),
+(3, 3, 2, '2025-07-03 12:35:08');
 
 -- --------------------------------------------------------
 
@@ -1337,38 +1100,9 @@ CREATE TABLE `usuario_materias` (
   `id_usuario_materias` int(11) NOT NULL,
   `id_usuario` int(11) NOT NULL,
   `id_materia` int(11) NOT NULL,
+  `id_periodo` int(11) NOT NULL,
   `fecha_inscripcion` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-
---
--- Volcado de datos para la tabla `usuario_materias`
---
-
-INSERT INTO `usuario_materias` (`id_usuario_materias`, `id_usuario`, `id_materia`, `fecha_inscripcion`) VALUES
-(2, 10, 3, '2025-06-07 00:52:18'),
-(5, 11, 6, '2025-06-08 00:45:28'),
-(7, 13, 9, '2025-06-14 19:08:54'),
-(9, 12, 9, '2025-06-14 18:28:33'),
-(24, 1, 6, '2025-06-14 18:21:59'),
-(25, 14, 6, '2025-06-14 19:38:47'),
-(26, 15, 3, '2025-06-14 19:40:18'),
-(27, 16, 9, '2025-06-14 19:40:00'),
-(28, 17, 6, '2025-06-10 19:15:52'),
-(29, 18, 9, '2025-06-14 18:57:12'),
-(30, 1, 14, '2025-06-15 02:16:42'),
-(31, 13, 14, '2025-06-15 02:16:42'),
-(32, 18, 14, '2025-06-15 02:16:42'),
-(33, 16, 14, '2025-06-15 02:16:42'),
-(34, 12, 14, '2025-06-15 02:17:05'),
-(35, 1, 16, '2025-06-15 23:15:36'),
-(36, 12, 16, '2025-06-15 23:15:36'),
-(37, 13, 16, '2025-06-15 23:15:36'),
-(38, 15, 16, '2025-06-15 23:15:36'),
-(39, 1, 15, '2025-06-15 23:21:14'),
-(40, 13, 15, '2025-06-15 23:21:14'),
-(41, 18, 15, '2025-06-15 23:21:14'),
-(42, 14, 15, '2025-06-15 23:21:14'),
-(43, 19, 16, '2025-06-17 14:29:56');
 
 -- --------------------------------------------------------
 
@@ -1388,14 +1122,9 @@ CREATE TABLE `usuario_periodo` (
 --
 
 INSERT INTO `usuario_periodo` (`id_usuario_periodo`, `id_usuario`, `id_periodo`, `fecha_inscripcion`) VALUES
-(2, 11, 3, '0000-00-00'),
-(4, 13, 5, '2025-06-08'),
-(6, 12, 3, '2025-06-08'),
-(15, 1, 2, '2025-06-14'),
-(16, 18, 3, '2025-06-14'),
-(17, 14, 3, '2025-06-14'),
-(18, 16, 5, '2025-06-14'),
-(19, 15, 4, '2025-06-14');
+(1, 1, 1, '2025-07-03'),
+(2, 2, 1, '2025-07-03'),
+(3, 3, 1, '2025-07-03');
 
 -- --------------------------------------------------------
 
@@ -1414,18 +1143,9 @@ CREATE TABLE `usuario_seccion` (
 --
 
 INSERT INTO `usuario_seccion` (`id_usuario`, `id_usuario_seccion`, `id_seccion`) VALUES
-(10, 2, 1),
-(11, 5, 1),
-(13, 6, 1),
-(12, 8, 1),
-(14, 17, 1),
-(15, 18, 1),
-(15, 19, 1),
-(16, 20, 1),
-(17, 21, 1),
-(18, 22, 1),
-(1, 23, 1),
-(19, 24, 1);
+(1, 1, 1),
+(2, 2, 1),
+(3, 3, 1);
 
 --
 -- Índices para tablas volcadas
@@ -1436,14 +1156,8 @@ INSERT INTO `usuario_seccion` (`id_usuario`, `id_usuario_seccion`, `id_seccion`)
 --
 ALTER TABLE `actividades`
   ADD PRIMARY KEY (`id_actividad`),
-  ADD KEY `fk_actividades_materia` (`id_materia`);
-
---
--- Indices de la tabla `bitacora`
---
-ALTER TABLE `bitacora`
-  ADD PRIMARY KEY (`id_accion`),
-  ADD KEY `id_estudiante` (`id_estudiante`);
+  ADD KEY `fk_actividades_materia` (`id_materia`),
+  ADD KEY `id_periodo` (`id_periodo`);
 
 --
 -- Indices de la tabla `ciudades`
@@ -1453,11 +1167,20 @@ ALTER TABLE `ciudades`
   ADD KEY `id_estado` (`id_estado`);
 
 --
+-- Indices de la tabla `codigos_recuperacion`
+--
+ALTER TABLE `codigos_recuperacion`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `correo` (`correo`);
+
+--
 -- Indices de la tabla `comentarios`
 --
 ALTER TABLE `comentarios`
   ADD PRIMARY KEY (`id_comentario`),
-  ADD KEY `id_estudiante` (`id_estudiante`);
+  ADD KEY `id_estudiante` (`id_estudiante`),
+  ADD KEY `id_usuario` (`id_usuario`),
+  ADD KEY `id_actividad` (`id_actividad`);
 
 --
 -- Indices de la tabla `cursos`
@@ -1514,10 +1237,10 @@ ALTER TABLE `estudiantes`
   ADD KEY `id_usuario` (`id_usuario`);
 
 --
--- Indices de la tabla `login`
+-- Indices de la tabla `historial_acciones`
 --
-ALTER TABLE `login`
-  ADD PRIMARY KEY (`id_login`),
+ALTER TABLE `historial_acciones`
+  ADD PRIMARY KEY (`id_historial`),
   ADD KEY `id_usuario` (`id_usuario`);
 
 --
@@ -1542,31 +1265,6 @@ ALTER TABLE `materias_seccion`
   ADD PRIMARY KEY (`id_cursos_materias`),
   ADD KEY `id_materia` (`id_materia`),
   ADD KEY `id_seccion` (`id_seccion`);
-
---
--- Indices de la tabla `matricula`
---
-ALTER TABLE `matricula`
-  ADD PRIMARY KEY (`id_matricula`),
-  ADD KEY `id_estudiante` (`id_estudiante`),
-  ADD KEY `id_periodo` (`id_periodo`),
-  ADD KEY `id_seccion` (`id_seccion`);
-
---
--- Indices de la tabla `matricula_curso`
---
-ALTER TABLE `matricula_curso`
-  ADD PRIMARY KEY (`id_matricula_curso`),
-  ADD KEY `id_matricula` (`id_matricula`),
-  ADD KEY `id_curso` (`id_curso`);
-
---
--- Indices de la tabla `matricula_materias`
---
-ALTER TABLE `matricula_materias`
-  ADD PRIMARY KEY (`id_matricula_cursos`),
-  ADD KEY `id_materia` (`id_materia`),
-  ADD KEY `id_matricula` (`id_matricula`);
 
 --
 -- Indices de la tabla `nivel`
@@ -1622,8 +1320,7 @@ ALTER TABLE `usuarios`
 --
 ALTER TABLE `usuario_administradores`
   ADD PRIMARY KEY (`id_admin`),
-  ADD KEY `id_usuario` (`id_usuario`),
-  ADD KEY `id_nivel` (`id_nivel`);
+  ADD KEY `id_usuario` (`id_usuario`);
 
 --
 -- Indices de la tabla `usuario_cursos`
@@ -1639,7 +1336,8 @@ ALTER TABLE `usuario_cursos`
 ALTER TABLE `usuario_materias`
   ADD PRIMARY KEY (`id_usuario_materias`),
   ADD KEY `id_usuario` (`id_usuario`),
-  ADD KEY `id_materia` (`id_materia`);
+  ADD KEY `id_materia` (`id_materia`),
+  ADD KEY `id_periodo` (`id_periodo`);
 
 --
 -- Indices de la tabla `usuario_periodo`
@@ -1665,49 +1363,49 @@ ALTER TABLE `usuario_seccion`
 -- AUTO_INCREMENT de la tabla `actividades`
 --
 ALTER TABLE `actividades`
-  MODIFY `id_actividad` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_actividad` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT de la tabla `bitacora`
+-- AUTO_INCREMENT de la tabla `codigos_recuperacion`
 --
-ALTER TABLE `bitacora`
-  MODIFY `id_accion` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `codigos_recuperacion`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `comentarios`
 --
 ALTER TABLE `comentarios`
-  MODIFY `id_comentario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_comentario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `cursos`
 --
 ALTER TABLE `cursos`
-  MODIFY `id_curso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_curso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `cursos_materias`
 --
 ALTER TABLE `cursos_materias`
-  MODIFY `id_curso_materia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_curso_materia` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `cursos_periodo`
 --
 ALTER TABLE `cursos_periodo`
-  MODIFY `id_curso_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_curso_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `cursos_seccion`
 --
 ALTER TABLE `cursos_seccion`
-  MODIFY `id_cursos_seccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_cursos_seccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `direccion`
 --
 ALTER TABLE `direccion`
-  MODIFY `id_direccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id_direccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `estados`
@@ -1719,49 +1417,31 @@ ALTER TABLE `estados`
 -- AUTO_INCREMENT de la tabla `estudiantes`
 --
 ALTER TABLE `estudiantes`
-  MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id_estudiante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT de la tabla `login`
+-- AUTO_INCREMENT de la tabla `historial_acciones`
 --
-ALTER TABLE `login`
-  MODIFY `id_login` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
+ALTER TABLE `historial_acciones`
+  MODIFY `id_historial` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT de la tabla `materias`
 --
 ALTER TABLE `materias`
-  MODIFY `id_materia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id_materia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `materias_periodo`
 --
 ALTER TABLE `materias_periodo`
-  MODIFY `id_materia_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_materia_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `materias_seccion`
 --
 ALTER TABLE `materias_seccion`
-  MODIFY `id_cursos_materias` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT de la tabla `matricula`
---
-ALTER TABLE `matricula`
-  MODIFY `id_matricula` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT de la tabla `matricula_curso`
---
-ALTER TABLE `matricula_curso`
-  MODIFY `id_matricula_curso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT de la tabla `matricula_materias`
---
-ALTER TABLE `matricula_materias`
-  MODIFY `id_matricula_cursos` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_cursos_materias` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `nivel`
@@ -1773,67 +1453,67 @@ ALTER TABLE `nivel`
 -- AUTO_INCREMENT de la tabla `notas`
 --
 ALTER TABLE `notas`
-  MODIFY `id_nota` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_nota` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `notificaciones`
 --
 ALTER TABLE `notificaciones`
-  MODIFY `id_notificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_notificacion` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `periodo`
 --
 ALTER TABLE `periodo`
-  MODIFY `id_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `profesores`
 --
 ALTER TABLE `profesores`
-  MODIFY `id_profesor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id_profesor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `seccion`
 --
 ALTER TABLE `seccion`
-  MODIFY `id_seccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_seccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario_administradores`
 --
 ALTER TABLE `usuario_administradores`
-  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario_cursos`
 --
 ALTER TABLE `usuario_cursos`
-  MODIFY `id_usuario_cursos` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id_usuario_cursos` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario_materias`
 --
 ALTER TABLE `usuario_materias`
-  MODIFY `id_usuario_materias` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id_usuario_materias` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario_periodo`
 --
 ALTER TABLE `usuario_periodo`
-  MODIFY `id_usuario_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id_usuario_periodo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario_seccion`
 --
 ALTER TABLE `usuario_seccion`
-  MODIFY `id_usuario_seccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id_usuario_seccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Restricciones para tablas volcadas
@@ -1843,13 +1523,8 @@ ALTER TABLE `usuario_seccion`
 -- Filtros para la tabla `actividades`
 --
 ALTER TABLE `actividades`
+  ADD CONSTRAINT `actividades_ibfk_1` FOREIGN KEY (`id_periodo`) REFERENCES `periodo` (`id_periodo`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_actividades_materia` FOREIGN KEY (`id_materia`) REFERENCES `materias` (`id_materia`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `bitacora`
---
-ALTER TABLE `bitacora`
-  ADD CONSTRAINT `bitacora_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `ciudades`
@@ -1862,7 +1537,9 @@ ALTER TABLE `ciudades`
 --
 ALTER TABLE `comentarios`
   ADD CONSTRAINT `comentarios_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `usuarios` (`id_usuario`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `comentarios_ibfk_2` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `comentarios_ibfk_2` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `comentarios_ibfk_3` FOREIGN KEY (`id_actividad`) REFERENCES `actividades` (`id_actividad`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_comentarios_id_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `cursos_materias`
@@ -1902,10 +1579,10 @@ ALTER TABLE `estudiantes`
   ADD CONSTRAINT `estudiantes_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `login`
+-- Filtros para la tabla `historial_acciones`
 --
-ALTER TABLE `login`
-  ADD CONSTRAINT `login_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON UPDATE CASCADE;
+ALTER TABLE `historial_acciones`
+  ADD CONSTRAINT `historial_acciones_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`);
 
 --
 -- Filtros para la tabla `materias`
@@ -1928,28 +1605,6 @@ ALTER TABLE `materias_seccion`
   ADD CONSTRAINT `materias_seccion_ibfk_2` FOREIGN KEY (`id_seccion`) REFERENCES `seccion` (`id_seccion`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `matricula`
---
-ALTER TABLE `matricula`
-  ADD CONSTRAINT `matricula_ibfk_1` FOREIGN KEY (`id_estudiante`) REFERENCES `estudiantes` (`id_estudiante`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `matricula_ibfk_2` FOREIGN KEY (`id_periodo`) REFERENCES `periodo` (`id_periodo`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `matricula_ibfk_3` FOREIGN KEY (`id_seccion`) REFERENCES `seccion` (`id_seccion`) ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `matricula_curso`
---
-ALTER TABLE `matricula_curso`
-  ADD CONSTRAINT `matricula_curso_ibfk_1` FOREIGN KEY (`id_matricula`) REFERENCES `matricula` (`id_matricula`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `matricula_curso_ibfk_2` FOREIGN KEY (`id_curso`) REFERENCES `cursos` (`id_curso`) ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `matricula_materias`
---
-ALTER TABLE `matricula_materias`
-  ADD CONSTRAINT `matricula_materias_ibfk_1` FOREIGN KEY (`id_materia`) REFERENCES `materias` (`id_materia`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `matricula_materias_ibfk_2` FOREIGN KEY (`id_matricula`) REFERENCES `matricula` (`id_matricula`) ON UPDATE CASCADE;
-
---
 -- Filtros para la tabla `notas`
 --
 ALTER TABLE `notas`
@@ -1960,8 +1615,7 @@ ALTER TABLE `notas`
 -- Filtros para la tabla `notificaciones`
 --
 ALTER TABLE `notificaciones`
-  ADD CONSTRAINT `notificaciones_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `notificaciones_ibfk_2` FOREIGN KEY (`id_admin`) REFERENCES `usuario_administradores` (`id_admin`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `notificaciones_ibfk_1` FOREIGN KEY (`id_admin`) REFERENCES `usuario_administradores` (`id_admin`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `usuarios`
@@ -1974,36 +1628,36 @@ ALTER TABLE `usuarios`
 -- Filtros para la tabla `usuario_administradores`
 --
 ALTER TABLE `usuario_administradores`
-  ADD CONSTRAINT `usuario_administradores_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `usuario_administradores_ibfk_2` FOREIGN KEY (`id_nivel`) REFERENCES `nivel` (`id_nivel`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `usuario_administradores_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `usuario_cursos`
 --
 ALTER TABLE `usuario_cursos`
-  ADD CONSTRAINT `usuario_cursos_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `usuario_cursos_ibfk_2` FOREIGN KEY (`id_curso`) REFERENCES `cursos` (`id_curso`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `usuario_cursos_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `usuario_cursos_ibfk_2` FOREIGN KEY (`id_curso`) REFERENCES `cursos` (`id_curso`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `usuario_materias`
 --
 ALTER TABLE `usuario_materias`
-  ADD CONSTRAINT `usuario_materias_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `usuario_materias_ibfk_2` FOREIGN KEY (`id_materia`) REFERENCES `materias` (`id_materia`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `usuario_materias_ibfk_1` FOREIGN KEY (`id_periodo`) REFERENCES `periodo` (`id_periodo`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `usuario_materias_ibfk_2` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `usuario_materias_ibfk_3` FOREIGN KEY (`id_materia`) REFERENCES `materias` (`id_materia`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `usuario_periodo`
 --
 ALTER TABLE `usuario_periodo`
-  ADD CONSTRAINT `usuario_periodo_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `usuario_periodo_ibfk_2` FOREIGN KEY (`id_periodo`) REFERENCES `periodo` (`id_periodo`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `usuario_periodo_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `usuario_periodo_ibfk_2` FOREIGN KEY (`id_periodo`) REFERENCES `periodo` (`id_periodo`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `usuario_seccion`
 --
 ALTER TABLE `usuario_seccion`
-  ADD CONSTRAINT `usuario_seccion_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `usuario_seccion_ibfk_2` FOREIGN KEY (`id_seccion`) REFERENCES `seccion` (`id_seccion`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `usuario_seccion_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `usuario_seccion_ibfk_2` FOREIGN KEY (`id_seccion`) REFERENCES `seccion` (`id_seccion`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
