@@ -272,7 +272,7 @@ router.post('/secciones-academicas', registrarAccion('Creación de sección', 's
 // Actualizar una sección existente
 router.put('/secciones-academicas/:id', registrarAccion('Actualizacion datos seccion', 'seccion'), /*isAuthenticated,*/ async (req, res) => {
     const { id } = req.params;
-    const { nombreSeccion, descripcion } = req.body;
+    const { nombreSeccion } = req.body;
 
     if (!nombreSeccion) {
         return res.status(400).json({ error: 'El nombre de la sección es obligatorio.' });
@@ -292,10 +292,10 @@ router.put('/secciones-academicas/:id', registrarAccion('Actualizacion datos sec
         // Actualizar la sección
         const updateQuery = `
             UPDATE seccion 
-            SET seccion = ?, descripcion = ?
+            SET seccion = ?
             WHERE id_seccion = ?;
         `;
-        const [result] = await db.promise().query(updateQuery, [nombreSeccion, descripcion || '', id]);
+        const [result] = await db.promise().query(updateQuery, [nombreSeccion, id]);
 
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: 'Sección no encontrada.' });

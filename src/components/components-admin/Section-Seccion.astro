@@ -151,10 +151,7 @@ import "../../style/style-admin/secciones.css";
               <input type="text" class="form-control" id="editNombreSeccion" required />
               <div class="invalid-feedback"></div>
             </div>
-            <div class="col-md-6 mb-3">
-              <label for="editDescripcionSeccion" class="form-label">Descripción</label>
-              <input type="text" class="form-control" id="editDescripcionSeccion" />
-            </div>
+            
           </div>
 
           <div class="d-flex justify-content-between mt-4">
@@ -207,9 +204,7 @@ import "../../style/style-admin/secciones.css";
 
     // Cargar datos cuando se abra el modal de agregar
     modalAgregarSeccion._element.addEventListener('shown.bs.modal', async function() {
-      console.log("DEBUG: Modal de agregar sección abierto. Cargando dropdowns...");
-      await cargarCursos();
-      await cargarEstudiantes();
+      // await cargarCursos(); // Elimina o comenta esta línea si no existe la función
     });
 
     // Función para cargar cursos
@@ -254,6 +249,12 @@ import "../../style/style-admin/secciones.css";
         
         setTimeout(() => {
           modalAgregarSeccion.hide();
+          // Limpieza manual de backdrop y modal-open
+          setTimeout(() => {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+          }, 400);
           loadSecciones(currentPage);
         }, 1500);
 
@@ -287,7 +288,7 @@ import "../../style/style-admin/secciones.css";
       try {
         const formData = {
           nombreSeccion: editNombreSeccion.value.trim(),
-          descripcion: editDescripcionSeccion.value.trim()
+         
         };
 
         const response = await fetch(`http://localhost:3001/api/secciones-academicas/${id_seccion}`, {
@@ -534,7 +535,7 @@ import "../../style/style-admin/secciones.css";
 
       editIdSeccion.value = seccion.id_seccion;
       editNombreSeccion.value = seccion.seccion || '';
-      editDescripcionSeccion.value = seccion.descripcion || '';
+      
 
       modalEditarSeccion.show();
     }

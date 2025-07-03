@@ -5,13 +5,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:astro\" \"npm run dev:server\"",
     "dev:astro": "astro dev",
-    "dev:server": "node server/server.js",
-    "build": "npm run build:astro && npm run build:server",
-    "build:astro": "astro build",
-    "build:server": "echo 'No build step required for server'",
-    "preview": "npm run preview:astro && npm run preview:server",
-    "preview:astro": "astro preview",
-    "preview:server": "node server/server.js"
+    "dev:server": "node server/server.js"
   },
   "dependencies": {
     "@astrojs/react": "^4.2.7",
@@ -29,7 +23,6 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.14.1",
     "node": "^22.16.0",
-    "nodemailer": "^7.0.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

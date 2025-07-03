@@ -144,46 +144,66 @@
     color: var(--color-warning); /* Naranja/Amarillo para "nuevo" */
   }
 
-  /* Responsive adjustments (adaptados de aj-s.txt) */
+  /* ===================== RESPONSIVIDAD Y GRID UNIFICADO ===================== */
+  @media (max-width: 1200px) {
+    .data-content-section {
+      border-radius: 0;
+      padding: 1rem;
+    }
+    .comentarios-header-card {
+      padding: var(--spacing-16) var(--spacing-24);
+      margin-bottom: var(--spacing-16);
+      border-radius: 0;
+    }
+  }
   @media (max-width: 991.98px) {
-      .data-content-section {
-          margin-right: 0;
-          border-radius: 0;
-          padding: 1rem;
-      }
-      .comentarios-header-card { /* Ajustes para que cubra todo el ancho en pantallas pequeñas */
-          width: calc(100% + (1rem * 2)); /* Ajusta para padding de 1rem en el padre */
-          margin-left: -1rem;
-          margin-right: -1rem;
-          padding: var(--spacing-16) var(--spacing-24);
-          margin-bottom: var(--spacing-16);
-          border-radius: 0; /* Eliminar border-radius en móviles para ocupar todo el ancho */
-      }
-      .comentarios-header-card .welcome-search-data__title {
-          font-size: 2rem;
-      }
-      .display-table {
-          padding: 0 1rem; /* Ajustar padding */
-      }
-      .table-dark thead th, .table-dark tbody td {
-          font-size: 0.75rem;
-          padding: 0.6rem;
-      }
+    .data-content-section {
+      border-radius: 0;
+      padding: 1rem;
+    }
+    .comentarios-header-card {
+      width: calc(100% + 2rem);
+      margin-left: -1rem;
+      margin-right: -1rem;
+      padding: var(--spacing-16) var(--spacing-24);
+      margin-bottom: var(--spacing-16);
+      border-radius: 0;
+    }
+    .display-table {
+      padding: 0 1rem;
+    }
+    .table-dark thead th, .table-dark tbody td {
+      font-size: 0.85rem;
+      padding: 0.6rem;
+    }
   }
-
   @media (max-width: 767.98px) {
-      .comentarios-header-card .welcome-search-data {
-          flex-direction: column; /* Apilar título y botón en pantallas pequeñas */
-          text-align: center;
-      }
-      .comentarios-header-card .btn-outline-secondary {
-          margin-left: 0 !important; /* Anular ms-auto en móviles */
-          margin-top: 1rem; /* Espacio superior */
-      }
+    .comentarios-header-card .welcome-search-data {
+      flex-direction: column;
+      text-align: center;
+    }
+    .comentarios-header-card .btn-outline-secondary {
+      margin-left: 0 !important;
+      margin-top: 1rem;
+    }
+  }
+  @media (max-width: 575.98px) {
+    .comentarios-header-card .welcome-search-data__title {
+      font-size: 1.5rem;
+    }
+    .display-table {
+      padding: 0 0.5rem;
+    }
   }
 
-  @media (max-width: 575.98px) {
-      .comentarios-header-card .welcome-search-data__title {
-          font-size: 1.5rem;
-      }
+  /* ===================== TABLAS STICKY Y SCROLL HORIZONTAL ===================== */
+  .display-table, .tabla-info-person {
+    overflow-x: auto;
+    box-sizing: border-box;
+  }
+  .table-dark thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--color-primary);
   }

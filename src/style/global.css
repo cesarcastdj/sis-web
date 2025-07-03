@@ -97,3 +97,47 @@ body::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-secondary);
     /* Cambia el color al pasar el mouse */
 }
+
+/* Sticky header para todas las tablas del sistema */
+table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #a321bd; /* O el color de fondo de tu header */
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.table-dark thead th {
+  background: #a321bd;
+  color: #fff;
+}
+
+/* Fix para input-group de contraseña con botón ojito */
+.input-group {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+.input-group .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.input-group .btn.toggle-password {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 0 12px;
+}
+.input-group .btn.toggle-password i {
+  font-size: 1.2rem;
+}
+
+/* Asegura que el input y el botón estén en la misma línea y no se rompa el layout */
+.input-group > .form-control,
+.input-group > .btn {
+  height: 48px;
+}

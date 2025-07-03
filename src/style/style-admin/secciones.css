@@ -198,15 +198,15 @@ body {
     padding: 0 24px;
     margin-top: 1.5rem;
     margin-bottom: 24px;
-    max-height: calc(100vh - 400px);
-    overflow-y: auto;
-    border-radius: var(--border-radius-16);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
 }
 
 .tabla-info-person {
     width: 100%;
     overflow-x: auto;
+    box-sizing: border-box;
 }
 
 .table-dark {
@@ -564,21 +564,23 @@ body {
     .data-content-section {
         margin-right: 0;
         border-radius: 0;
-        padding: 1rem;
+        padding: 0.5rem;
     }
     .secciones-header-card {
-        width: calc(100% + (1rem * 2));
-        margin-left: -1rem;
-        margin-right: -1rem;
-        padding: var(--spacing-16) var(--spacing-24);
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        padding: var(--spacing-16) var(--spacing-12);
         margin-bottom: var(--spacing-16);
     }
     .secciones-header-card .welcome-search-data__title {
         font-size: 2rem;
     }
     .consolidated-sections-card {
-        padding: 1rem 1.5rem;
+        padding: 1rem 0.5rem;
         width: 100%;
+        min-width: 0;
+        max-width: 100%;
     }
     .sections-summary-grid {
         flex-direction: column;
@@ -606,6 +608,9 @@ body {
     }
     .dropdown-item {
         font-size: 0.8rem;
+    }
+    .display-table, .tabla-info-person {
+        padding: 0;
     }
 }
 
